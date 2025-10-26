@@ -29,7 +29,7 @@ const user = ref({
   maxPoints: 100,
   pointsToNextLevel: 45,
   nextLevelPrice: 21,
-  registrationDate: '14.10.2025',
+  registrationDate: '14 октября 2022',
   stats: {
     testsStarted: 3212,
     testsCompleted: 2734,
