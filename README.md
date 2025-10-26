@@ -9,7 +9,6 @@
 [![Vue.js](https://img.shields.io/badge/Vue.js-3.x-4FC08D?style=flat-square&logo=vue.js&logoColor=white)](https://vuejs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178C6?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![Vite](https://img.shields.io/badge/Vite-5.x-646CFF?style=flat-square&logo=vite&logoColor=white)](https://vitejs.dev/)
-[![License](https://img.shields.io/badge/license-MIT-green?style=flat-square)](LICENSE)
 
 [Демо](https://sakhatype.vercel.app) • [API](https://github.com/sakhatype/sakhatype-backend)
 
@@ -45,37 +44,40 @@
 
 ### Установка
 
-1. **Клонируйте репозиторий**
+## 1. Клонируйте репозиторий
 
-   ```bash
-   git clone https://github.com/sakhatype/sakhatype-frontend.git
-   cd sakhatype-frontend
-   ```
+```bash
+git clone https://github.com/sakhatype/sakhatype-frontend.git
+cd sakhatype-frontend
+```
 
-2. **Установите зависимости**
+## 2. Установите зависимости
 
-   ```bash
-   yarn install
-   ```
+```bash
+yarn install
+```
 
-3. **Настройте переменные окружения**
+## 3. Настройте переменные окружения
 
-   Отредактируйте `.env`:
+Создайте или отредактируйте файл `.env` в корне проекта:
 
-   ```env
-  API_URL=http://localhost:8000
-   ```
+```env
+API_URL=http://localhost:8000
+```
 
-4. **Запустите dev-сервер**
+## 4. Запустите dev-сервер
 
-   ```bash
-  yarn dev
-   ```
+```bash
+yarn dev
+```
 
-5. **Откройте браузер**
-   ```
-   http://localhost:5173
-   ```
+## 5. Откройте проект в браузере
+
+Перейдите по адресу:
+
+```
+http://localhost:5173
+```
 
 ---
 
