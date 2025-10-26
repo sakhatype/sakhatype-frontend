@@ -97,8 +97,8 @@ http://localhost:5173
 ### UI/UX
 
 - **Tailwind CSS** — CSS фреймворк
-- **shadcn-vue.com** — UI компоненты
-- **Lucide** — Иконки
+- **shadcn-vue** — UI компоненты
+- **Lucide** — иконки
 - **Chart.js** — визуализация статистики и прогресса
 
 ### Утилиты
