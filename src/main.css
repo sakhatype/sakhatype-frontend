@@ -124,7 +124,7 @@
 
 @font-face {
     font-family: 'Benzin';
-    src: url('fonts/Benzin-Bold.woff2') format('woff2');
+    src: url('./fonts/Benzin-Bold.woff2') format('woff2');
     font-weight: 700;
     font-style: normal;
     font-display: swap;
@@ -132,7 +132,7 @@
 
 @font-face {
     font-family: 'Benzin-Regular';
-    src: url('fonts/Benzin-Regular.woff2') format('woff2');
+    src: url('./fonts/Benzin-Regular.woff2') format('woff2');
     font-weight: 700;
     font-style: normal;
     font-display: swap;
@@ -140,7 +140,7 @@
 
 @font-face {
     font-family: 'GolosText-Regular';
-    src: url('fonts/GolosText-Regular.woff2') format('woff2');
+    src: url('./fonts/GolosText-Regular.woff2') format('woff2');
     font-weight: 700;
     font-style: normal;
     font-display: swap;
