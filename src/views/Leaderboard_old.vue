@@ -59,7 +59,7 @@ const getRankBadgeColor = (index: number) => {
 
     <!-- Loading state -->
     <div v-if="isLoading" class="container mx-auto px-4 py-12 text-center">
-      <p :class="['text-lg', isDark ? 'text-neutral-400' : 'text-neutral-600']">Күүтүү...</p>
+      <p :class="['text-lg', isDark ? 'text-neutral-400' : 'text-neutral-600']">Загрузка...</p>
     </div>
 
     <!-- Leaderboard Content -->

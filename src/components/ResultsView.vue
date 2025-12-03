@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, watch, nextTick, onMounted } from 'vue'
+import { ref, computed, watch, nextTick, onMounted, onUnmounted } from 'vue'
 import { useTheme } from '@/composables/useTheme'
 import { RotateCcw, Zap, Target, Gauge, AlertTriangle } from 'lucide-vue-next'
 import { Card, CardContent } from '@/shared/ui/card'
@@ -28,6 +28,12 @@ const { isDark } = useTheme()
 const chartKey = ref(0)
 const chartReady = ref(false)
 
+// Анимация графика
+const animationProgress = ref(0)
+const animationDuration = 1500 // ms
+let animationFrame: number | null = null
+let animationStartTime: number | null = null
+
 // Tooltip данные
 const tooltipData = ref<{
   visible: boolean
@@ -49,27 +55,32 @@ const tooltipData = ref<{
   errors: 0
 })
 
-// Подсчёт ошибок по секундам
+// Индекс текущей точки для hover эффектов
+const hoveredIndex = ref<number | null>(null)
+
+// Подсчёт ошибок по секундам (как в старом файле - ошибки только там где они есть)
 const errorsPerSecond = computed(() => {
   const errors: Record<number, number> = {}
   if (props.errorTimestamps) {
     props.errorTimestamps.forEach(sec => {
-      errors[sec] = (errors[sec] || 0) + 1
+      // sec - это секунда когда была ошибка (0-based из store)
+      // Преобразуем в 1-based для отображения
+      const second = sec + 1
+      errors[second] = (errors[second] || 0) + 1
     })
   }
   return errors
 })
 
-// Кумулятивные ошибки
-const cumulativeErrors = computed(() => {
-  const result: number[] = []
-  let total = 0
-  const len = props.wpmHistory?.length || 0
-  for (let i = 0; i < len; i++) {
-    total += errorsPerSecond.value[i + 1] || 0
-    result.push(total)
-  }
-  return result
+// Точки ошибок - только там где реально были ошибки (как в старом файле)
+const errorPoints = computed(() => {
+  if (!props.wpmHistory || props.wpmHistory.length === 0) return []
+  
+  return props.wpmHistory.map((_, index) => {
+    const second = index + 1
+    const errorsAtThisSecond = errorsPerSecond.value[second] || 0
+    return errorsAtThisSecond > 0 ? errorsAtThisSecond : null
+  })
 })
 
 // Данные для графика
@@ -83,8 +94,7 @@ const chartData = computed(() => {
     wpm: wpm || 0,
     raw: props.rawHistory?.[index] || 0,
     burst: props.burstHistory?.[index] || 0,
-    errors: cumulativeErrors.value[index] || 0,
-    hasError: (errorsPerSecond.value[index + 1] || 0) > 0
+    errors: errorPoints.value[index]
   }))
 })
 
@@ -103,21 +113,22 @@ const maxWpmValue = computed(() => {
 })
 
 const maxErrorsValue = computed(() => {
-  if (cumulativeErrors.value.length === 0) return 10
-  const max = Math.max(...cumulativeErrors.value, 1)
-  return Math.ceil(max * 1.2)
+  const errors = errorPoints.value.filter(e => e !== null) as number[]
+  if (errors.length === 0) return 5
+  return Math.max(...errors, 1) + 2
 })
 
 // Цвета
 const colors = computed(() => ({
-  wpm: isDark.value ? 'rgba(156, 163, 175, 0.8)' : 'rgba(107, 114, 128, 0.8)',
-  wpmFill: isDark.value ? 'rgba(156, 163, 175, 0.2)' : 'rgba(107, 114, 128, 0.2)',
-  raw: isDark.value ? 'rgba(107, 114, 128, 0.6)' : 'rgba(156, 163, 175, 0.6)',
-  burst: 'rgba(34, 211, 238, 0.5)',
-  burstFill: 'rgba(34, 211, 238, 0.1)',
-  errors: '#ef4444',
-  grid: isDark.value ? '#374151' : '#e5e7eb',
-  text: isDark.value ? '#9ca3af' : '#6b7280',
+  wpm: isDark.value ? 'rgba(156, 163, 175, 0.9)' : 'rgba(0, 0, 0, 0.8)',
+  wpmFill: isDark.value ? 'rgba(156, 163, 175, 0.15)' : 'rgba(0, 0, 0, 0.1)',
+  raw: isDark.value ? 'rgba(107, 114, 128, 0.7)' : 'rgba(102, 102, 102, 0.8)',
+  rawFill: isDark.value ? 'rgba(107, 114, 128, 0.05)' : 'rgba(102, 102, 102, 0.05)',
+  burst: isDark.value ? 'rgba(132, 165, 169, 0.8)' : 'rgba(132, 165, 169, 0.9)',
+  burstFill: isDark.value ? 'rgba(132, 165, 169, 0.15)' : 'rgba(132, 165, 169, 0.15)',
+  errors: '#ff0000',
+  grid: isDark.value ? '#374151' : '#e0e0e0',
+  text: isDark.value ? '#9ca3af' : '#666666',
 }))
 
 // Функции для преобразования координат
@@ -132,6 +143,14 @@ const yScaleWpm = (value: number) => {
 
 const yScaleErrors = (value: number) => {
   return padding.top + chartHeight - (value / maxErrorsValue.value) * chartHeight
+}
+
+// Вычисляем длину пути для анимации
+const getPathLength = (pathData: string): number => {
+  if (!pathData) return 0
+  const path = document.createElementNS('http://www.w3.org/2000/svg', 'path')
+  path.setAttribute('d', pathData)
+  return path.getTotalLength()
 }
 
 // Генерация путей для линий
@@ -172,18 +191,17 @@ const burstAreaPath = computed(() => {
   return `${linePath} L ${xScale(chartData.value.length - 1)} ${padding.top + chartHeight} L ${padding.left} ${padding.top + chartHeight} Z`
 })
 
-// Точки ошибок
-const errorPoints = computed(() => {
+// Точки ошибок для отображения - только где есть ошибки
+const errorPointsForDisplay = computed(() => {
   return chartData.value
     .map((d, i) => ({
       x: xScale(i),
-      y: yScaleErrors(d.errors),
-      errors: errorsPerSecond.value[d.second] || 0,
-      cumulative: d.errors,
+      y: d.errors !== null ? yScaleErrors(d.errors) : 0,
+      errors: d.errors,
       second: d.second,
       index: i
     }))
-    .filter(p => p.errors > 0)
+    .filter(p => p.errors !== null && p.errors > 0)
 })
 
 // Оси Y
@@ -237,15 +255,16 @@ const handleMouseMove = (event: MouseEvent) => {
   if (index >= 0 && index < chartData.value.length) {
     const data = chartData.value[index]
     if (data) {
+      hoveredIndex.value = index
       tooltipData.value = {
         visible: true,
         x: xScale(index),
-        y: 80,
+        y: yScaleWpm(data.wpm),
         second: data.second,
         wpm: data.wpm,
         raw: data.raw,
         burst: data.burst,
-        errors: data.errors
+        errors: data.errors || 0
       }
     }
   }
@@ -253,6 +272,39 @@ const handleMouseMove = (event: MouseEvent) => {
 
 const handleMouseLeave = () => {
   tooltipData.value.visible = false
+  hoveredIndex.value = null
+}
+
+// Функция анимации
+const animate = (timestamp: number) => {
+  if (!animationStartTime) {
+    animationStartTime = timestamp
+  }
+  
+  const elapsed = timestamp - animationStartTime
+  const progress = Math.min(elapsed / animationDuration, 1)
+  
+  // Easing функция для плавности
+  animationProgress.value = easeOutCubic(progress)
+  
+  if (progress < 1) {
+    animationFrame = requestAnimationFrame(animate)
+  }
+}
+
+// Easing функция
+const easeOutCubic = (t: number): number => {
+  return 1 - Math.pow(1 - t, 3)
+}
+
+// Запуск анимации
+const startAnimation = () => {
+  animationProgress.value = 0
+  animationStartTime = null
+  if (animationFrame) {
+    cancelAnimationFrame(animationFrame)
+  }
+  animationFrame = requestAnimationFrame(animate)
 }
 
 // Следим за изменением данных и перерендериваем график
@@ -264,6 +316,7 @@ watch(
     chartKey.value++
     await nextTick()
     chartReady.value = true
+    startAnimation()
   },
   { deep: true }
 )
@@ -272,6 +325,13 @@ onMounted(async () => {
   await nextTick()
   chartKey.value++
   chartReady.value = true
+  startAnimation()
+})
+
+onUnmounted(() => {
+  if (animationFrame) {
+    cancelAnimationFrame(animationFrame)
+  }
 })
 
 const restart = () => {
@@ -290,7 +350,7 @@ const restart = () => {
             <Zap :size="18" class="text-yellow-500" />
             <span :class="['text-sm', isDark ? 'text-neutral-400' : 'text-neutral-600']">WPM</span>
           </div>
-          <div :class="['text-3xl font-bold', isDark ? 'text-white' : 'text-gray-900']">
+          <div :class="['text-3xl font-bold', isDark ? 'text-white' : 'text-neutral-900']">
             {{ stats.wpm }}
           </div>
         </CardContent>
@@ -303,7 +363,7 @@ const restart = () => {
             <Target :size="18" class="text-green-500" />
             <span :class="['text-sm', isDark ? 'text-neutral-400' : 'text-neutral-600']">Точность</span>
           </div>
-          <div :class="['text-3xl font-bold', isDark ? 'text-white' : 'text-gray-900']">
+          <div :class="['text-3xl font-bold', isDark ? 'text-white' : 'text-neutral-900']">
             {{ stats.accuracy }}%
           </div>
         </CardContent>
@@ -316,7 +376,7 @@ const restart = () => {
             <Gauge :size="18" class="text-blue-500" />
             <span :class="['text-sm', isDark ? 'text-neutral-400' : 'text-neutral-600']">Raw</span>
           </div>
-          <div :class="['text-3xl font-bold', isDark ? 'text-white' : 'text-gray-900']">
+          <div :class="['text-3xl font-bold', isDark ? 'text-white' : 'text-neutral-900']">
             {{ stats.rawWpm }}
           </div>
         </CardContent>
@@ -329,7 +389,7 @@ const restart = () => {
             <AlertTriangle :size="18" class="text-red-500" />
             <span :class="['text-sm', isDark ? 'text-neutral-400' : 'text-neutral-600']">Ошибки</span>
           </div>
-          <div :class="['text-3xl font-bold', isDark ? 'text-white' : 'text-gray-900']">
+          <div :class="['text-3xl font-bold', isDark ? 'text-white' : 'text-neutral-900']">
             {{ stats.totalErrors }}
           </div>
         </CardContent>
@@ -342,15 +402,15 @@ const restart = () => {
         <!-- Легенда -->
         <div class="flex flex-wrap items-center justify-center gap-6 mb-4">
           <div class="flex items-center gap-2">
-            <div class="w-6 h-3 bg-neutral-900 rounded opacity-50"></div>
+            <div :class="['w-6 h-3 rounded', isDark ? 'bg-neutral-400' : 'bg-black']" style="opacity: 0.8"></div>
             <span :class="['text-sm', isDark ? 'text-neutral-400' : 'text-neutral-600']">wpm</span>
           </div>
           <div class="flex items-center gap-2">
-            <div class="w-6 h-0.5 border-t-2 border-dashed border-gray-500"></div>
+            <div class="w-6 h-0.5 border-t-2 border-dashed border-neutral-500"></div>
             <span :class="['text-sm', isDark ? 'text-neutral-400' : 'text-neutral-600']">raw</span>
           </div>
           <div class="flex items-center gap-2">
-            <div class="w-6 h-3 bg-cyan-400 rounded opacity-30 border border-cyan-400"></div>
+            <div class="w-6 h-3 rounded" style="background-color: rgba(132, 165, 169, 0.8)"></div>
             <span :class="['text-sm', isDark ? 'text-neutral-400' : 'text-neutral-600']">burst</span>
           </div>
           <div class="flex items-center gap-2">
@@ -417,7 +477,7 @@ const restart = () => {
                 <text
                   :x="svgWidth - 15"
                   :y="svgHeight / 2"
-                  fill="#ef4444"
+                  fill="#ff0000"
                   font-size="11"
                   text-anchor="middle"
                   transform="rotate(90, 785, 150)"
@@ -429,7 +489,7 @@ const restart = () => {
                   :key="`yr-${tick}`"
                   :x="svgWidth - padding.right + 10"
                   :y="yScaleErrors(tick) + 4"
-                  fill="#ef4444"
+                  fill="#ff0000"
                   font-size="11"
                   text-anchor="start"
                 >
@@ -461,55 +521,75 @@ const restart = () => {
                 </text>
               </g>
 
-              <!-- WPM область (заливка) -->
+              <!-- WPM область (заливка) с анимацией -->
               <path
                 :d="wpmAreaPath"
                 :fill="colors.wpmFill"
+                class="chart-area"
+                :style="{ opacity: animationProgress * 0.8 }"
               />
 
-              <!-- WPM линия -->
+              <!-- WPM линия с анимацией -->
               <path
                 :d="wpmPath"
                 fill="none"
                 :stroke="colors.wpm"
                 stroke-width="2"
+                class="chart-line"
+                :stroke-dasharray="1000"
+                :stroke-dashoffset="1000 - (1000 * animationProgress)"
               />
 
-              <!-- Raw линия (пунктирная) -->
+              <!-- Raw линия (пунктирная) с анимацией -->
               <path
                 :d="rawPath"
                 fill="none"
                 :stroke="colors.raw"
                 stroke-width="2"
-                stroke-dasharray="5,5"
+                class="chart-line"
+                :stroke-dasharray="`5,5`"
+                :style="{ opacity: animationProgress }"
               />
 
-              <!-- Burst область (заливка) -->
-              <path
-                :d="burstAreaPath"
-                :fill="colors.burstFill"
-              />
-
-              <!-- Burst линия -->
+              <!-- Burst линия с анимацией -->
               <path
                 :d="burstPath"
                 fill="none"
                 :stroke="colors.burst"
-                stroke-width="1"
+                stroke-width="2"
+                class="chart-line"
+                :stroke-dasharray="1000"
+                :stroke-dashoffset="1000 - (1000 * animationProgress)"
               />
 
-              <!-- Точки ошибок -->
+              <!-- Точки ошибок - ТОЛЬКО там где есть ошибки -->
               <g class="error-points">
                 <circle
-                  v-for="(point, i) in errorPoints"
+                  v-for="(point, i) in errorPointsForDisplay"
                   :key="`err-${i}`"
                   :cx="point.x"
                   :cy="point.y"
-                  :r="Math.min(8, 4 + point.errors)"
+                  :r="Math.min(6, 3 + (point.errors || 0))"
                   :fill="colors.errors"
-                  opacity="0.8"
+                  class="error-point"
+                  :class="{ 'error-point-hovered': hoveredIndex === point.index }"
+                  :style="{ 
+                    opacity: animationProgress,
+                    transform: `scale(${animationProgress * (hoveredIndex === point.index ? 1.5 : 1)})`,
+                    transformOrigin: `${point.x}px ${point.y}px`
+                  }"
                 />
               </g>
+
+              <!-- Точка на линии WPM при hover -->
+              <circle
+                v-if="tooltipData.visible"
+                :cx="tooltipData.x"
+                :cy="tooltipData.y"
+                r="5"
+                :fill="colors.wpm"
+                class="hover-dot"
+              />
 
               <!-- Вертикальная линия при hover -->
               <line
@@ -524,36 +604,37 @@ const restart = () => {
               />
             </svg>
 
-            <!-- Tooltip -->
+            <!-- Tooltip с плавным перемещением -->
             <div
               v-if="tooltipData.visible"
               :class="[
-                'absolute pointer-events-none px-3 py-2 rounded-lg shadow-lg text-sm z-10 border',
-                isDark ? 'bg-gray-900 border-gray-700' : 'bg-white border-gray-200'
+                'absolute pointer-events-none px-3 py-2 rounded-lg shadow-lg text-sm z-10 border tooltip-smooth',
+                isDark ? 'bg-neutral-900 border-neutral-700' : 'bg-white border-neutral-200'
               ]"
               :style="{
-                left: `${Math.min((tooltipData.x / svgWidth) * 100, 80)}%`,
-                top: '60px'
+                left: `${(tooltipData.x / svgWidth) * 100}%`,
+                top: '20px',
+                transform: 'translateX(-50%)'
               }"
             >
-              <div :class="['font-bold mb-1', isDark ? 'text-white' : 'text-gray-900']">
+              <div :class="['font-bold mb-1', isDark ? 'text-white' : 'text-neutral-900']">
                 Секунда {{ tooltipData.second }}
               </div>
               <div class="flex items-center gap-2 mb-0.5">
-                <div class="w-3 h-3 bg-gray-500 rounded"></div>
-                <span :class="isDark ? 'text-gray-300' : 'text-gray-700'">wpm: {{ tooltipData.wpm }}</span>
+                <div :class="['w-3 h-3 rounded', isDark ? 'bg-neutral-400' : 'bg-black']"></div>
+                <span :class="isDark ? 'text-neutral-300' : 'text-neutral-700'">wpm: {{ tooltipData.wpm }}</span>
               </div>
               <div class="flex items-center gap-2 mb-0.5">
-                <div class="w-3 h-0.5 border-t-2 border-dashed border-gray-400"></div>
-                <span :class="isDark ? 'text-gray-300' : 'text-gray-700'">raw: {{ tooltipData.raw }}</span>
+                <div class="w-3 h-0.5 border-t-2 border-dashed border-neutral-400"></div>
+                <span :class="isDark ? 'text-neutral-300' : 'text-neutral-700'">raw: {{ tooltipData.raw }}</span>
               </div>
               <div class="flex items-center gap-2 mb-0.5">
-                <div class="w-3 h-3 bg-cyan-400 rounded opacity-50"></div>
-                <span :class="isDark ? 'text-gray-300' : 'text-gray-700'">burst: {{ tooltipData.burst }}</span>
+                <div class="w-3 h-3 rounded" style="background-color: rgba(132, 165, 169, 0.8)"></div>
+                <span :class="isDark ? 'text-neutral-300' : 'text-neutral-700'">burst: {{ tooltipData.burst }}</span>
               </div>
-              <div class="flex items-center gap-2">
+              <div v-if="tooltipData.errors > 0" class="flex items-center gap-2">
                 <div class="w-3 h-3 bg-red-500 rounded-full"></div>
-                <span :class="isDark ? 'text-gray-300' : 'text-gray-700'">Ошибки: {{ tooltipData.errors }}</span>
+                <span :class="isDark ? 'text-neutral-300' : 'text-neutral-700'">Ошибки: {{ tooltipData.errors }}</span>
               </div>
             </div>
           </template>
@@ -596,5 +677,29 @@ const restart = () => {
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+.chart-line {
+  transition: stroke-dashoffset 0.05s linear;
+}
+
+.chart-area {
+  transition: opacity 0.05s linear;
+}
+
+.error-point {
+  transition: transform 0.2s ease-out, opacity 0.3s ease-out;
+}
+
+.error-point-hovered {
+  filter: brightness(1.2);
+}
+
+.hover-dot {
+  transition: cx 0.15s ease-out, cy 0.15s ease-out;
+}
+
+.tooltip-smooth {
+  transition: left 0.15s ease-out, top 0.15s ease-out;
 }
 </style>
