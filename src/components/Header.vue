@@ -42,10 +42,10 @@ const handleLogout = () => {
   <header class="py-5 flex items-center justify-between">
     <div class="flex items-center gap-8">
       <!-- Главная через router-link -->
-      <router-link to="/" class="flex items-center gap-3 select-none cursor-pointer">
-        <img src="/logo.svg"></img>
-        <!-- <span class="text-2xl font-bold tracking-tight">Sakhatype</span> -->
-      </router-link>
+    <router-link to="/" class="flex items-center gap-3 select-none cursor-pointer">
+      <img :src="isDark ? '/logo.svg' : '/logo-b.svg'"></img>
+      <!-- <span class="text-2xl font-bold tracking-tight">Sakhatype</span> -->
+    </router-link>
 
       <!-- Лидерборд -->
       <router-link
