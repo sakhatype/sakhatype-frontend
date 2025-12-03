@@ -124,12 +124,16 @@ const handleInput = (event: Event) => {
     
     // Проверяем правильность последнего введенного символа
     const lastChar = newInput[newInput.length - 1]
-    const expectedChar = store.words[store.currentWordIndex]?.[newInput.length - 1]
+    const currentWord = store.words[store.currentWordIndex]
     
-    if (lastChar === expectedChar) {
-      playCorrect()
-    } else {
-      playIncorrect()
+    if (currentWord) {
+      const expectedChar = currentWord[newInput.length - 1]
+      
+      if (lastChar === expectedChar) {
+        playCorrect()
+      } else {
+        playIncorrect()
+      }
     }
   }
   
@@ -170,41 +174,40 @@ const updateLineOffset = () => {
   lineOffset.value = -(currentLine - 1) * lineHeight
 }
 
-// const getCharClass = (wordIdx: number, charIdx: number): string => {
-//   if (!hasFocus.value && !store.isTestActive) {
-//     return ''
-//   }
-
-//   if (wordIdx < store.currentWordIndex) {
-//     return store.wordHistory[wordIdx]?.[charIdx] || ''
-//   } else if (wordIdx === store.currentWordIndex) {
-//     if (charIdx < store.inputValue.length)
-//       return store.inputValue[charIdx] === store.words[wordIdx][charIdx] ? 'correct' : 'incorrect'
-//     else if (charIdx === store.inputValue.length && hasFocus.value && store.isTestActive)
-//       return 'current'
-//   }
-//   return ''
-// }
-
+// ИСПРАВЛЕННАЯ ФУНКЦИЯ getCharClass
 const getCharClass = (wordIdx: number, charIdx: number): string => {
+  // Если нет фокуса и тест не активен - не показываем статус
   if (!hasFocus.value && !store.isTestActive) {
     return ''
   }
-  if (wordIdx < store.currentWordIndex) {
-    return store.wordHistory[wordIdx]?.[charIdx] || ''
-  } else if (wordIdx === store.currentWordIndex) {
-    const currentWord = store.words[wordIdx]
-    if (!currentWord) {
-      return ''
-    }
-    if (charIdx < store.inputValue.length)
-      return store.inputValue[charIdx] === currentWord[charIdx] ? 'correct' : 'incorrect'
-    else if (charIdx === store.inputValue.length && hasFocus.value && store.isTestActive)
-      return 'current'
+  
+  // Проверяем что слово существует
+  const currentWord = store.words[wordIdx]
+  if (!currentWord) {
+    return ''
   }
+  
+  // Для завершенных слов берем из истории
+  if (wordIdx < store.currentWordIndex) {
+    const historyClass = store.wordHistory[wordIdx]?.[charIdx]
+    return historyClass || ''
+  } 
+  // Для текущего слова
+  else if (wordIdx === store.currentWordIndex) {
+    // Если символ уже напечатан
+    if (charIdx < store.inputValue.length) {
+      const typedChar = store.inputValue[charIdx]
+      const expectedChar = currentWord[charIdx]
+      return typedChar === expectedChar ? 'correct' : 'incorrect'
+    } 
+    // Если это позиция курсора
+    else if (charIdx === store.inputValue.length && hasFocus.value && store.isTestActive) {
+      return 'current'
+    }
+  }
+  
   return ''
 }
-
 
 // Обработка нажатия клавиш для замены цифр на якутские буквы
 const handleBeforeInput = (event: InputEvent) => {
@@ -299,7 +302,7 @@ onUnmounted(() => {
         <!-- Timer -->
         <div
           :class="[
-            'text-7xl font-bold mb-6 transition-all duration-300 select-none text-left',
+            'text-4xl font-bold mb-6 transition-all duration-300 select-none text-left benzin',
             isDark ? 'text-[#2a2a2a]' : 'text-gray-300',
           ]"
           :style="{
@@ -317,8 +320,8 @@ onUnmounted(() => {
             @click="focusInput"
             tabindex="0"
             :class="[
-              'text-3xl leading-relaxed cursor-text select-none font-mono transition-transform duration-200',
-              isDark ? 'text-neutral-600' : 'text-gray-400',
+              'benzin text-2xl leading-relaxed cursor-text select-none font-mono transition-transform duration-100',
+              isDark ? 'text-neutral-500' : 'text-neutral-600',
             ]"
             :style="{
               transform: `translateY(${lineOffset}px)`,
@@ -331,7 +334,7 @@ onUnmounted(() => {
                 'word inline-block relative',
                 wordIdx === store.currentWordIndex && hasFocus && store.isTestActive ? 'word-active' : ''
               ]"
-              :style="{ marginRight: '0.5rem' }"
+              :style="{ marginRight: '0.3rem' }"
             >
               <span
                 v-for="(char, charIdx) in word"
@@ -348,7 +351,6 @@ onUnmounted(() => {
               >
                 {{ char }}
               </span>
-              <!-- Показываем лишние символы если их напечатали -->
               <span
                 v-if="wordIdx === store.currentWordIndex && store.inputValue.length > word.length"
                 v-for="extraIdx in store.inputValue.length - word.length"
@@ -366,7 +368,7 @@ onUnmounted(() => {
           <p
             :class="[
               'text-xs mb-6 select-none transition-opacity duration-300',
-              isDark ? 'text-gray-500' : 'text-neutral-600',
+              isDark ? 'text-neutral-700' : 'text-neutral-400',
               { 'opacity-0': hasFocus || store.isTestActive },
             ]"
           >
@@ -376,7 +378,7 @@ onUnmounted(() => {
             @click="restartTest"
             :class="[
               'inline-flex justify-center cursor-pointer rotate-icon',
-              isDark ? 'text-gray-500 hover:text-white' : 'text-gray-400 hover:text-gray-900',
+              isDark ? 'text-neutral-500 hover:text-white' : 'text-neutral-400 hover:text-neutral-900',
             ]"
           >
             <RotateCcw :size="24" />

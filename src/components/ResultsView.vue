@@ -288,7 +288,7 @@ const restart = () => {
         <CardContent class="p-4 text-center">
           <div class="flex items-center justify-center gap-2 mb-2">
             <Zap :size="18" class="text-yellow-500" />
-            <span :class="['text-sm', isDark ? 'text-gray-400' : 'text-neutral-600']">WPM</span>
+            <span :class="['text-sm', isDark ? 'text-neutral-400' : 'text-neutral-600']">WPM</span>
           </div>
           <div :class="['text-3xl font-bold', isDark ? 'text-white' : 'text-gray-900']">
             {{ stats.wpm }}
@@ -301,7 +301,7 @@ const restart = () => {
         <CardContent class="p-4 text-center">
           <div class="flex items-center justify-center gap-2 mb-2">
             <Target :size="18" class="text-green-500" />
-            <span :class="['text-sm', isDark ? 'text-gray-400' : 'text-neutral-600']">Точность</span>
+            <span :class="['text-sm', isDark ? 'text-neutral-400' : 'text-neutral-600']">Точность</span>
           </div>
           <div :class="['text-3xl font-bold', isDark ? 'text-white' : 'text-gray-900']">
             {{ stats.accuracy }}%
@@ -314,7 +314,7 @@ const restart = () => {
         <CardContent class="p-4 text-center">
           <div class="flex items-center justify-center gap-2 mb-2">
             <Gauge :size="18" class="text-blue-500" />
-            <span :class="['text-sm', isDark ? 'text-gray-400' : 'text-neutral-600']">Raw</span>
+            <span :class="['text-sm', isDark ? 'text-neutral-400' : 'text-neutral-600']">Raw</span>
           </div>
           <div :class="['text-3xl font-bold', isDark ? 'text-white' : 'text-gray-900']">
             {{ stats.rawWpm }}
@@ -327,7 +327,7 @@ const restart = () => {
         <CardContent class="p-4 text-center">
           <div class="flex items-center justify-center gap-2 mb-2">
             <AlertTriangle :size="18" class="text-red-500" />
-            <span :class="['text-sm', isDark ? 'text-gray-400' : 'text-neutral-600']">Ошибки</span>
+            <span :class="['text-sm', isDark ? 'text-neutral-400' : 'text-neutral-600']">Ошибки</span>
           </div>
           <div :class="['text-3xl font-bold', isDark ? 'text-white' : 'text-gray-900']">
             {{ stats.totalErrors }}
@@ -342,20 +342,20 @@ const restart = () => {
         <!-- Легенда -->
         <div class="flex flex-wrap items-center justify-center gap-6 mb-4">
           <div class="flex items-center gap-2">
-            <div class="w-6 h-3 bg-gray-400 rounded opacity-50"></div>
-            <span :class="['text-sm', isDark ? 'text-gray-400' : 'text-neutral-600']">wpm</span>
+            <div class="w-6 h-3 bg-neutral-900 rounded opacity-50"></div>
+            <span :class="['text-sm', isDark ? 'text-neutral-400' : 'text-neutral-600']">wpm</span>
           </div>
           <div class="flex items-center gap-2">
             <div class="w-6 h-0.5 border-t-2 border-dashed border-gray-500"></div>
-            <span :class="['text-sm', isDark ? 'text-gray-400' : 'text-neutral-600']">raw</span>
+            <span :class="['text-sm', isDark ? 'text-neutral-400' : 'text-neutral-600']">raw</span>
           </div>
           <div class="flex items-center gap-2">
             <div class="w-6 h-3 bg-cyan-400 rounded opacity-30 border border-cyan-400"></div>
-            <span :class="['text-sm', isDark ? 'text-gray-400' : 'text-neutral-600']">burst</span>
+            <span :class="['text-sm', isDark ? 'text-neutral-400' : 'text-neutral-600']">burst</span>
           </div>
           <div class="flex items-center gap-2">
             <div class="w-3 h-3 bg-red-500 rounded-full"></div>
-            <span :class="['text-sm', isDark ? 'text-gray-400' : 'text-neutral-600']">Ошибки</span>
+            <span :class="['text-sm', isDark ? 'text-neutral-400' : 'text-neutral-600']">Ошибки</span>
           </div>
         </div>
 
@@ -560,7 +560,7 @@ const restart = () => {
           
           <!-- Fallback когда нет данных -->
           <div v-else class="flex items-center justify-center h-[300px]">
-            <p :class="['text-sm', isDark ? 'text-gray-500' : 'text-gray-400']">
+            <p :class="['text-sm', isDark ? 'text-neutral-500' : 'text-neutral-400']">
               Загрузка графика...
             </p>
           </div>

@@ -214,7 +214,7 @@ async function saveScreenshot() {
             <div :class="['text-4xl font-bold mb-1', isDark ? 'text-white' : 'text-gray-900']">
               {{ Math.round(stats.wpm) }}
             </div>
-            <div :class="['text-sm', isDark ? 'text-gray-400' : 'text-neutral-600']">WPM</div>
+            <div :class="['text-sm', isDark ? 'text-neutral-400' : 'text-neutral-600']">WPM</div>
           </div>
         </CardContent>
       </Card>
@@ -225,7 +225,7 @@ async function saveScreenshot() {
             <div :class="['text-4xl font-bold mb-1', isDark ? 'text-white' : 'text-gray-900']">
               {{ Math.round(stats.accuracy) }}%
             </div>
-            <div :class="['text-sm', isDark ? 'text-gray-400' : 'text-neutral-600']">Точность</div>
+            <div :class="['text-sm', isDark ? 'text-neutral-400' : 'text-neutral-600']">Точность</div>
           </div>
         </CardContent>
       </Card>
@@ -236,7 +236,7 @@ async function saveScreenshot() {
             <div :class="['text-4xl font-bold mb-1', isDark ? 'text-white' : 'text-gray-900']">
               {{ Math.round(stats.rawWpm) }}
             </div>
-            <div :class="['text-sm', isDark ? 'text-gray-400' : 'text-neutral-600']">Raw</div>
+            <div :class="['text-sm', isDark ? 'text-neutral-400' : 'text-neutral-600']">Raw</div>
           </div>
         </CardContent>
       </Card>
@@ -247,7 +247,7 @@ async function saveScreenshot() {
             <div :class="['text-4xl font-bold mb-1', isDark ? 'text-white' : 'text-gray-900']">
               {{ Math.round(stats.burstWpm) }}
             </div>
-            <div :class="['text-sm', isDark ? 'text-gray-400' : 'text-neutral-600']">Burst</div>
+            <div :class="['text-sm', isDark ? 'text-neutral-400' : 'text-neutral-600']">Burst</div>
           </div>
         </CardContent>
       </Card>
@@ -258,7 +258,7 @@ async function saveScreenshot() {
             <div :class="['text-4xl font-bold mb-1', isDark ? 'text-white' : 'text-gray-900']">
               {{ stats.totalErrors }}
             </div>
-            <div :class="['text-sm', isDark ? 'text-gray-400' : 'text-neutral-600']">Ошибки</div>
+            <div :class="['text-sm', isDark ? 'text-neutral-400' : 'text-neutral-600']">Ошибки</div>
           </div>
         </CardContent>
       </Card>

@@ -114,14 +114,14 @@ function toggleSort(column: typeof sortColumn.value) {
 
 const getMedalColor = (index: number) => {
   if (index === 0) return 'text-yellow-500'
-  if (index === 1) return 'text-gray-400'
+  if (index === 1) return 'text-neutral-400'
   if (index === 2) return 'text-orange-600'
-  return 'text-gray-500'
+  return 'text-neutral-500'
 }
 
 const getRankBadgeColor = (index: number) => {
   if (index === 0) return 'bg-yellow-500 text-white'
-  if (index === 1) return 'bg-gray-400 text-white'
+  if (index === 1) return 'bg-neutral-900 text-white'
   if (index === 2) return 'bg-orange-600 text-white'
   return ''
 }
@@ -143,7 +143,7 @@ const getRankBadgeColor = (index: number) => {
 
     <!-- Loading state -->
     <div v-if="isLoading" class="container mx-auto px-4 py-12 text-center">
-      <p :class="['text-lg', isDark ? 'text-gray-400' : 'text-neutral-600']">Күүтүү...</p>
+      <p :class="['text-lg', isDark ? 'text-neutral-400' : 'text-neutral-600']">Күүтүү...</p>
     </div>
 
     <!-- Leaderboard Content -->
@@ -162,7 +162,7 @@ const getRankBadgeColor = (index: number) => {
 
         <!-- Search -->
         <div class="mb-4 flex items-center gap-2 max-w-md mx-auto">
-          <Search :size="20" :class="isDark ? 'text-gray-400' : 'text-neutral-600'" />
+          <Search :size="20" :class="isDark ? 'text-neutral-400' : 'text-neutral-600'" />
           <Input
             v-model="searchQuery"
             placeholder="Поиск по имени..."
@@ -261,7 +261,7 @@ const getRankBadgeColor = (index: number) => {
                   <!-- Empty state -->
                   <TableRow v-if="filteredWpmLeaderboard.length === 0">
                     <TableCell colspan="5" class="text-center py-8">
-                      <p :class="isDark ? 'text-gray-500' : 'text-gray-400'">
+                      <p :class="isDark ? 'text-neutral-500' : 'text-neutral-400'">
                         Пользователи не найдены
                       </p>
                     </TableCell>
@@ -363,7 +363,7 @@ const getRankBadgeColor = (index: number) => {
                   <!-- Empty state -->
                   <TableRow v-if="filteredAccuracyLeaderboard.length === 0">
                     <TableCell colspan="5" class="text-center py-8">
-                      <p :class="isDark ? 'text-gray-500' : 'text-gray-400'">
+                      <p :class="isDark ? 'text-neutral-500' : 'text-neutral-400'">
                         Пользователи не найдены
                       </p>
                     </TableCell>

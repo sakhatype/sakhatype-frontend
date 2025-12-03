@@ -44,13 +44,13 @@ watchEffect(() => {
         <ToggleGroupItem
           value="Время"
           :data-state="forceHighlight ? 'on' : 'off'"
-          class="select-none cursor-pointer px-3 rounded-lg text-sm font-medium transition-all dark:data-[state=on]:bg-[#2a2a2a] dark:data-[state=on]:text-white data-[state=on]:bg-gray-100 data-[state=on]:text-gray-900 text-gray-500 hover:bg-gray-100 dark:hover:bg-[#1a1a1a]"
+          class="select-none cursor-pointer px-3 rounded-lg text-sm font-medium transition-all dark:data-[state=on]:bg-[#2a2a2a] dark:data-[state=on]:text-white data-[state=on]:bg-gray-100 data-[state=on]:text-gray-900 text-neutral-500 hover:bg-gray-100 dark:hover:bg-[#1a1a1a]"
         >
           <Clock5 :size="16" />Время
         </ToggleGroupItem>
       </ToggleGroup>
 
-      <span class="text-gray-500 select-none">|</span>
+      <span class="text-neutral-500 select-none">|</span>
 
       <!-- Опции времени -->
       <ToggleGroup type="single" v-model="currentValue" class="flex gap-1">
@@ -62,8 +62,8 @@ watchEffect(() => {
           :class="[
             'px-3 rounded-lg text-sm font-medium transition-all select-none cursor-pointer',
             isDark
-              ? 'data-[state=on]:bg-[#2a2a2a] data-[state=on]:text-white text-gray-500 hover:bg-[#1a1a1a]'
-              : 'data-[state=on]:bg-gray-100 data-[state=on]:text-gray-900 text-gray-500 hover:bg-gray-100',
+              ? 'data-[state=on]:bg-[#2a2a2a] data-[state=on]:text-white text-neutral-500 hover:bg-[#1a1a1a]'
+              : 'data-[state=on]:bg-gray-100 data-[state=on]:text-gray-900 text-neutral-500 hover:bg-gray-100',
           ]"
         >
           {{ opt }}

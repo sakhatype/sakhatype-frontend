@@ -121,7 +121,7 @@ const openLogoutDialog = () => {
 
     <!-- Loading state -->
     <div v-if="isLoading" class="container mx-auto px-1 py-12 text-center">
-      <p :class="['text-lg', isDark ? 'text-gray-400' : 'text-neutral-600']">Күүтүү...</p>
+      <p :class="['text-lg', isDark ? 'text-neutral-400' : 'text-neutral-600']">Күүтүү...</p>
     </div>
 
     <!-- Main Content -->
@@ -151,20 +151,20 @@ const openLogoutDialog = () => {
 
                   <!-- Центр -->
                   <div class="flex flex-col justify-center flex-1">
-                    <p :class="['text-sm mb-1', isDark ? 'text-gray-400' : 'text-neutral-600']">
+                    <p :class="['text-sm mb-1', isDark ? 'text-neutral-400' : 'text-neutral-600']">
                       Опыт
                     </p>
                     <Progress
                       :model-value="levelProgress.percentage"
                       :max="100"
-                      :class="['h-2 w-full', isDark ? 'bg-gray-800' : 'bg-gray-200']"
+                      :class="['h-2 w-full', isDark ? 'bg-neutral-900' : 'bg-gray-200']"
                     />
                     <div class="flex items-center justify-between text-xs w-full mt-1">
-                      <span :class="isDark ? 'text-gray-400' : 'text-neutral-600'">
+                      <span :class="isDark ? 'text-neutral-400' : 'text-neutral-600'">
                         {{ levelProgress.current }} / {{ levelProgress.max }}
                       </span>
                       <div class="gap-1 flex items-center">
-                        <span :class="isDark ? 'text-gray-400' : 'text-neutral-600'"
+                        <span :class="isDark ? 'text-neutral-400' : 'text-neutral-600'"
                           >Еще {{ levelProgress.toNext }} до
                         </span>
                         <Badge
@@ -180,8 +180,8 @@ const openLogoutDialog = () => {
 
                 <!-- Низ -->
                 <div class="flex items-center gap-1">
-                  <CalendarDays :size="16" :class="isDark ? 'text-gray-400' : 'text-neutral-600'" />
-                  <span :class="['text-xs', isDark ? 'text-gray-500' : 'text-neutral-600']">
+                  <CalendarDays :size="16" :class="isDark ? 'text-neutral-400' : 'text-neutral-600'" />
+                  <span :class="['text-xs', isDark ? 'text-neutral-500' : 'text-neutral-600']">
                     Дата регистрации:  {{ formattedDate }}
                   </span>
                 </div>
@@ -196,8 +196,8 @@ const openLogoutDialog = () => {
             <div class="space-y-2 w-full flex flex-col items-center justify-center">
               <Alert class="flex items-center justify-between gap-2 p-1 px-3 w-full">
                 <div class="flex items-center gap-2">
-                  <CirclePlay :size="20" :class="isDark ? 'text-gray-400' : 'text-neutral-600'" />
-                  <span :class="['text-sm', isDark ? 'text-gray-400' : 'text-neutral-600']"
+                  <CirclePlay :size="20" :class="isDark ? 'text-neutral-400' : 'text-neutral-600'" />
+                  <span :class="['text-sm', isDark ? 'text-neutral-400' : 'text-neutral-600']"
                     >Пройдено тестов</span
                   >
                 </div>
@@ -207,8 +207,8 @@ const openLogoutDialog = () => {
               </Alert>
               <Alert class="flex items-center justify-between gap-2 p-1 px-3 w-full">
                 <div class="flex items-center gap-2">
-                  <Zap :size="20" :class="isDark ? 'text-gray-400' : 'text-neutral-600'" />
-                  <span :class="['text-sm', isDark ? 'text-gray-400' : 'text-neutral-600']"
+                  <Zap :size="20" :class="isDark ? 'text-neutral-400' : 'text-neutral-600'" />
+                  <span :class="['text-sm', isDark ? 'text-neutral-400' : 'text-neutral-600']"
                     >Лучший WPM</span
                   >
                 </div>
@@ -218,8 +218,8 @@ const openLogoutDialog = () => {
               </Alert>
               <Alert class="flex items-center justify-between gap-2 p-1 px-3 w-full">
                 <div class="flex items-center gap-2">
-                  <Clock :size="20" :class="isDark ? 'text-gray-400' : 'text-neutral-600'" />
-                  <span :class="['text-sm', isDark ? 'text-gray-400' : 'text-neutral-600']"
+                  <Clock :size="20" :class="isDark ? 'text-neutral-400' : 'text-neutral-600'" />
+                  <span :class="['text-sm', isDark ? 'text-neutral-400' : 'text-neutral-600']"
                     >Общее время печати</span
                   >
                 </div>
@@ -245,7 +245,7 @@ const openLogoutDialog = () => {
                 :key="result.id"
                 :class="[
                   'flex items-center justify-between p-3 rounded-lg',
-                  isDark ? 'bg-gray-800' : 'bg-gray-50'
+                  isDark ? 'bg-neutral-900' : 'bg-gray-50'
                 ]"
               >
                 <div class="flex items-center gap-4">
@@ -254,12 +254,12 @@ const openLogoutDialog = () => {
                     <p :class="['font-semibold', isDark ? 'text-white' : 'text-gray-900']">
                       {{ Math.round(result.wpm) }} WPM
                     </p>
-                    <p :class="['text-sm', isDark ? 'text-gray-400' : 'text-neutral-600']">
+                    <p :class="['text-sm', isDark ? 'text-neutral-400' : 'text-neutral-600']">
                       Сөпкэ: {{ Math.round(result.accuracy) }}%
                     </p>
                   </div>
                 </div>
-                <div :class="['text-xs', isDark ? 'text-gray-500' : 'text-neutral-600']">
+                <div :class="['text-xs', isDark ? 'text-neutral-500' : 'text-neutral-600']">
                   {{ new Date(result.created_at).toLocaleDateString('ru-RU') }}
                 </div>
               </div>

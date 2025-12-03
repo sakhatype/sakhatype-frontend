@@ -52,7 +52,7 @@ const handleLogout = () => {
         to="/leaderboard"
         :class="[
           'flex items-center gap-2 transition-colors text-sm select-none cursor-pointer',
-          isDark ? 'text-gray-400 hover:text-white' : 'text-neutral-600 hover:text-gray-900',
+          isDark ? 'text-neutral-400 hover:text-white' : 'text-neutral-600 hover:text-gray-900',
         ]"
       >
         <Trophy :size="16" />

@@ -81,7 +81,7 @@
 .dark {
   --background: oklch(0.147 0.004 49.25);
   --foreground: oklch(0.985 0.001 106.423);
-  --card: oklch(0.147 0.004 49.25);
+  --card: oklch(100% 0.00011 271.152 / 0.04);
   --card-foreground: oklch(0.985 0.001 106.423);
   --popover: oklch(0.147 0.004 49.25);
   --popover-foreground: oklch(0.985 0.001 106.423);
@@ -121,3 +121,38 @@
     @apply bg-background text-foreground;
   }
 }
+
+@font-face {
+    font-family: 'Benzin';
+    src: url('fonts/Benzin-Bold.woff2') format('woff2');
+    font-weight: 700;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Benzin-Regular';
+    src: url('fonts/Benzin-Regular.woff2') format('woff2');
+    font-weight: 700;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'GolosText-Regular';
+    src: url('fonts/GolosText-Regular.woff2') format('woff2');
+    font-weight: 700;
+    font-style: normal;
+    font-display: swap;
+}
+.benzin-re{
+  font-family: 'Benzin-Regular', sans-serif;
+}
+
+.benzin{
+  font-family: 'Benzin', sans-serif;
+}
+/* 
+body {
+    font-family: 'GolosText-Regular', sans-serif;
+} */

@@ -32,14 +32,14 @@ onMounted(async () => {
 
 const getMedalColor = (index: number) => {
   if (index === 0) return 'text-yellow-500'
-  if (index === 1) return 'text-gray-400'
+  if (index === 1) return 'text-neutral-400'
   if (index === 2) return 'text-orange-600'
-  return 'text-gray-500'
+  return 'text-neutral-500'
 }
 
 const getRankBadgeColor = (index: number) => {
   if (index === 0) return 'bg-yellow-500 text-white'
-  if (index === 1) return 'bg-gray-400 text-white'
+  if (index === 1) return 'bg-neutral-900 text-white'
   if (index === 2) return 'bg-orange-600 text-white'
   return 'bg-gray-500 text-white'
 }
@@ -59,7 +59,7 @@ const getRankBadgeColor = (index: number) => {
 
     <!-- Loading state -->
     <div v-if="isLoading" class="container mx-auto px-4 py-12 text-center">
-      <p :class="['text-lg', isDark ? 'text-gray-400' : 'text-neutral-600']">Күүтүү...</p>
+      <p :class="['text-lg', isDark ? 'text-neutral-400' : 'text-neutral-600']">Күүтүү...</p>
     </div>
 
     <!-- Leaderboard Content -->
@@ -86,7 +86,7 @@ const getRankBadgeColor = (index: number) => {
                   :key="user.username"
                   :class="[
                     'flex items-center justify-between p-4 hover:bg-opacity-50 transition-colors',
-                    isDark ? 'hover:bg-gray-800' : 'hover:bg-gray-50',
+                    isDark ? 'hover:bg-neutral-900' : 'hover:bg-gray-50',
                     index < 3 && 'font-semibold'
                   ]"
                 >
@@ -94,7 +94,7 @@ const getRankBadgeColor = (index: number) => {
                     <!-- Rank -->
                     <div class="flex items-center justify-center w-12">
                       <Medal v-if="index < 3" :size="24" :class="getMedalColor(index)" />
-                      <span v-else :class="['text-lg font-bold', isDark ? 'text-gray-400' : 'text-gray-500']">
+                      <span v-else :class="['text-lg font-bold', isDark ? 'text-neutral-400' : 'text-neutral-500']">
                         {{ index + 1 }}
                       </span>
                     </div>
@@ -109,7 +109,7 @@ const getRankBadgeColor = (index: number) => {
                           Уровень {{ user.level }}
                         </Badge>
                       </div>
-                      <p :class="['text-sm', isDark ? 'text-gray-400' : 'text-neutral-600']">
+                      <p :class="['text-sm', isDark ? 'text-neutral-400' : 'text-neutral-600']">
                         {{ user.total_tests }} тест бүтэрбитэ
                       </p>
                     </div>
@@ -119,7 +119,7 @@ const getRankBadgeColor = (index: number) => {
                       <p :class="['text-2xl font-bold', isDark ? 'text-white' : 'text-gray-900']">
                         {{ Math.round(user.best_wpm) }}
                       </p>
-                      <p :class="['text-sm', isDark ? 'text-gray-400' : 'text-neutral-600']">
+                      <p :class="['text-sm', isDark ? 'text-neutral-400' : 'text-neutral-600']">
                         WPM
                       </p>
                     </div>
@@ -130,7 +130,7 @@ const getRankBadgeColor = (index: number) => {
                 <div
                   v-if="wpmLeaderboard.length === 0"
                   class="p-12 text-center"
-                  :class="isDark ? 'text-gray-500' : 'text-gray-400'"
+                  :class="isDark ? 'text-neutral-500' : 'text-neutral-400'"
                 >
                   <p>Бу диэки лидерлэр суох</p>
                 </div>
@@ -149,7 +149,7 @@ const getRankBadgeColor = (index: number) => {
                   :key="user.username"
                   :class="[
                     'flex items-center justify-between p-4 hover:bg-opacity-50 transition-colors',
-                    isDark ? 'hover:bg-gray-800' : 'hover:bg-gray-50',
+                    isDark ? 'hover:bg-neutral-900' : 'hover:bg-gray-50',
                     index < 3 && 'font-semibold'
                   ]"
                 >
@@ -157,7 +157,7 @@ const getRankBadgeColor = (index: number) => {
                     <!-- Rank -->
                     <div class="flex items-center justify-center w-12">
                       <Medal v-if="index < 3" :size="24" :class="getMedalColor(index)" />
-                      <span v-else :class="['text-lg font-bold', isDark ? 'text-gray-400' : 'text-gray-500']">
+                      <span v-else :class="['text-lg font-bold', isDark ? 'text-neutral-400' : 'text-neutral-500']">
                         {{ index + 1 }}
                       </span>
                     </div>
@@ -172,7 +172,7 @@ const getRankBadgeColor = (index: number) => {
                           Уровень {{ user.level }}
                         </Badge>
                       </div>
-                      <p :class="['text-sm', isDark ? 'text-gray-400' : 'text-neutral-600']">
+                      <p :class="['text-sm', isDark ? 'text-neutral-400' : 'text-neutral-600']">
                         {{ user.total_tests }} тест бүтэрбитэ
                       </p>
                     </div>
@@ -182,7 +182,7 @@ const getRankBadgeColor = (index: number) => {
                       <p :class="['text-2xl font-bold', isDark ? 'text-white' : 'text-gray-900']">
                         {{ Math.round(user.best_accuracy) }}%
                       </p>
-                      <p :class="['text-sm', isDark ? 'text-gray-400' : 'text-neutral-600']">
+                      <p :class="['text-sm', isDark ? 'text-neutral-400' : 'text-neutral-600']">
                         Сөпкэ
                       </p>
                     </div>
@@ -193,7 +193,7 @@ const getRankBadgeColor = (index: number) => {
                 <div
                   v-if="accuracyLeaderboard.length === 0"
                   class="p-12 text-center"
-                  :class="isDark ? 'text-gray-500' : 'text-gray-400'"
+                  :class="isDark ? 'text-neutral-500' : 'text-neutral-400'"
                 >
                   <p>Бу диэки лидерлэр суох</p>
                 </div>
