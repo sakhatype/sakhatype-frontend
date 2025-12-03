@@ -1,13 +1,16 @@
 <script setup lang="ts">
-import { ref, watch, onMounted, onUnmounted, computed, type Ref } from 'vue'
+import { ref, watch, onMounted, onUnmounted, computed } from 'vue'
 import { RotateCcw } from 'lucide-vue-next'
 import { useTheme } from '@/composables/useTheme'
+import { useSound } from '@/shared/composables/useSound'
 import { useControlStore } from '@/stores/control'
-import { useTypingStore } from '@/stores/typingStore'
+import { useTypingStore } from '@/stores/typingStore.ts'
 import Control from '@/components/Control.vue'
 import ResultsView from '@/components/ResultsView.vue'
+import Kbd from '@/components/Kbd.vue'
 
 const { isDark } = useTheme()
+const { playKeypress, playCorrect, playIncorrect } = useSound()
 const control = useControlStore()
 const store = useTypingStore()
 
@@ -21,6 +24,15 @@ const showResults = ref(false)
 const currentLineIndex = ref(0)
 const textDisplayRef = ref<HTMLDivElement | null>(null)
 const lineOffset = ref(0)
+
+// Маппинг цифр на якутские буквы
+const yakutKeyMap: Record<string, string> = {
+  '4': 'ҥ',
+  '5': 'ҕ',
+  '6': 'ө',
+  '7': 'һ',
+  '8': 'ү',
+}
 
 // Функция анимации чисел как в GTA
 const animateNumber = (from: number, to: number) => {
@@ -73,11 +85,11 @@ const setTime = (time: number) => {
   restartTest()
 }
 
-const restartTest = () => {
-  store.initTest()
-  inputValue.value = ''
+const restartTest = async () => {
   showResults.value = false
   lineOffset.value = 0
+  inputValue.value = ''
+  await store.initTest()
 }
 
 const focusInput = () => {
@@ -95,7 +107,7 @@ const handleBlur = () => {
 
 const handleInput = (event: Event) => {
   const target = event.target as HTMLInputElement
-  if (!store.isTestActive) {
+  if (!store.isTestActive && !store.isEnding) {
     store.startTimer()
     if (!hasFocus.value) {
       hasFocus.value = true
@@ -103,6 +115,24 @@ const handleInput = (event: Event) => {
   }
 
   const prevWordIndex = store.currentWordIndex
+  const prevInputLength = store.inputValue.length
+  const newInput = target.value
+  
+  // Определяем, был ли добавлен символ
+  if (newInput.length > prevInputLength) {
+    playKeypress()
+    
+    // Проверяем правильность последнего введенного символа
+    const lastChar = newInput[newInput.length - 1]
+    const expectedChar = store.words[store.currentWordIndex]?.[newInput.length - 1]
+    
+    if (lastChar === expectedChar) {
+      playCorrect()
+    } else {
+      playIncorrect()
+    }
+  }
+  
   store.processInput(target.value)
   inputValue.value = store.inputValue
 
@@ -156,7 +186,45 @@ const getCharClass = (wordIdx: number, charIdx: number): string => {
   return ''
 }
 
+// Обработка нажатия клавиш для замены цифр на якутские буквы
+const handleBeforeInput = (event: InputEvent) => {
+  const data = event.data
+  if (data && yakutKeyMap[data]) {
+    event.preventDefault()
+    const input = event.target as HTMLInputElement
+    const start = input.selectionStart || 0
+    const end = input.selectionEnd || 0
+    const newValue = input.value.substring(0, start) + yakutKeyMap[data] + input.value.substring(end)
+    input.value = newValue
+    input.setSelectionRange(start + 1, start + 1)
+    
+    // Триггерим событие input вручную
+    const inputEvent = new Event('input', { bubbles: true })
+    input.dispatchEvent(inputEvent)
+  }
+}
+
 const handleKeyDown = (e: KeyboardEvent) => {
+  // Проверяем, нужно ли заменить цифру на якутскую букву
+  if (yakutKeyMap[e.key] && !e.ctrlKey && !e.metaKey && !e.altKey) {
+    e.preventDefault()
+    focusInput()
+    
+    if (hiddenInput.value) {
+      const input = hiddenInput.value
+      const start = input.selectionStart || 0
+      const end = input.selectionEnd || 0
+      const newValue = input.value.substring(0, start) + yakutKeyMap[e.key] + input.value.substring(end)
+      input.value = newValue
+      input.setSelectionRange(start + 1, start + 1)
+      
+      // Триггерим событие input
+      const inputEvent = new Event('input', { bubbles: true })
+      input.dispatchEvent(inputEvent)
+    }
+    return
+  }
+  
   if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
     focusInput()
   }
@@ -169,12 +237,21 @@ const handleKeyDown = (e: KeyboardEvent) => {
     e.preventDefault()
     restartTest()
   }
+  // Также добавляем возможность рестарта из результатов
+  if ((e.key === 'Tab' || e.key === 'Escape') && showResults.value) {
+    e.preventDefault()
+    restartTest()
+  }
 }
 
 // Исправленная типизация для обработчика действий store
 const unsubscribe = store.$onAction(
   ({ name, after }: { name: string; after: (callback: () => void) => void }) => {
-    if (name === 'endTest') after(() => (showResults.value = true))
+    if (name === 'endTest') {
+      after(() => {
+        showResults.value = true
+      })
+    }
   },
 )
 
@@ -213,15 +290,15 @@ onUnmounted(() => {
           {{ timeDisplay }}
         </div>
 
-        <!-- Text Display -->
-        <div class="text-display-wrapper overflow-hidden relative mb-4" style="height: 8rem">
+        <!-- Text Display (Monkeytype-style) -->
+        <div class="text-display-wrapper overflow-hidden relative mb-4" style="height: 10rem">
           <div
             ref="textDisplayRef"
             @click="focusInput"
             tabindex="0"
             :class="[
-              'text-3xl leading-relaxed cursor-text select-none font-mono transition-transform duration-300',
-              isDark ? 'text-gray-500' : 'text-gray-400',
+              'text-3xl leading-relaxed cursor-text select-none font-mono transition-transform duration-200',
+              isDark ? 'text-neutral-600' : 'text-gray-400',
             ]"
             :style="{
               transform: `translateY(${lineOffset}px)`,
@@ -230,20 +307,35 @@ onUnmounted(() => {
             <span
               v-for="(word, wordIdx) in store.words"
               :key="wordIdx"
-              class="word inline-block mr-2 relative"
+              :class="[
+                'word inline-block relative',
+                wordIdx === store.currentWordIndex && hasFocus && store.isTestActive ? 'word-active' : ''
+              ]"
+              :style="{ marginRight: '0.5rem' }"
             >
               <span
                 v-for="(char, charIdx) in word"
                 :key="charIdx"
-                class="char relative inline-block transition-colors duration-100"
-                :class="{
-                  [isDark ? 'text-white' : 'text-gray-900']:
-                    getCharClass(wordIdx, charIdx) === 'correct',
-                  'text-red-500': getCharClass(wordIdx, charIdx) === 'incorrect',
-                  'char-current': getCharClass(wordIdx, charIdx) === 'current',
-                }"
+                :class="[
+                  'char relative inline-block transition-all duration-75',
+                  {
+                    [isDark ? 'text-white' : 'text-gray-900']:
+                      getCharClass(wordIdx, charIdx) === 'correct',
+                    'text-red-500 char-incorrect': getCharClass(wordIdx, charIdx) === 'incorrect',
+                    'char-cursor': getCharClass(wordIdx, charIdx) === 'current',
+                  }
+                ]"
               >
                 {{ char }}
+              </span>
+              <!-- Показываем лишние символы если их напечатали -->
+              <span
+                v-if="wordIdx === store.currentWordIndex && store.inputValue.length > word.length"
+                v-for="extraIdx in store.inputValue.length - word.length"
+                :key="`extra-${extraIdx}`"
+                class="char relative inline-block text-red-500 extra-char"
+              >
+                {{ store.inputValue[word.length + extraIdx - 1] }}
               </span>
             </span>
           </div>
@@ -254,7 +346,7 @@ onUnmounted(() => {
           <p
             :class="[
               'text-xs mb-6 select-none transition-opacity duration-300',
-              isDark ? 'text-gray-500' : 'text-gray-600',
+              isDark ? 'text-gray-500' : 'text-neutral-600',
               { 'opacity-0': hasFocus || store.isTestActive },
             ]"
           >
@@ -271,6 +363,8 @@ onUnmounted(() => {
           </div>
         </div>
 
+
+
         <!-- Hidden Input -->
         <input
           ref="hiddenInput"
@@ -280,6 +374,7 @@ onUnmounted(() => {
           @input="handleInput"
           @focus="handleFocus"
           @blur="handleBlur"
+          @beforeinput="handleBeforeInput"
           autocomplete="off"
           autocorrect="off"
           autocapitalize="off"
@@ -289,7 +384,7 @@ onUnmounted(() => {
 
       <!-- Results View -->
       <ResultsView
-        v-else
+        v-if="showResults"
         :stats="store.finalStats"
         :wpm-history="store.wpmHistory"
         :raw-history="store.rawHistory"
@@ -299,6 +394,8 @@ onUnmounted(() => {
       />
     </main>
   </div>
+
+  <Kbd></Kbd>
 </template>
 
 <style scoped>
@@ -309,33 +406,70 @@ onUnmounted(() => {
   transform: rotate(-260deg);
 }
 
-.char-current::after {
+/* Monkeytype-style cursor */
+.char-cursor::before {
   content: '';
   position: absolute;
-  left: -1px;
-  top: 0;
-  bottom: 0;
-  width: 2px;
+  left: -2px;
+  top: 2px;
+  bottom: 2px;
+  width: 2.5px;
   background: currentColor;
-  animation: blink 1s infinite;
+  animation: blink-smooth 1s infinite;
+  border-radius: 2px;
 }
 
-@keyframes blink {
-  0%,
-  49% {
+@keyframes blink-smooth {
+  0%, 49% {
     opacity: 1;
   }
-  50%,
-  100% {
+  50%, 100% {
     opacity: 0;
   }
 }
 
+/* Active word styling (like monkeytype) */
+.word-active {
+  opacity: 1;
+}
+
 .word {
-  margin-bottom: 8px;
+  margin-bottom: 10px;
+  position: relative;
+}
+
+/* Incorrect character wobble */
+.char-incorrect {
+  animation: wobble 0.1s ease-in-out;
+}
+
+@keyframes wobble {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-2px);
+  }
+  75% {
+    transform: translateX(2px);
+  }
+}
+
+/* Extra characters styling */
+.extra-char {
+  opacity: 0.8;
+  background: rgba(239, 68, 68, 0.2);
+  border-radius: 2px;
 }
 
 .char {
   letter-spacing: 0.05em;
+  position: relative;
+  padding: 2px 0;
+}
+
+/* Smooth scrolling for text */
+.text-display-wrapper {
+  position: relative;
 }
 </style>

@@ -1,7 +1,7 @@
 <template>
   <footer class="px-8 py-5 flex items-center justify-between">
     <Button class="select-none cursor-pointer" variant="outline">
-      <Disc :size="14" /><span>Сделана командой DotX</span>
+      <MessageCircleQuestionMark :size="14" /><span>Якутский ввод</span>
     </Button>
 
     <div class="flex items-center gap-2">
@@ -11,8 +11,8 @@
         variant="outline"
         @click="toggleSound"
       >
-        <component :is="soundOn ? Volume2 : VolumeX" :size="14" />
-        <span>{{ soundOn ? 'Вкл' : 'Выкл' }}</span>
+        <component :is="soundEnabled ? Volume2 : VolumeX" :size="14" />
+        <span>{{ soundEnabled ? 'Вкл' : 'Выкл' }}</span>
       </Button>
 
       <DropdownMenu>
@@ -44,9 +44,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
 import { useTheme } from '@/composables/useTheme'
-import { Disc, Volume2, VolumeX, Palette } from 'lucide-vue-next'
+import { useSound } from '@/shared/composables/useSound'
+import { MessageCircleQuestionMark, Volume2, VolumeX, Palette } from 'lucide-vue-next'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -56,10 +56,5 @@ import {
 } from '@/components/ui/dropdown-menu'
 
 const { isDark, toggleDark } = useTheme()
-
-// Состояние звука
-const soundOn = ref(true)
-const toggleSound = () => {
-  soundOn.value = !soundOn.value
-}
+const { soundEnabled, toggleSound } = useSound()
 </script>

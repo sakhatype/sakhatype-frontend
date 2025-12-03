@@ -12,7 +12,7 @@
       </div>
     </header>
 
-    <main class="flex-1 w-full flex flex-col items-center py-16">
+    <main class="flex-1 w-full flex flex-col items-center py-8">
       <div class="w-full mx-auto max-w-[980px]">
         <RouterView />
       </div>
