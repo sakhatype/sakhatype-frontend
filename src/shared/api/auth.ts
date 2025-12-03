@@ -22,6 +22,9 @@ export interface UserResponse {
   created_at: string
 }
 
+// Get API URL from environment or use default
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080'
+
 export const authApi = {
   async register(username: string, password: string): Promise<UserResponse> {
     return apiClient.request<UserResponse>('/api/auth/register', {
@@ -35,7 +38,7 @@ export const authApi = {
     formData.append('username', username)
     formData.append('password', password)
 
-    const response = await fetch(`${apiClient['API_URL'] || 'http://localhost:8080'}/api/auth/login`, {
+    const response = await fetch(`${API_URL}/api/auth/login`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',

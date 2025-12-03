@@ -56,7 +56,8 @@ function sortLeaderboard(data: LeaderboardEntry[], defaultSort: 'wpm' | 'accurac
   const sorted = [...data]
   
   sorted.sort((a, b) => {
-    let aVal, bVal
+    let aVal: string | number
+    let bVal: string | number
     
     switch (sortColumn.value) {
       case 'username':
@@ -84,13 +85,19 @@ function sortLeaderboard(data: LeaderboardEntry[], defaultSort: 'wpm' | 'accurac
         bVal = defaultSort === 'wpm' ? b.best_wpm : b.best_accuracy
     }
     
-    if (typeof aVal === 'string') {
+    if (typeof aVal === 'string' && typeof bVal === 'string') {
       return sortDirection.value === 'asc' 
-        ? aVal.localeCompare(bVal as string)
-        : (bVal as string).localeCompare(aVal)
+        ? aVal.localeCompare(bVal)
+        : bVal.localeCompare(aVal)
     }
     
-    return sortDirection.value === 'asc' ? aVal - bVal : bVal - aVal
+    // TypeScript now knows both are numbers
+    if (typeof aVal === 'number' && typeof bVal === 'number') {
+      return sortDirection.value === 'asc' ? aVal - bVal : bVal - aVal
+    }
+    
+    // Fallback (shouldn't happen, but TypeScript needs this)
+    return 0
   })
   
   return sorted

@@ -301,6 +301,11 @@ export const useTypingStore = defineStore('typing', {
         const typedWord = this.inputValue.trim()
         const currentWord = this.words[this.currentWordIndex]
 
+        // Защита от undefined currentWord
+        if (!currentWord) {
+          return
+        }
+
         this.wordHistory[this.currentWordIndex] = []
         const now = Date.now()
 
@@ -344,6 +349,12 @@ export const useTypingStore = defineStore('typing', {
         }
       } else {
         const currentWord = this.words[this.currentWordIndex]
+        
+        // Защита от undefined currentWord
+        if (!currentWord) {
+          return
+        }
+        
         const currentCharIdx = newValue.length - 1
 
         if (newValue.length > oldLength) {

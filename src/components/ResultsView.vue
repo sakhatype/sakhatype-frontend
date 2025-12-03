@@ -236,15 +236,17 @@ const handleMouseMove = (event: MouseEvent) => {
   
   if (index >= 0 && index < chartData.value.length) {
     const data = chartData.value[index]
-    tooltipData.value = {
-      visible: true,
-      x: xScale(index),
-      y: 80,
-      second: data.second,
-      wpm: data.wpm,
-      raw: data.raw,
-      burst: data.burst,
-      errors: data.errors
+    if (data) {
+      tooltipData.value = {
+        visible: true,
+        x: xScale(index),
+        y: 80,
+        second: data.second,
+        wpm: data.wpm,
+        raw: data.raw,
+        burst: data.burst,
+        errors: data.errors
+      }
     }
   }
 }

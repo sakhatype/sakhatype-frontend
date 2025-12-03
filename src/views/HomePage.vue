@@ -170,21 +170,41 @@ const updateLineOffset = () => {
   lineOffset.value = -(currentLine - 1) * lineHeight
 }
 
+// const getCharClass = (wordIdx: number, charIdx: number): string => {
+//   if (!hasFocus.value && !store.isTestActive) {
+//     return ''
+//   }
+
+//   if (wordIdx < store.currentWordIndex) {
+//     return store.wordHistory[wordIdx]?.[charIdx] || ''
+//   } else if (wordIdx === store.currentWordIndex) {
+//     if (charIdx < store.inputValue.length)
+//       return store.inputValue[charIdx] === store.words[wordIdx][charIdx] ? 'correct' : 'incorrect'
+//     else if (charIdx === store.inputValue.length && hasFocus.value && store.isTestActive)
+//       return 'current'
+//   }
+//   return ''
+// }
+
 const getCharClass = (wordIdx: number, charIdx: number): string => {
   if (!hasFocus.value && !store.isTestActive) {
     return ''
   }
-
   if (wordIdx < store.currentWordIndex) {
     return store.wordHistory[wordIdx]?.[charIdx] || ''
   } else if (wordIdx === store.currentWordIndex) {
+    const currentWord = store.words[wordIdx]
+    if (!currentWord) {
+      return ''
+    }
     if (charIdx < store.inputValue.length)
-      return store.inputValue[charIdx] === store.words[wordIdx][charIdx] ? 'correct' : 'incorrect'
+      return store.inputValue[charIdx] === currentWord[charIdx] ? 'correct' : 'incorrect'
     else if (charIdx === store.inputValue.length && hasFocus.value && store.isTestActive)
       return 'current'
   }
   return ''
 }
+
 
 // Обработка нажатия клавиш для замены цифр на якутские буквы
 const handleBeforeInput = (event: InputEvent) => {
