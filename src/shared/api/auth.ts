@@ -22,7 +22,6 @@ export interface UserResponse {
   created_at: string
 }
 
-// Get API URL from environment or use default
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080'
 
 export const authApi = {
