@@ -255,7 +255,7 @@ const openLogoutDialog = () => {
                       {{ Math.round(result.wpm) }} WPM
                     </p>
                     <p :class="['text-sm', isDark ? 'text-neutral-400' : 'text-neutral-600']">
-                      Сөпкэ: {{ Math.round(result.accuracy) }}%
+                      Точность: {{ Math.round(result.accuracy) }}%
                     </p>
                   </div>
                 </div>

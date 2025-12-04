@@ -156,7 +156,7 @@ const getRankBadgeColor = (index: number) => {
           </TabsTrigger>
           <TabsTrigger value="accuracy" class="flex items-center gap-2">
             <Target :size="16" />
-            <span>Сөпкэ (Точность)</span>
+            <span>Точность</span>
           </TabsTrigger>
         </TabsList>
 
