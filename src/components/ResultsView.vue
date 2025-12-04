@@ -196,12 +196,12 @@ const errorPointsForDisplay = computed(() => {
   return chartData.value
     .map((d, i) => ({
       x: xScale(i),
-      y: d.errors !== null ? yScaleErrors(d.errors) : 0,
-      errors: d.errors,
+      y: d.errors != null && d.errors > 0 ? yScaleErrors(d.errors) : 0,
+      errors: d.errors ?? 0,
       second: d.second,
       index: i
     }))
-    .filter(p => p.errors !== null && p.errors > 0)
+    .filter(p => p.errors > 0)
 })
 
 // Оси Y
@@ -350,7 +350,7 @@ const restart = () => {
             <Zap :size="18" class="text-yellow-500" />
             <span :class="['text-sm', isDark ? 'text-neutral-400' : 'text-neutral-600']">WPM</span>
           </div>
-          <div :class="['text-3xl font-bold', isDark ? 'text-white' : 'text-neutral-900']">
+          <div :class="['text-3xl font-bold', isDark ? 'text-white' : 'text-gray-900']">
             {{ stats.wpm }}
           </div>
         </CardContent>
@@ -363,7 +363,7 @@ const restart = () => {
             <Target :size="18" class="text-green-500" />
             <span :class="['text-sm', isDark ? 'text-neutral-400' : 'text-neutral-600']">Точность</span>
           </div>
-          <div :class="['text-3xl font-bold', isDark ? 'text-white' : 'text-neutral-900']">
+          <div :class="['text-3xl font-bold', isDark ? 'text-white' : 'text-gray-900']">
             {{ stats.accuracy }}%
           </div>
         </CardContent>
@@ -376,7 +376,7 @@ const restart = () => {
             <Gauge :size="18" class="text-blue-500" />
             <span :class="['text-sm', isDark ? 'text-neutral-400' : 'text-neutral-600']">Raw</span>
           </div>
-          <div :class="['text-3xl font-bold', isDark ? 'text-white' : 'text-neutral-900']">
+          <div :class="['text-3xl font-bold', isDark ? 'text-white' : 'text-gray-900']">
             {{ stats.rawWpm }}
           </div>
         </CardContent>
@@ -389,7 +389,7 @@ const restart = () => {
             <AlertTriangle :size="18" class="text-red-500" />
             <span :class="['text-sm', isDark ? 'text-neutral-400' : 'text-neutral-600']">Ошибки</span>
           </div>
-          <div :class="['text-3xl font-bold', isDark ? 'text-white' : 'text-neutral-900']">
+          <div :class="['text-3xl font-bold', isDark ? 'text-white' : 'text-gray-900']">
             {{ stats.totalErrors }}
           </div>
         </CardContent>
@@ -402,11 +402,11 @@ const restart = () => {
         <!-- Легенда -->
         <div class="flex flex-wrap items-center justify-center gap-6 mb-4">
           <div class="flex items-center gap-2">
-            <div :class="['w-6 h-3 rounded', isDark ? 'bg-neutral-400' : 'bg-black']" style="opacity: 0.8"></div>
+            <div :class="['w-6 h-3 rounded', isDark ? 'bg-gray-400' : 'bg-black']" style="opacity: 0.8"></div>
             <span :class="['text-sm', isDark ? 'text-neutral-400' : 'text-neutral-600']">wpm</span>
           </div>
           <div class="flex items-center gap-2">
-            <div class="w-6 h-0.5 border-t-2 border-dashed border-neutral-500"></div>
+            <div class="w-6 h-0.5 border-t-2 border-dashed border-gray-500"></div>
             <span :class="['text-sm', isDark ? 'text-neutral-400' : 'text-neutral-600']">raw</span>
           </div>
           <div class="flex items-center gap-2">
@@ -609,7 +609,7 @@ const restart = () => {
               v-if="tooltipData.visible"
               :class="[
                 'absolute pointer-events-none px-3 py-2 rounded-lg shadow-lg text-sm z-10 border tooltip-smooth',
-                isDark ? 'bg-neutral-900 border-neutral-700' : 'bg-white border-neutral-200'
+                isDark ? 'bg-gray-900 border-gray-700' : 'bg-white border-gray-200'
               ]"
               :style="{
                 left: `${(tooltipData.x / svgWidth) * 100}%`,
@@ -617,24 +617,24 @@ const restart = () => {
                 transform: 'translateX(-50%)'
               }"
             >
-              <div :class="['font-bold mb-1', isDark ? 'text-white' : 'text-neutral-900']">
+              <div :class="['font-bold mb-1', isDark ? 'text-white' : 'text-gray-900']">
                 Секунда {{ tooltipData.second }}
               </div>
               <div class="flex items-center gap-2 mb-0.5">
-                <div :class="['w-3 h-3 rounded', isDark ? 'bg-neutral-400' : 'bg-black']"></div>
-                <span :class="isDark ? 'text-neutral-300' : 'text-neutral-700'">wpm: {{ tooltipData.wpm }}</span>
+                <div :class="['w-3 h-3 rounded', isDark ? 'bg-gray-400' : 'bg-black']"></div>
+                <span :class="isDark ? 'text-gray-300' : 'text-gray-700'">wpm: {{ tooltipData.wpm }}</span>
               </div>
               <div class="flex items-center gap-2 mb-0.5">
-                <div class="w-3 h-0.5 border-t-2 border-dashed border-neutral-400"></div>
-                <span :class="isDark ? 'text-neutral-300' : 'text-neutral-700'">raw: {{ tooltipData.raw }}</span>
+                <div class="w-3 h-0.5 border-t-2 border-dashed border-gray-400"></div>
+                <span :class="isDark ? 'text-gray-300' : 'text-gray-700'">raw: {{ tooltipData.raw }}</span>
               </div>
               <div class="flex items-center gap-2 mb-0.5">
                 <div class="w-3 h-3 rounded" style="background-color: rgba(132, 165, 169, 0.8)"></div>
-                <span :class="isDark ? 'text-neutral-300' : 'text-neutral-700'">burst: {{ tooltipData.burst }}</span>
+                <span :class="isDark ? 'text-gray-300' : 'text-gray-700'">burst: {{ tooltipData.burst }}</span>
               </div>
               <div v-if="tooltipData.errors > 0" class="flex items-center gap-2">
                 <div class="w-3 h-3 bg-red-500 rounded-full"></div>
-                <span :class="isDark ? 'text-neutral-300' : 'text-neutral-700'">Ошибки: {{ tooltipData.errors }}</span>
+                <span :class="isDark ? 'text-gray-300' : 'text-gray-700'">Ошибки: {{ tooltipData.errors }}</span>
               </div>
             </div>
           </template>
