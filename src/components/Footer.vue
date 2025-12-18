@@ -1,7 +1,11 @@
 <template>
   <footer class="px-8 py-5 flex items-center justify-between">
-    <Button class="select-none cursor-pointer" variant="outline">
-      <MessageCircleQuestionMark :size="14" /><span>Якутский ввод</span>
+    <Button 
+      class="select-none cursor-pointer" 
+      variant="outline"
+      @click="isModalOpen = true"
+    >
+      <Settings :size="14" /><span>Якутский ввод</span>
     </Button>
 
     <div class="flex items-center gap-2">
@@ -40,13 +44,36 @@
         </DropdownMenuContent>
       </DropdownMenu>
     </div>
+
+    <!-- Модалка настроек якутского ввода -->
+    <Dialog v-model:open="isModalOpen">
+      <DialogContent class="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>Якутский ввод</DialogTitle>
+          <DialogDescription>
+          Изменения сохраняются автоматически.
+          </DialogDescription>
+        </DialogHeader>
+        
+        <KeyBindingsSettings />
+
+        <DialogFooter class="sm:justify-start">
+          <DialogClose as-child>
+            <Button variant="secondary">
+              Закрыть
+            </Button>
+          </DialogClose>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   </footer>
 </template>
 
 <script setup lang="ts">
+import { ref } from 'vue'
 import { useTheme } from '@/composables/useTheme'
 import { useSound } from '@/shared/composables/useSound'
-import { MessageCircleQuestionMark, Volume2, VolumeX, Palette } from 'lucide-vue-next'
+import { Settings, Volume2, VolumeX, Palette } from 'lucide-vue-next'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -54,7 +81,19 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogClose,
+} from '@/components/ui/dialog'
+import KeyBindingsSettings from '@/components/KeyBindingsSettings.vue'
 
 const { isDark, toggleDark } = useTheme()
 const { soundEnabled, toggleSound } = useSound()
+
+const isModalOpen = ref(false)
 </script>

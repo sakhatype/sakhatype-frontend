@@ -5,6 +5,7 @@ import { useTheme } from '@/composables/useTheme'
 import { useSound } from '@/shared/composables/useSound'
 import { useControlStore } from '@/stores/control'
 import { useTypingStore } from '@/stores/typingStore.ts'
+import { useYakutKeyBindings } from '@/composables/useYakutKeyBindings'
 import Control from '@/components/Control.vue'
 import ResultsView from '@/components/ResultsView.vue'
 import Kbd from '@/components/Kbd.vue'
@@ -13,6 +14,9 @@ const { isDark } = useTheme()
 const { playKeypress, playCorrect, playIncorrect } = useSound()
 const control = useControlStore()
 const store = useTypingStore()
+
+// Используем composable для биндов клавиш
+const { yakutKeyMap, getLetterForKey } = useYakutKeyBindings()
 
 const selectedTime = ref(control.selectedTime)
 const displayTime = ref(control.selectedTime)
@@ -24,15 +28,6 @@ const showResults = ref(false)
 const currentLineIndex = ref(0)
 const textDisplayRef = ref<HTMLDivElement | null>(null)
 const lineOffset = ref(0)
-
-// Маппинг цифр на якутские буквы
-const yakutKeyMap: Record<string, string> = {
-  '4': 'ҥ',
-  '5': 'ҕ',
-  '6': 'ө',
-  '7': 'һ',
-  '8': 'ү',
-}
 
 // Функция анимации чисел как в GTA
 const animateNumber = (from: number, to: number) => {
@@ -212,24 +207,28 @@ const getCharClass = (wordIdx: number, charIdx: number): string => {
 // Обработка нажатия клавиш для замены цифр на якутские буквы
 const handleBeforeInput = (event: InputEvent) => {
   const data = event.data
-  if (data && yakutKeyMap[data]) {
-    event.preventDefault()
-    const input = event.target as HTMLInputElement
-    const start = input.selectionStart || 0
-    const end = input.selectionEnd || 0
-    const newValue = input.value.substring(0, start) + yakutKeyMap[data] + input.value.substring(end)
-    input.value = newValue
-    input.setSelectionRange(start + 1, start + 1)
-    
-    // Триггерим событие input вручную
-    const inputEvent = new Event('input', { bubbles: true })
-    input.dispatchEvent(inputEvent)
+  if (data) {
+    const yakutLetter = getLetterForKey(data)
+    if (yakutLetter) {
+      event.preventDefault()
+      const input = event.target as HTMLInputElement
+      const start = input.selectionStart || 0
+      const end = input.selectionEnd || 0
+      const newValue = input.value.substring(0, start) + yakutLetter + input.value.substring(end)
+      input.value = newValue
+      input.setSelectionRange(start + 1, start + 1)
+      
+      // Триггерим событие input вручную
+      const inputEvent = new Event('input', { bubbles: true })
+      input.dispatchEvent(inputEvent)
+    }
   }
 }
 
 const handleKeyDown = (e: KeyboardEvent) => {
   // Проверяем, нужно ли заменить цифру на якутскую букву
-  if (yakutKeyMap[e.key] && !e.ctrlKey && !e.metaKey && !e.altKey) {
+  const yakutLetter = getLetterForKey(e.key)
+  if (yakutLetter && !e.ctrlKey && !e.metaKey && !e.altKey) {
     e.preventDefault()
     focusInput()
     
@@ -237,7 +236,7 @@ const handleKeyDown = (e: KeyboardEvent) => {
       const input = hiddenInput.value
       const start = input.selectionStart || 0
       const end = input.selectionEnd || 0
-      const newValue = input.value.substring(0, start) + yakutKeyMap[e.key] + input.value.substring(end)
+      const newValue = input.value.substring(0, start) + yakutLetter + input.value.substring(end)
       input.value = newValue
       input.setSelectionRange(start + 1, start + 1)
       

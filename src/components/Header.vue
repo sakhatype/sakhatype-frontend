@@ -48,7 +48,7 @@ const handleLogout = () => {
     </router-link>
 
       <!-- Лидерборд -->
-      <router-link
+      <!-- <router-link
         to="/leaderboard"
         :class="[
           'flex items-center gap-2 transition-colors text-sm select-none cursor-pointer',
@@ -57,7 +57,7 @@ const handleLogout = () => {
       >
         <Trophy :size="16" />
         <span>Лидерборд</span>
-      </router-link>
+      </router-link> -->
     </div>
 
     <!-- Авторизация / Профиль -->
