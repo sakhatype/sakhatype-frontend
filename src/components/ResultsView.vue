@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { ref, computed, watch, nextTick, onMounted, onUnmounted } from 'vue'
 import { useTheme } from '@/composables/useTheme'
-import { RotateCcw, Zap, Target, Gauge, AlertTriangle } from 'lucide-vue-next'
+import { RotateCcw, Zap, Target, Gauge, AlertTriangle, Share2, Camera, Check } from 'lucide-vue-next'
 import { Card, CardContent } from '@/shared/ui/card'
 import { Button } from '@/shared/ui/button'
+import domtoimage from 'dom-to-image-more'
 
 const props = defineProps<{
   stats: {
@@ -57,6 +58,15 @@ const tooltipData = ref<{
 
 // Индекс текущей точки для hover эффектов
 const hoveredIndex = ref<number | null>(null)
+
+// Состояние для кнопок
+const resultsContainer = ref<HTMLDivElement | null>(null)
+const isCapturing = ref(false)
+const screenshotSuccess = ref(false)
+const shareSuccess = ref(false)
+
+// Уведомление о копировании
+const showCopyNotification = ref(false)
 
 // Подсчёт ошибок по секундам (как в старом файле - ошибки только там где они есть)
 const errorsPerSecond = computed(() => {
@@ -143,14 +153,6 @@ const yScaleWpm = (value: number) => {
 
 const yScaleErrors = (value: number) => {
   return padding.top + chartHeight - (value / maxErrorsValue.value) * chartHeight
-}
-
-// Вычисляем длину пути для анимации
-const getPathLength = (pathData: string): number => {
-  if (!pathData) return 0
-  const path = document.createElementNS('http://www.w3.org/2000/svg', 'path')
-  path.setAttribute('d', pathData)
-  return path.getTotalLength()
 }
 
 // Генерация путей для линий
@@ -307,6 +309,117 @@ const startAnimation = () => {
   animationFrame = requestAnimationFrame(animate)
 }
 
+// Функция создания скриншота
+const captureScreenshot = async (): Promise<Blob | null> => {
+  if (!resultsContainer.value) return null
+  
+  try {
+    // Скрываем tooltip перед скриншотом
+    const wasTooltipVisible = tooltipData.value.visible
+    tooltipData.value.visible = false
+    
+    await nextTick()
+    
+    // Используем dom-to-image-more
+    const blob = await domtoimage.toBlob(resultsContainer.value, {
+      bgcolor: isDark.value ? '#1f2937' : '#ffffff',
+      quality: 1,
+      scale: 2,
+      style: {
+        transform: 'scale(1)',
+        transformOrigin: 'top left'
+      }
+    })
+    
+    // Восстанавливаем tooltip
+    if (wasTooltipVisible) {
+      tooltipData.value.visible = true
+    }
+    
+    return blob
+  } catch (error) {
+    console.error('Ошибка при создании скриншота:', error)
+    
+    // Fallback: попробуем альтернативный метод
+    try {
+      const dataUrl = await domtoimage.toPng(resultsContainer.value, {
+        bgcolor: isDark.value ? '#1f2937' : '#ffffff',
+        quality: 1,
+        scale: 2
+      })
+      
+      // Конвертируем data URL в Blob
+      const response = await fetch(dataUrl)
+      return await response.blob()
+    } catch (fallbackError) {
+      console.error('Fallback тоже не сработал:', fallbackError)
+      return null
+    }
+  }
+}
+
+// Функция "Поделиться" - копирует сообщение в буфер обмена
+const shareResults = async () => {
+  if (shareSuccess.value) return
+  
+  try {
+    const message = `Моя скорость печати: ${props.stats.wpm} WPM | Точность: ${props.stats.accuracy}%
+
+Проверь свою скорость печати 👉 https://sakhatype.ru`
+    
+    await navigator.clipboard.writeText(message)
+    
+    shareSuccess.value = true
+    showCopyNotification.value = true
+    
+    // Скрываем уведомление через 3 секунды
+    setTimeout(() => {
+      showCopyNotification.value = false
+    }, 3000)
+    
+    // Сбрасываем состояние кнопки через 2 секунды
+    setTimeout(() => {
+      shareSuccess.value = false
+    }, 2000)
+    
+  } catch (error) {
+    console.error('Ошибка при копировании:', error)
+  }
+}
+
+// Функция сохранения скриншота
+const saveScreenshot = async () => {
+  if (isCapturing.value) return
+  
+  isCapturing.value = true
+  screenshotSuccess.value = false
+  
+  try {
+    const blob = await captureScreenshot()
+    
+    if (!blob) {
+      throw new Error('Не удалось создать скриншот')
+    }
+    
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `sakhatype-${props.stats.wpm}wpm-${Date.now()}.png`
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    URL.revokeObjectURL(url)
+    
+    screenshotSuccess.value = true
+    setTimeout(() => { screenshotSuccess.value = false }, 2000)
+    
+  } catch (error) {
+    console.error('Ошибка при сохранении:', error)
+  } finally {
+    isCapturing.value = false
+  }
+}
+
 // Следим за изменением данных и перерендериваем график
 watch(
   () => [props.wpmHistory, props.rawHistory, props.burstHistory, props.errorTimestamps],
@@ -341,316 +454,384 @@ const restart = () => {
 
 <template>
   <div class="w-full max-w-4xl mx-auto animate-fadeIn">
-    <!-- Статистика - 4 карточки -->
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-      <!-- WPM -->
-      <Card>
-        <CardContent class="p-4 text-center">
-          <div class="flex items-center justify-center gap-2 mb-2">
-            <Zap :size="18" class="text-yellow-500" />
-            <span :class="['text-sm', isDark ? 'text-neutral-400' : 'text-neutral-600']">WPM</span>
-          </div>
-          <div :class="['text-3xl font-bold', isDark ? 'text-white' : 'text-gray-900']">
-            {{ stats.wpm }}
-          </div>
-        </CardContent>
-      </Card>
+    <!-- Уведомление о копировании -->
+    <Transition name="notification">
+      <div
+        v-if="showCopyNotification"
+        :class="[
+          'fixed top-4 left-1/2 -translate-x-1/2 z-50 px-4 py-3 rounded-lg shadow-lg flex items-center gap-2',
+          isDark ? 'bg-green-900 text-green-100 border border-green-700' : 'bg-green-100 text-green-800 border border-green-300'
+        ]"
+      >
+        <Check :size="20" class="text-green-500" />
+        <span>Сообщение скопировано в буфер обмена!</span>
+      </div>
+    </Transition>
 
-      <!-- Точность -->
-      <Card>
-        <CardContent class="p-4 text-center">
-          <div class="flex items-center justify-center gap-2 mb-2">
-            <Target :size="18" class="text-green-500" />
-            <span :class="['text-sm', isDark ? 'text-neutral-400' : 'text-neutral-600']">Точность</span>
-          </div>
-          <div :class="['text-3xl font-bold', isDark ? 'text-white' : 'text-gray-900']">
-            {{ stats.accuracy }}%
-          </div>
-        </CardContent>
-      </Card>
+    <!-- Контейнер для скриншота -->
+    <div ref="resultsContainer" :class="['p-4 rounded-lg', isDark ? '' : '']">
+      <!-- Заголовок для скриншота -->
+      <div class="text-center mb-4">
+        <h2 :class="['text-xl font-bold', isDark ? 'text-white' : 'text-gray-900']">
+          Результаты теста
+        </h2>
+      </div>
+      
+      <!-- Статистика - 4 карточки -->
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        <!-- WPM -->
+        <Card>
+          <CardContent class="p-4 text-center">
+            <div class="flex items-center justify-center gap-2 mb-2">
+              <Zap :size="18" class="text-yellow-500" />
+              <span :class="['text-sm', isDark ? 'text-neutral-400' : 'text-neutral-600']">WPM</span>
+            </div>
+            <div :class="['text-3xl font-bold', isDark ? 'text-white' : 'text-gray-900']">
+              {{ stats.wpm }}
+            </div>
+          </CardContent>
+        </Card>
 
-      <!-- Raw WPM -->
-      <Card>
-        <CardContent class="p-4 text-center">
-          <div class="flex items-center justify-center gap-2 mb-2">
-            <Gauge :size="18" class="text-blue-500" />
-            <span :class="['text-sm', isDark ? 'text-neutral-400' : 'text-neutral-600']">Raw</span>
-          </div>
-          <div :class="['text-3xl font-bold', isDark ? 'text-white' : 'text-gray-900']">
-            {{ stats.rawWpm }}
-          </div>
-        </CardContent>
-      </Card>
+        <!-- Точность -->
+        <Card>
+          <CardContent class="p-4 text-center">
+            <div class="flex items-center justify-center gap-2 mb-2">
+              <Target :size="18" class="text-green-500" />
+              <span :class="['text-sm', isDark ? 'text-neutral-400' : 'text-neutral-600']">Точность</span>
+            </div>
+            <div :class="['text-3xl font-bold', isDark ? 'text-white' : 'text-gray-900']">
+              {{ stats.accuracy }}%
+            </div>
+          </CardContent>
+        </Card>
 
-      <!-- Ошибки -->
-      <Card>
-        <CardContent class="p-4 text-center">
-          <div class="flex items-center justify-center gap-2 mb-2">
-            <AlertTriangle :size="18" class="text-red-500" />
-            <span :class="['text-sm', isDark ? 'text-neutral-400' : 'text-neutral-600']">Ошибки</span>
+        <!-- Raw WPM -->
+        <Card>
+          <CardContent class="p-4 text-center">
+            <div class="flex items-center justify-center gap-2 mb-2">
+              <Gauge :size="18" class="text-blue-500" />
+              <span :class="['text-sm', isDark ? 'text-neutral-400' : 'text-neutral-600']">Raw</span>
+            </div>
+            <div :class="['text-3xl font-bold', isDark ? 'text-white' : 'text-gray-900']">
+              {{ stats.rawWpm }}
+            </div>
+          </CardContent>
+        </Card>
+
+        <!-- Ошибки -->
+        <Card>
+          <CardContent class="p-4 text-center">
+            <div class="flex items-center justify-center gap-2 mb-2">
+              <AlertTriangle :size="18" class="text-red-500" />
+              <span :class="['text-sm', isDark ? 'text-neutral-400' : 'text-neutral-600']">Ошибки</span>
+            </div>
+            <div :class="['text-3xl font-bold', isDark ? 'text-white' : 'text-gray-900']">
+              {{ stats.totalErrors }}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      <!-- График -->
+      <Card class="mb-4">
+        <CardContent class="p-4">
+          <!-- Легенда -->
+          <div class="flex flex-wrap items-center justify-center gap-6 mb-4">
+            <div class="flex items-center gap-2">
+              <div :class="['w-6 h-3 rounded', isDark ? 'bg-gray-400' : 'bg-black']" style="opacity: 0.8"></div>
+              <span :class="['text-sm', isDark ? 'text-neutral-400' : 'text-neutral-600']">wpm</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <div class="w-6 h-0.5 border-t-2 border-dashed border-gray-500"></div>
+              <span :class="['text-sm', isDark ? 'text-neutral-400' : 'text-neutral-600']">raw</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <div class="w-6 h-3 rounded" style="background-color: rgba(132, 165, 169, 0.8)"></div>
+              <span :class="['text-sm', isDark ? 'text-neutral-400' : 'text-neutral-600']">burst</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+              <span :class="['text-sm', isDark ? 'text-neutral-400' : 'text-neutral-600']">Ошибки</span>
+            </div>
           </div>
-          <div :class="['text-3xl font-bold', isDark ? 'text-white' : 'text-gray-900']">
-            {{ stats.totalErrors }}
+
+          <!-- SVG График -->
+          <div 
+            ref="chartContainer"
+            :key="chartKey"
+            class="relative w-full overflow-x-auto"
+            @mousemove="handleMouseMove"
+            @mouseleave="handleMouseLeave"
+          >
+            <template v-if="chartData.length > 0 && chartReady">
+              <svg
+                :viewBox="`0 0 ${svgWidth} ${svgHeight}`"
+                class="w-full h-auto"
+                preserveAspectRatio="xMidYMid meet"
+              >
+                <!-- Сетка -->
+                <g class="grid">
+                  <line
+                    v-for="tick in yAxisWpmTicks"
+                    :key="`h-${tick}`"
+                    :x1="padding.left"
+                    :y1="yScaleWpm(tick)"
+                    :x2="svgWidth - padding.right"
+                    :y2="yScaleWpm(tick)"
+                    :stroke="colors.grid"
+                    stroke-width="1"
+                  />
+                </g>
+
+                <!-- Ось Y слева (WPM) -->
+                <g class="y-axis-left">
+                  <text
+                    :x="15"
+                    :y="svgHeight / 2"
+                    :fill="colors.text"
+                    font-size="11"
+                    text-anchor="middle"
+                    transform="rotate(-90, 15, 150)"
+                  >
+                    Скорость набора (слов/мин.)
+                  </text>
+                  <text
+                    v-for="tick in yAxisWpmTicks"
+                    :key="`y-${tick}`"
+                    :x="padding.left - 10"
+                    :y="yScaleWpm(tick) + 4"
+                    :fill="colors.text"
+                    font-size="11"
+                    text-anchor="end"
+                  >
+                    {{ tick }}
+                  </text>
+                </g>
+
+                <!-- Ось Y справа (Ошибки) -->
+                <g class="y-axis-right">
+                  <text
+                    :x="svgWidth - 15"
+                    :y="svgHeight / 2"
+                    fill="#ff0000"
+                    font-size="11"
+                    text-anchor="middle"
+                    transform="rotate(90, 785, 150)"
+                  >
+                    Количество ошибок
+                  </text>
+                  <text
+                    v-for="tick in yAxisErrorsTicks"
+                    :key="`yr-${tick}`"
+                    :x="svgWidth - padding.right + 10"
+                    :y="yScaleErrors(tick) + 4"
+                    fill="#ff0000"
+                    font-size="11"
+                    text-anchor="start"
+                  >
+                    {{ tick }}
+                  </text>
+                </g>
+
+                <!-- Ось X -->
+                <g class="x-axis">
+                  <text
+                    :x="svgWidth / 2"
+                    :y="svgHeight - 10"
+                    :fill="colors.text"
+                    font-size="12"
+                    text-anchor="middle"
+                  >
+                    Время (секунды)
+                  </text>
+                  <text
+                    v-for="tick in xAxisTicks"
+                    :key="`x-${tick}`"
+                    :x="xScale(tick - 1)"
+                    :y="svgHeight - padding.bottom + 20"
+                    :fill="colors.text"
+                    font-size="11"
+                    text-anchor="middle"
+                  >
+                    {{ tick }}
+                  </text>
+                </g>
+
+                <!-- WPM область (заливка) с анимацией -->
+                <path
+                  :d="wpmAreaPath"
+                  :fill="colors.wpmFill"
+                  class="chart-area"
+                  :style="{ opacity: animationProgress * 0.8 }"
+                />
+
+                <!-- WPM линия с анимацией -->
+                <path
+                  :d="wpmPath"
+                  fill="none"
+                  :stroke="colors.wpm"
+                  stroke-width="2"
+                  class="chart-line"
+                  :stroke-dasharray="1000"
+                  :stroke-dashoffset="1000 - (1000 * animationProgress)"
+                />
+
+                <!-- Raw линия (пунктирная) с анимацией -->
+                <path
+                  :d="rawPath"
+                  fill="none"
+                  :stroke="colors.raw"
+                  stroke-width="2"
+                  class="chart-line"
+                  :stroke-dasharray="`5,5`"
+                  :style="{ opacity: animationProgress }"
+                />
+
+                <!-- Burst линия с анимацией -->
+                <path
+                  :d="burstPath"
+                  fill="none"
+                  :stroke="colors.burst"
+                  stroke-width="2"
+                  class="chart-line"
+                  :stroke-dasharray="1000"
+                  :stroke-dashoffset="1000 - (1000 * animationProgress)"
+                />
+
+                <!-- Точки ошибок - ТОЛЬКО там где есть ошибки -->
+                <g class="error-points">
+                  <circle
+                    v-for="(point, i) in errorPointsForDisplay"
+                    :key="`err-${i}`"
+                    :cx="point.x"
+                    :cy="point.y"
+                    :r="Math.min(6, 3 + (point.errors || 0))"
+                    :fill="colors.errors"
+                    class="error-point"
+                    :class="{ 'error-point-hovered': hoveredIndex === point.index }"
+                    :style="{ 
+                      opacity: animationProgress,
+                      transform: `scale(${animationProgress * (hoveredIndex === point.index ? 1.5 : 1)})`,
+                      transformOrigin: `${point.x}px ${point.y}px`
+                    }"
+                  />
+                </g>
+
+                <!-- Точка на линии WPM при hover -->
+                <circle
+                  v-if="tooltipData.visible"
+                  :cx="tooltipData.x"
+                  :cy="tooltipData.y"
+                  r="5"
+                  :fill="colors.wpm"
+                  class="hover-dot"
+                />
+
+                <!-- Вертикальная линия при hover -->
+                <line
+                  v-if="tooltipData.visible"
+                  :x1="tooltipData.x"
+                  :y1="padding.top"
+                  :x2="tooltipData.x"
+                  :y2="svgHeight - padding.bottom"
+                  :stroke="colors.grid"
+                  stroke-width="1"
+                  stroke-dasharray="3,3"
+                />
+              </svg>
+
+              <!-- Tooltip с плавным перемещением -->
+              <div
+                v-if="tooltipData.visible"
+                :class="[
+                  'absolute pointer-events-none px-3 py-2 rounded-lg shadow-lg text-sm z-10 border tooltip-smooth',
+                  isDark ? 'bg-gray-900 border-gray-700' : 'bg-white border-gray-200'
+                ]"
+                :style="{
+                  left: `${(tooltipData.x / svgWidth) * 100}%`,
+                  top: '20px',
+                  transform: 'translateX(-50%)'
+                }"
+              >
+                <div :class="['font-bold mb-1', isDark ? 'text-white' : 'text-gray-900']">
+                  Секунда {{ tooltipData.second }}
+                </div>
+                <div class="flex items-center gap-2 mb-0.5">
+                  <div :class="['w-3 h-3 rounded', isDark ? 'bg-gray-400' : 'bg-black']"></div>
+                  <span :class="isDark ? 'text-gray-300' : 'text-gray-700'">wpm: {{ tooltipData.wpm }}</span>
+                </div>
+                <div class="flex items-center gap-2 mb-0.5">
+                  <div class="w-3 h-0.5 border-t-2 border-dashed border-gray-400"></div>
+                  <span :class="isDark ? 'text-gray-300' : 'text-gray-700'">raw: {{ tooltipData.raw }}</span>
+                </div>
+                <div class="flex items-center gap-2 mb-0.5">
+                  <div class="w-3 h-3 rounded" style="background-color: rgba(132, 165, 169, 0.8)"></div>
+                  <span :class="isDark ? 'text-gray-300' : 'text-gray-700'">burst: {{ tooltipData.burst }}</span>
+                </div>
+                <div v-if="tooltipData.errors > 0" class="flex items-center gap-2">
+                  <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+                  <span :class="isDark ? 'text-gray-300' : 'text-gray-700'">Ошибки: {{ tooltipData.errors }}</span>
+                </div>
+              </div>
+            </template>
+            
+            <!-- Fallback когда нет данных -->
+            <div v-else class="flex items-center justify-center h-[300px]">
+              <p :class="['text-sm', isDark ? 'text-neutral-500' : 'text-neutral-400']">
+                Загрузка графика...
+              </p>
+            </div>
           </div>
         </CardContent>
       </Card>
     </div>
 
-    <!-- График -->
-    <Card class="mb-8">
-      <CardContent class="p-4">
-        <!-- Легенда -->
-        <div class="flex flex-wrap items-center justify-center gap-6 mb-4">
-          <div class="flex items-center gap-2">
-            <div :class="['w-6 h-3 rounded', isDark ? 'bg-gray-400' : 'bg-black']" style="opacity: 0.8"></div>
-            <span :class="['text-sm', isDark ? 'text-neutral-400' : 'text-neutral-600']">wpm</span>
-          </div>
-          <div class="flex items-center gap-2">
-            <div class="w-6 h-0.5 border-t-2 border-dashed border-gray-500"></div>
-            <span :class="['text-sm', isDark ? 'text-neutral-400' : 'text-neutral-600']">raw</span>
-          </div>
-          <div class="flex items-center gap-2">
-            <div class="w-6 h-3 rounded" style="background-color: rgba(132, 165, 169, 0.8)"></div>
-            <span :class="['text-sm', isDark ? 'text-neutral-400' : 'text-neutral-600']">burst</span>
-          </div>
-          <div class="flex items-center gap-2">
-            <div class="w-3 h-3 bg-red-500 rounded-full"></div>
-            <span :class="['text-sm', isDark ? 'text-neutral-400' : 'text-neutral-600']">Ошибки</span>
-          </div>
-        </div>
+    <!-- Кнопки управления -->
+    <div class="flex flex-wrap justify-center gap-3 mt-4">
+      <!-- Кнопка "Поделиться" -->
+      <Button
+        @click="shareResults"
+        variant="outline"
+        :class="[
+          'flex items-center gap-2 transition-all duration-300',
+          shareSuccess ? 'border-green-500 text-green-500' : ''
+        ]"
+      >
+        <template v-if="shareSuccess">
+          <Check :size="20" />
+          <span>Скопировано!</span>
+        </template>
+        <template v-else>
+          <Share2 :size="20" />
+          <span>Поделиться</span>
+        </template>
+      </Button>
 
-        <!-- SVG График -->
-        <div 
-          ref="chartContainer"
-          :key="chartKey"
-          class="relative w-full overflow-x-auto"
-          @mousemove="handleMouseMove"
-          @mouseleave="handleMouseLeave"
-        >
-          <template v-if="chartData.length > 0 && chartReady">
-            <svg
-              :viewBox="`0 0 ${svgWidth} ${svgHeight}`"
-              class="w-full h-auto"
-              preserveAspectRatio="xMidYMid meet"
-            >
-              <!-- Сетка -->
-              <g class="grid">
-                <line
-                  v-for="tick in yAxisWpmTicks"
-                  :key="`h-${tick}`"
-                  :x1="padding.left"
-                  :y1="yScaleWpm(tick)"
-                  :x2="svgWidth - padding.right"
-                  :y2="yScaleWpm(tick)"
-                  :stroke="colors.grid"
-                  stroke-width="1"
-                />
-              </g>
+      <!-- Кнопка сохранения скриншота -->
+      <Button
+        @click="saveScreenshot"
+        :disabled="isCapturing"
+        variant="outline"
+        :class="[
+          'flex items-center gap-2 transition-all duration-300',
+          screenshotSuccess ? 'border-green-500 text-green-500' : ''
+        ]"
+      >
+        <template v-if="isCapturing">
+          <div class="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
+          <span>Создание...</span>
+        </template>
+        <template v-else-if="screenshotSuccess">
+          <Check :size="20" />
+          <span>Сохранено!</span>
+        </template>
+        <template v-else>
+          <Camera :size="20" />
+          <span>Сохранить скриншот</span>
+        </template>
+      </Button>
 
-              <!-- Ось Y слева (WPM) -->
-              <g class="y-axis-left">
-                <text
-                  :x="15"
-                  :y="svgHeight / 2"
-                  :fill="colors.text"
-                  font-size="11"
-                  text-anchor="middle"
-                  transform="rotate(-90, 15, 150)"
-                >
-                  Скорость набора (слов/мин.)
-                </text>
-                <text
-                  v-for="tick in yAxisWpmTicks"
-                  :key="`y-${tick}`"
-                  :x="padding.left - 10"
-                  :y="yScaleWpm(tick) + 4"
-                  :fill="colors.text"
-                  font-size="11"
-                  text-anchor="end"
-                >
-                  {{ tick }}
-                </text>
-              </g>
-
-              <!-- Ось Y справа (Ошибки) -->
-              <g class="y-axis-right">
-                <text
-                  :x="svgWidth - 15"
-                  :y="svgHeight / 2"
-                  fill="#ff0000"
-                  font-size="11"
-                  text-anchor="middle"
-                  transform="rotate(90, 785, 150)"
-                >
-                  Количество ошибок
-                </text>
-                <text
-                  v-for="tick in yAxisErrorsTicks"
-                  :key="`yr-${tick}`"
-                  :x="svgWidth - padding.right + 10"
-                  :y="yScaleErrors(tick) + 4"
-                  fill="#ff0000"
-                  font-size="11"
-                  text-anchor="start"
-                >
-                  {{ tick }}
-                </text>
-              </g>
-
-              <!-- Ось X -->
-              <g class="x-axis">
-                <text
-                  :x="svgWidth / 2"
-                  :y="svgHeight - 10"
-                  :fill="colors.text"
-                  font-size="12"
-                  text-anchor="middle"
-                >
-                  Время (секунды)
-                </text>
-                <text
-                  v-for="tick in xAxisTicks"
-                  :key="`x-${tick}`"
-                  :x="xScale(tick - 1)"
-                  :y="svgHeight - padding.bottom + 20"
-                  :fill="colors.text"
-                  font-size="11"
-                  text-anchor="middle"
-                >
-                  {{ tick }}
-                </text>
-              </g>
-
-              <!-- WPM область (заливка) с анимацией -->
-              <path
-                :d="wpmAreaPath"
-                :fill="colors.wpmFill"
-                class="chart-area"
-                :style="{ opacity: animationProgress * 0.8 }"
-              />
-
-              <!-- WPM линия с анимацией -->
-              <path
-                :d="wpmPath"
-                fill="none"
-                :stroke="colors.wpm"
-                stroke-width="2"
-                class="chart-line"
-                :stroke-dasharray="1000"
-                :stroke-dashoffset="1000 - (1000 * animationProgress)"
-              />
-
-              <!-- Raw линия (пунктирная) с анимацией -->
-              <path
-                :d="rawPath"
-                fill="none"
-                :stroke="colors.raw"
-                stroke-width="2"
-                class="chart-line"
-                :stroke-dasharray="`5,5`"
-                :style="{ opacity: animationProgress }"
-              />
-
-              <!-- Burst линия с анимацией -->
-              <path
-                :d="burstPath"
-                fill="none"
-                :stroke="colors.burst"
-                stroke-width="2"
-                class="chart-line"
-                :stroke-dasharray="1000"
-                :stroke-dashoffset="1000 - (1000 * animationProgress)"
-              />
-
-              <!-- Точки ошибок - ТОЛЬКО там где есть ошибки -->
-              <g class="error-points">
-                <circle
-                  v-for="(point, i) in errorPointsForDisplay"
-                  :key="`err-${i}`"
-                  :cx="point.x"
-                  :cy="point.y"
-                  :r="Math.min(6, 3 + (point.errors || 0))"
-                  :fill="colors.errors"
-                  class="error-point"
-                  :class="{ 'error-point-hovered': hoveredIndex === point.index }"
-                  :style="{ 
-                    opacity: animationProgress,
-                    transform: `scale(${animationProgress * (hoveredIndex === point.index ? 1.5 : 1)})`,
-                    transformOrigin: `${point.x}px ${point.y}px`
-                  }"
-                />
-              </g>
-
-              <!-- Точка на линии WPM при hover -->
-              <circle
-                v-if="tooltipData.visible"
-                :cx="tooltipData.x"
-                :cy="tooltipData.y"
-                r="5"
-                :fill="colors.wpm"
-                class="hover-dot"
-              />
-
-              <!-- Вертикальная линия при hover -->
-              <line
-                v-if="tooltipData.visible"
-                :x1="tooltipData.x"
-                :y1="padding.top"
-                :x2="tooltipData.x"
-                :y2="svgHeight - padding.bottom"
-                :stroke="colors.grid"
-                stroke-width="1"
-                stroke-dasharray="3,3"
-              />
-            </svg>
-
-            <!-- Tooltip с плавным перемещением -->
-            <div
-              v-if="tooltipData.visible"
-              :class="[
-                'absolute pointer-events-none px-3 py-2 rounded-lg shadow-lg text-sm z-10 border tooltip-smooth',
-                isDark ? 'bg-gray-900 border-gray-700' : 'bg-white border-gray-200'
-              ]"
-              :style="{
-                left: `${(tooltipData.x / svgWidth) * 100}%`,
-                top: '20px',
-                transform: 'translateX(-50%)'
-              }"
-            >
-              <div :class="['font-bold mb-1', isDark ? 'text-white' : 'text-gray-900']">
-                Секунда {{ tooltipData.second }}
-              </div>
-              <div class="flex items-center gap-2 mb-0.5">
-                <div :class="['w-3 h-3 rounded', isDark ? 'bg-gray-400' : 'bg-black']"></div>
-                <span :class="isDark ? 'text-gray-300' : 'text-gray-700'">wpm: {{ tooltipData.wpm }}</span>
-              </div>
-              <div class="flex items-center gap-2 mb-0.5">
-                <div class="w-3 h-0.5 border-t-2 border-dashed border-gray-400"></div>
-                <span :class="isDark ? 'text-gray-300' : 'text-gray-700'">raw: {{ tooltipData.raw }}</span>
-              </div>
-              <div class="flex items-center gap-2 mb-0.5">
-                <div class="w-3 h-3 rounded" style="background-color: rgba(132, 165, 169, 0.8)"></div>
-                <span :class="isDark ? 'text-gray-300' : 'text-gray-700'">burst: {{ tooltipData.burst }}</span>
-              </div>
-              <div v-if="tooltipData.errors > 0" class="flex items-center gap-2">
-                <div class="w-3 h-3 bg-red-500 rounded-full"></div>
-                <span :class="isDark ? 'text-gray-300' : 'text-gray-700'">Ошибки: {{ tooltipData.errors }}</span>
-              </div>
-            </div>
-          </template>
-          
-          <!-- Fallback когда нет данных -->
-          <div v-else class="flex items-center justify-center h-[300px]">
-            <p :class="['text-sm', isDark ? 'text-neutral-500' : 'text-neutral-400']">
-              Загрузка графика...
-            </p>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-
-    <!-- Кнопка рестарта -->
-    <div class="flex justify-center">
+      <!-- Кнопка рестарта -->
       <Button
         @click="restart"
         variant="outline"
@@ -701,5 +882,36 @@ const restart = () => {
 
 .tooltip-smooth {
   transition: left 0.15s ease-out, top 0.15s ease-out;
+}
+
+/* Анимация уведомления */
+.notification-enter-active {
+  animation: slideDown 0.3s ease-out;
+}
+
+.notification-leave-active {
+  animation: slideUp 0.3s ease-in;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -20px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+  to {
+    opacity: 0;
+    transform: translate(-50%, -20px);
+  }
 }
 </style>
