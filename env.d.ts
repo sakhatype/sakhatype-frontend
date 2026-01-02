@@ -7,3 +7,8 @@ declare module '*.vue' {
   const component: DefineComponent<{}, {}, any>
   export default component
 }
+
+declare module 'dom-to-image-more' {
+    const domtoimage: any;
+    export default domtoimage;
+}
