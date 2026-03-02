@@ -2,7 +2,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useTheme } from '@/composables/useTheme'
 import { leaderboardApi, type LeaderboardEntry } from '@/shared/api'
-import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card'
+import { Card, CardContent } from '@/shared/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/ui/tabs'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/shared/ui/table'
 import { Input } from '@/shared/ui/input'
@@ -40,7 +40,6 @@ const filteredWpmLeaderboard = computed(() => {
   let filtered = wpmLeaderboard.value.filter(user =>
     user.username.toLowerCase().includes(searchQuery.value.toLowerCase())
   )
-  
   return sortLeaderboard(filtered, 'wpm')
 })
 
@@ -48,58 +47,32 @@ const filteredAccuracyLeaderboard = computed(() => {
   let filtered = accuracyLeaderboard.value.filter(user =>
     user.username.toLowerCase().includes(searchQuery.value.toLowerCase())
   )
-  
   return sortLeaderboard(filtered, 'accuracy')
 })
 
 function sortLeaderboard(data: LeaderboardEntry[], defaultSort: 'wpm' | 'accuracy') {
   const sorted = [...data]
-  
   sorted.sort((a, b) => {
     let aVal: string | number
     let bVal: string | number
-    
     switch (sortColumn.value) {
-      case 'username':
-        aVal = a.username
-        bVal = b.username
-        break
-      case 'wpm':
-        aVal = a.best_wpm
-        bVal = b.best_wpm
-        break
-      case 'accuracy':
-        aVal = a.best_accuracy
-        bVal = b.best_accuracy
-        break
-      case 'level':
-        aVal = a.level
-        bVal = b.level
-        break
-      case 'total_tests':
-        aVal = a.total_tests
-        bVal = b.total_tests
-        break
+      case 'username': aVal = a.username; bVal = b.username; break
+      case 'wpm': aVal = a.best_wpm; bVal = b.best_wpm; break
+      case 'accuracy': aVal = a.best_accuracy; bVal = b.best_accuracy; break
+      case 'level': aVal = a.level; bVal = b.level; break
+      case 'total_tests': aVal = a.total_tests; bVal = b.total_tests; break
       default:
         aVal = defaultSort === 'wpm' ? a.best_wpm : a.best_accuracy
         bVal = defaultSort === 'wpm' ? b.best_wpm : b.best_accuracy
     }
-    
     if (typeof aVal === 'string' && typeof bVal === 'string') {
-      return sortDirection.value === 'asc' 
-        ? aVal.localeCompare(bVal)
-        : bVal.localeCompare(aVal)
+      return sortDirection.value === 'asc' ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal)
     }
-    
-    // TypeScript now knows both are numbers
     if (typeof aVal === 'number' && typeof bVal === 'number') {
       return sortDirection.value === 'asc' ? aVal - bVal : bVal - aVal
     }
-    
-    // Fallback (shouldn't happen, but TypeScript needs this)
     return 0
   })
-  
   return sorted
 }
 
@@ -128,5 +101,242 @@ const getRankBadgeColor = (index: number) => {
 </script>
 
 <template>
-  a
+  <div>
+    <!-- Header -->
+    <header :class="[isDark ? 'border-gray-800' : 'border-gray-200']">
+      <div class="py-4 sm:py-6 flex items-center gap-3">
+        <Trophy :size="28" :class="isDark ? 'text-yellow-500' : 'text-yellow-600'" />
+        <h1 :class="['text-2xl sm:text-4xl font-bold', isDark ? 'text-white' : 'text-gray-900']">
+          Лидерборд
+        </h1>
+      </div>
+    </header>
+
+    <!-- Loading state -->
+    <div v-if="isLoading" class="py-12 text-center">
+      <p :class="['text-lg', isDark ? 'text-neutral-400' : 'text-neutral-600']">Загрузка...</p>
+    </div>
+
+    <!-- Leaderboard Content -->
+    <main v-else class="py-4 sm:py-6">
+      <Tabs v-model="activeTab" default-value="wpm" class="w-full">
+        <TabsList class="grid w-full max-w-md mx-auto grid-cols-1 mb-4 sm:mb-6">
+          <TabsTrigger value="wpm" class="flex items-center gap-1 sm:gap-1 text-xs sm:text-sm">
+            <Zap :size="14" />
+            <span>WPM</span>
+          </TabsTrigger>
+          <!-- <TabsTrigger value="accuracy" class="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
+            <Target :size="14" />
+            <span>Точность</span>
+          </TabsTrigger> -->
+        </TabsList>
+
+        <!-- Search -->
+        <div class="mb-4 flex items-center gap-2 max-w-md mx-auto">
+          <Search :size="18" :class="isDark ? 'text-neutral-400' : 'text-neutral-600'" class="flex-shrink-0" />
+          <Input
+            v-model="searchQuery"
+            placeholder="Поиск по имени..."
+            class="flex-1 text-sm"
+          />
+        </div>
+
+        <!-- WPM Leaderboard -->
+        <TabsContent value="wpm">
+          <Card :class="[isDark ? '' : 'bg-white']">
+            <CardContent class="p-0">
+              <!-- Desktop Table -->
+              <div class="hidden sm:block">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead class="w-16">Ранг</TableHead>
+                      <TableHead>
+                        <Button variant="ghost" @click="toggleSort('username')" class="flex items-center gap-1 text-xs sm:text-sm">
+                          Имя
+                          <component :is="sortDirection === 'asc' ? ArrowUp : ArrowDown" v-if="sortColumn === 'username'" :size="14" />
+                        </Button>
+                      </TableHead>
+                      <TableHead>
+                        <Button variant="ghost" @click="toggleSort('level')" class="flex items-center gap-1 text-xs sm:text-sm">
+                          Уровень
+                          <component :is="sortDirection === 'asc' ? ArrowUp : ArrowDown" v-if="sortColumn === 'level'" :size="14" />
+                        </Button>
+                      </TableHead>
+                      <TableHead>
+                        <Button variant="ghost" @click="toggleSort('total_tests')" class="flex items-center gap-1 text-xs sm:text-sm">
+                          Тесты
+                          <component :is="sortDirection === 'asc' ? ArrowUp : ArrowDown" v-if="sortColumn === 'total_tests'" :size="14" />
+                        </Button>
+                      </TableHead>
+                      <TableHead class="text-right">
+                        <Button variant="ghost" @click="toggleSort('wpm')" class="flex items-center gap-1 ml-auto text-xs sm:text-sm">
+                          WPM
+                          <component :is="sortDirection === 'asc' ? ArrowUp : ArrowDown" v-if="sortColumn === 'wpm'" :size="14" />
+                        </Button>
+                      </TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    <TableRow
+                      v-for="(user, index) in filteredWpmLeaderboard"
+                      :key="user.username"
+                      :class="[index < 3 && 'font-semibold']"
+                    >
+                      <TableCell class="font-medium">
+                        <Medal v-if="index < 3" :size="20" :class="getMedalColor(index)" />
+                        <span v-else>{{ index + 1 }}</span>
+                      </TableCell>
+                      <TableCell>{{ user.username }}</TableCell>
+                      <TableCell>
+                        <Badge :class="getRankBadgeColor(index)">Ур. {{ user.level }}</Badge>
+                      </TableCell>
+                      <TableCell>{{ user.total_tests }}</TableCell>
+                      <TableCell class="text-right font-bold">{{ Math.round(user.best_wpm) }}</TableCell>
+                    </TableRow>
+                    <TableRow v-if="filteredWpmLeaderboard.length === 0">
+                      <TableCell colspan="5" class="text-center py-8">
+                        <p :class="isDark ? 'text-neutral-500' : 'text-neutral-400'">Пользователи не найдены</p>
+                      </TableCell>
+                    </TableRow>
+                  </TableBody>
+                </Table>
+              </div>
+
+              <!-- Mobile Cards -->
+              <div class="sm:hidden">
+                <div
+                  v-for="(user, index) in filteredWpmLeaderboard"
+                  :key="user.username"
+                  :class="[
+                    'flex items-center justify-between px-4 py-3 border-b last:border-b-0',
+                    isDark ? 'border-neutral-800' : 'border-gray-100',
+                    index < 3 ? 'font-semibold' : ''
+                  ]"
+                >
+                  <div class="flex items-center gap-3">
+                    <div class="w-8 flex-shrink-0 flex items-center justify-center">
+                      <Medal v-if="index < 3" :size="20" :class="getMedalColor(index)" />
+                      <span v-else :class="['text-sm', isDark ? 'text-neutral-400' : 'text-neutral-500']">{{ index + 1 }}</span>
+                    </div>
+                    <div>
+                      <p :class="['text-sm font-medium', isDark ? 'text-white' : 'text-gray-900']">{{ user.username }}</p>
+                      <div class="flex items-center gap-2 mt-0.5">
+                        <Badge :class="['text-xs', getRankBadgeColor(index)]">Ур. {{ user.level }}</Badge>
+                        <span :class="['text-xs', isDark ? 'text-neutral-500' : 'text-neutral-500']">{{ user.total_tests }} тестов</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div :class="['text-lg font-bold', isDark ? 'text-white' : 'text-gray-900']">
+                    {{ Math.round(user.best_wpm) }} <span class="text-xs font-normal text-neutral-500">WPM</span>
+                  </div>
+                </div>
+                <div v-if="filteredWpmLeaderboard.length === 0" class="text-center py-8">
+                  <p :class="isDark ? 'text-neutral-500' : 'text-neutral-400'">Пользователи не найдены</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <!-- Accuracy Leaderboard -->
+        <TabsContent value="accuracy">
+          <Card :class="[isDark ? '' : 'bg-white']">
+            <CardContent class="p-0">
+              <!-- Desktop Table -->
+              <div class="hidden sm:block">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead class="w-16">Ранг</TableHead>
+                      <TableHead>
+                        <Button variant="ghost" @click="toggleSort('username')" class="flex items-center gap-1">
+                          Имя
+                          <component :is="sortDirection === 'asc' ? ArrowUp : ArrowDown" v-if="sortColumn === 'username'" :size="14" />
+                        </Button>
+                      </TableHead>
+                      <TableHead>
+                        <Button variant="ghost" @click="toggleSort('level')" class="flex items-center gap-1">
+                          Уровень
+                          <component :is="sortDirection === 'asc' ? ArrowUp : ArrowDown" v-if="sortColumn === 'level'" :size="14" />
+                        </Button>
+                      </TableHead>
+                      <TableHead>
+                        <Button variant="ghost" @click="toggleSort('total_tests')" class="flex items-center gap-1">
+                          Тесты
+                          <component :is="sortDirection === 'asc' ? ArrowUp : ArrowDown" v-if="sortColumn === 'total_tests'" :size="14" />
+                        </Button>
+                      </TableHead>
+                      <!-- <TableHead class="text-right">
+                        <Button variant="ghost" @click="toggleSort('accuracy')" class="flex items-center gap-1 ml-auto">
+                          Точность
+                          <component :is="sortDirection === 'asc' ? ArrowUp : ArrowDown" v-if="sortColumn === 'accuracy'" :size="14" />
+                        </Button>
+                      </TableHead> -->
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    <TableRow
+                      v-for="(user, index) in filteredAccuracyLeaderboard"
+                      :key="user.username"
+                      :class="[index < 3 && 'font-semibold']"
+                    >
+                      <TableCell class="font-medium">
+                        <Medal v-if="index < 3" :size="20" :class="getMedalColor(index)" />
+                        <span v-else>{{ index + 1 }}</span>
+                      </TableCell>
+                      <TableCell>{{ user.username }}</TableCell>
+                      <TableCell>
+                        <Badge :class="getRankBadgeColor(index)">Ур. {{ user.level }}</Badge>
+                      </TableCell>
+                      <TableCell>{{ user.total_tests }}</TableCell>
+                      <TableCell class="text-right font-bold">{{ Math.round(user.best_accuracy) }}%</TableCell>
+                    </TableRow>
+                    <TableRow v-if="filteredAccuracyLeaderboard.length === 0">
+                      <TableCell colspan="5" class="text-center py-8">
+                        <p :class="isDark ? 'text-neutral-500' : 'text-neutral-400'">Пользователи не найдены</p>
+                      </TableCell>
+                    </TableRow>
+                  </TableBody>
+                </Table>
+              </div>
+
+              <!-- Mobile Cards -->
+              <div class="sm:hidden">
+                <div
+                  v-for="(user, index) in filteredAccuracyLeaderboard"
+                  :key="user.username"
+                  :class="[
+                    'flex items-center justify-between px-4 py-3 border-b last:border-b-0',
+                    isDark ? 'border-neutral-800' : 'border-gray-100',
+                    index < 3 ? 'font-semibold' : ''
+                  ]"
+                >
+                  <div class="flex items-center gap-3">
+                    <div class="w-8 flex-shrink-0 flex items-center justify-center">
+                      <Medal v-if="index < 3" :size="20" :class="getMedalColor(index)" />
+                      <span v-else :class="['text-sm', isDark ? 'text-neutral-400' : 'text-neutral-500']">{{ index + 1 }}</span>
+                    </div>
+                    <div>
+                      <p :class="['text-sm font-medium', isDark ? 'text-white' : 'text-gray-900']">{{ user.username }}</p>
+                      <div class="flex items-center gap-2 mt-0.5">
+                        <Badge :class="['text-xs', getRankBadgeColor(index)]">Ур. {{ user.level }}</Badge>
+                        <span :class="['text-xs', isDark ? 'text-neutral-500' : 'text-neutral-500']">{{ user.total_tests }} тестов</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div :class="['text-lg font-bold', isDark ? 'text-white' : 'text-gray-900']">
+                    {{ Math.round(user.best_accuracy) }}<span class="text-xs font-normal text-neutral-500">%</span>
+                  </div>
+                </div>
+                <div v-if="filteredAccuracyLeaderboard.length === 0" class="text-center py-8">
+                  <p :class="isDark ? 'text-neutral-500' : 'text-neutral-400'">Пользователи не найдены</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
+    </main>
+  </div>
 </template>

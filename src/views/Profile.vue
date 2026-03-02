@@ -128,30 +128,30 @@ const openLogoutDialog = () => {
     <main v-else-if="profile" class="container mx-auto px-1 py-1">
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-2">
         <!-- Profile Card -->
-        <Card :class="['col-span-2 p-2', isDark ? '' : 'bg-white']">
+        <Card :class="['col-span-1 lg:col-span-2 p-2', isDark ? '' : 'bg-white']">
           <CardContent class="p-2">
-            <div class="flex items-stretch gap-4">
+            <div class="flex items-stretch gap-3 sm:gap-4">
               <div
-                class="w-28 h-28 rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center flex-shrink-0"
+                class="w-20 h-20 sm:w-28 sm:h-28 rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center flex-shrink-0"
               >
-                <span class="text-white text-4xl font-bold">{{ userInitial }}</span>
+                <span class="text-white text-3xl sm:text-4xl font-bold">{{ userInitial }}</span>
               </div>
 
-              <div class="flex flex-col justify-between flex-1">
+              <div class="flex flex-col justify-between flex-1 min-w-0">
                 <!-- Верх -->
                 <div>
-                  <div class="flex items-center gap-2 mb-1">
-                    <h2 :class="['text-2xl font-bold', isDark ? 'text-white' : 'text-gray-900']">
+                  <div class="flex items-center gap-2 mb-1 flex-wrap">
+                    <h2 :class="['text-xl sm:text-2xl font-bold truncate', isDark ? 'text-white' : 'text-gray-900']">
                       {{ profile.username }}
                     </h2>
-                    <Badge class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 text-xs">
+                    <Badge class="bg-blue-500 hover:bg-blue-600 text-white px-2 py-0.5 text-xs flex-shrink-0">
                       Ур. {{ profile.level }}
                     </Badge>
                   </div>
 
                   <!-- Центр -->
                   <div class="flex flex-col justify-center flex-1">
-                    <p :class="['text-sm mb-1', isDark ? 'text-neutral-400' : 'text-neutral-600']">
+                    <p :class="['text-xs sm:text-sm mb-1', isDark ? 'text-neutral-400' : 'text-neutral-600']">
                       Опыт
                     </p>
                     <Progress
@@ -159,14 +159,12 @@ const openLogoutDialog = () => {
                       :max="100"
                       :class="['h-2 w-full', isDark ? 'bg-neutral-900' : 'bg-gray-200']"
                     />
-                    <div class="flex items-center justify-between text-xs w-full mt-1">
+                    <div class="flex items-center justify-between text-xs w-full mt-1 flex-wrap gap-1">
                       <span :class="isDark ? 'text-neutral-400' : 'text-neutral-600'">
                         {{ levelProgress.current }} / {{ levelProgress.max }}
                       </span>
                       <div class="gap-1 flex items-center">
-                        <span :class="isDark ? 'text-neutral-400' : 'text-neutral-600'"
-                          >Еще {{ levelProgress.toNext }} до
-                        </span>
+                        <span :class="['hidden sm:inline', isDark ? 'text-neutral-400' : 'text-neutral-600']">Еще {{ levelProgress.toNext }} до</span>
                         <Badge
                           variant="secondary"
                           class="text-xs bg-purple-500 hover:bg-purple-600 text-white"
@@ -179,10 +177,10 @@ const openLogoutDialog = () => {
                 </div>
 
                 <!-- Низ -->
-                <div class="flex items-center gap-1">
-                  <CalendarDays :size="16" :class="isDark ? 'text-neutral-400' : 'text-neutral-600'" />
+                <div class="flex items-center gap-1 mt-2">
+                  <CalendarDays :size="14" :class="isDark ? 'text-neutral-400' : 'text-neutral-600'" />
                   <span :class="['text-xs', isDark ? 'text-neutral-500' : 'text-neutral-600']">
-                    Дата регистрации:  {{ formattedDate }}
+                    {{ formattedDate }}
                   </span>
                 </div>
               </div>
@@ -196,34 +194,34 @@ const openLogoutDialog = () => {
             <div class="space-y-2 w-full flex flex-col items-center justify-center">
               <Alert class="flex items-center justify-between gap-2 p-1 px-3 w-full">
                 <div class="flex items-center gap-2">
-                  <CirclePlay :size="20" :class="isDark ? 'text-neutral-400' : 'text-neutral-600'" />
-                  <span :class="['text-sm', isDark ? 'text-neutral-400' : 'text-neutral-600']"
+                  <CirclePlay :size="18" :class="isDark ? 'text-neutral-400' : 'text-neutral-600'" />
+                  <span :class="['text-xs sm:text-sm', isDark ? 'text-neutral-400' : 'text-neutral-600']"
                     >Пройдено тестов</span
                   >
                 </div>
-                <span :class="['text-lg font-bold', isDark ? 'text-white' : 'text-gray-900']">
+                <span :class="['text-base sm:text-lg font-bold', isDark ? 'text-white' : 'text-gray-900']">
                   {{ profile.total_tests }}
                 </span>
               </Alert>
               <Alert class="flex items-center justify-between gap-2 p-1 px-3 w-full">
                 <div class="flex items-center gap-2">
-                  <Zap :size="20" :class="isDark ? 'text-neutral-400' : 'text-neutral-600'" />
-                  <span :class="['text-sm', isDark ? 'text-neutral-400' : 'text-neutral-600']"
+                  <Zap :size="18" :class="isDark ? 'text-neutral-400' : 'text-neutral-600'" />
+                  <span :class="['text-xs sm:text-sm', isDark ? 'text-neutral-400' : 'text-neutral-600']"
                     >Лучший WPM</span
                   >
                 </div>
-                <span :class="['text-lg font-bold', isDark ? 'text-white' : 'text-gray-900']">
+                <span :class="['text-base sm:text-lg font-bold', isDark ? 'text-white' : 'text-gray-900']">
                   {{ Math.round(profile.best_wpm) }}
                 </span>
               </Alert>
               <Alert class="flex items-center justify-between gap-2 p-1 px-3 w-full">
                 <div class="flex items-center gap-2">
-                  <Clock :size="20" :class="isDark ? 'text-neutral-400' : 'text-neutral-600'" />
-                  <span :class="['text-sm', isDark ? 'text-neutral-400' : 'text-neutral-600']"
-                    >Общее время печати</span
+                  <Clock :size="18" :class="isDark ? 'text-neutral-400' : 'text-neutral-600'" />
+                  <span :class="['text-xs sm:text-sm', isDark ? 'text-neutral-400' : 'text-neutral-600']"
+                    >Общее время</span
                   >
                 </div>
-                <span :class="['text-lg font-bold', isDark ? 'text-white' : 'text-gray-900']">
+                <span :class="['text-base sm:text-lg font-bold', isDark ? 'text-white' : 'text-gray-900']">
                   {{ totalTimeFormatted }}
                 </span>
               </Alert>
@@ -233,29 +231,29 @@ const openLogoutDialog = () => {
       </div>
 
       <!-- Recent Tests -->
-      <div class="mt-8" v-if="testResults.length > 0">
-        <h2 :class="['text-2xl font-bold mb-4', isDark ? 'text-white' : 'text-gray-900']">
+      <div class="mt-6 sm:mt-8" v-if="testResults.length > 0">
+        <h2 :class="['text-xl sm:text-2xl font-bold mb-3 sm:mb-4', isDark ? 'text-white' : 'text-gray-900']">
           Последние тесты
         </h2>
         <Card :class="[isDark ? '' : 'bg-white']">
-          <CardContent class="p-4">
-            <div class="space-y-3">
+          <CardContent class="p-3 sm:p-4">
+            <div class="space-y-2 sm:space-y-3">
               <div
                 v-for="result in testResults"
                 :key="result.id"
                 :class="[
-                  'flex items-center justify-between p-3 rounded-lg',
+                  'flex items-center justify-between p-2 sm:p-3 rounded-lg',
                   isDark ? 'bg-neutral-900' : 'bg-gray-50'
                 ]"
               >
-                <div class="flex items-center gap-4">
-                  <Badge variant="outline">{{ result.time_mode }}s</Badge>
+                <div class="flex items-center gap-2 sm:gap-4">
+                  <Badge variant="outline" class="text-xs">{{ result.time_mode }}s</Badge>
                   <div>
-                    <p :class="['font-semibold', isDark ? 'text-white' : 'text-gray-900']">
+                    <p :class="['text-sm font-semibold', isDark ? 'text-white' : 'text-gray-900']">
                       {{ Math.round(result.wpm) }} WPM
                     </p>
-                    <p :class="['text-sm', isDark ? 'text-neutral-400' : 'text-neutral-600']">
-                      Точность: {{ Math.round(result.accuracy) }}%
+                    <p :class="['text-xs', isDark ? 'text-neutral-400' : 'text-neutral-600']">
+                      {{ Math.round(result.accuracy) }}%
                     </p>
                   </div>
                 </div>

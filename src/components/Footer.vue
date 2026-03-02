@@ -1,41 +1,41 @@
 <template>
-  <footer class="px-8 py-5 flex items-center justify-between">
+  <footer class="py-3 sm:py-5 flex flex-wrap items-center justify-between gap-2">
     <Button 
-      class="select-none cursor-pointer" 
+      class="select-none cursor-pointer text-xs sm:text-sm" 
       variant="outline"
       @click="isModalOpen = true"
     >
       <Settings :size="14" /><span>Якутский ввод</span>
     </Button>
 
-    <div class="flex items-center gap-2">
-      <!-- Кнопка звука с переключением -->
+    <div class="flex items-center gap-1 sm:gap-2">
+      <!-- Кнопка звука -->
       <Button
-        class="select-none cursor-pointer flex items-center gap-1"
+        class="select-none cursor-pointer flex items-center gap-1 text-xs sm:text-sm px-2 sm:px-3"
         variant="outline"
         @click="toggleSound"
       >
         <component :is="soundEnabled ? Volume2 : VolumeX" :size="14" />
-        <span>{{ soundEnabled ? 'Вкл' : 'Выкл' }}</span>
+        <span class="hidden sm:inline">{{ soundEnabled ? 'Вкл' : 'Выкл' }}</span>
       </Button>
 
       <DropdownMenu>
         <DropdownMenuTrigger as-child>
-          <Button class="select-none cursor-pointer" variant="outline">
+          <Button class="select-none cursor-pointer text-xs sm:text-sm px-2 sm:px-3" variant="outline">
             <Palette />
-            <span>{{ isDark ? 'Темная тема' : 'Светлая тема' }}</span>
+            <span class="hidden sm:inline">{{ isDark ? 'Темная' : 'Светлая' }}</span>
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent class="w-56">
+        <DropdownMenuContent class="w-40 sm:w-56">
           <DropdownMenuItem
-            @click="toggleDark()"
+            @click="!isDark || toggleDark()"
             :disabled="!isDark"
             class="select-none cursor-pointer"
           >
             <span>Светлая тема</span>
           </DropdownMenuItem>
           <DropdownMenuItem
-            @click="toggleDark()"
+            @click="isDark || toggleDark()"
             :disabled="isDark"
             class="select-none cursor-pointer"
           >

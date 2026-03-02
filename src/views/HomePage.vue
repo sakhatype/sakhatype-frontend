@@ -290,9 +290,9 @@ onUnmounted(() => {
 
 <template>
   <div>
-    <main class="flex-1 flex flex-col items-center justify-center py-16">
+    <main class="flex-1 flex flex-col items-center justify-center py-6 sm:py-16">
       <!-- Controls (только когда не активен тест и нет результатов) -->
-      <div v-if="!store.isTestActive && !showResults" class="flex items-center gap-3 mb-20">
+      <div v-if="!store.isTestActive && !showResults" class="flex items-center gap-3 mb-8 sm:mb-20">
         <Control v-model="selectedTime" />
       </div>
 
@@ -301,7 +301,7 @@ onUnmounted(() => {
         <!-- Timer -->
         <div
           :class="[
-            'text-4xl font-bold mb-6 transition-all duration-300 select-none text-left benzin',
+            'text-3xl sm:text-4xl font-bold mb-4 sm:mb-6 transition-all duration-300 select-none text-left benzin',
             isDark ? 'text-[#2a2a2a]' : 'text-gray-300',
           ]"
           :style="{
@@ -319,7 +319,7 @@ onUnmounted(() => {
             @click="focusInput"
             tabindex="0"
             :class="[
-              'benzin text-2xl leading-relaxed cursor-text select-none font-mono transition-transform duration-100',
+              'benzin text-lg sm:text-2xl leading-relaxed cursor-text select-none font-mono transition-transform duration-100',
               isDark ? 'text-neutral-500' : 'text-neutral-600',
             ]"
             :style="{
@@ -362,16 +362,40 @@ onUnmounted(() => {
           </div>
         </div>
 
+        <!-- Mobile Input -->
+        <div class="sm:hidden mb-4">
+          <input
+            type="text"
+            :class="[
+              'w-full px-4 py-3 rounded-xl border text-base outline-none transition-all',
+              isDark
+                ? 'bg-[#1a1a1a] border-neutral-700 text-white placeholder-neutral-600 focus:border-neutral-500'
+                : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400 focus:border-gray-400'
+            ]"
+            v-model="inputValue"
+            @input="handleInput"
+            @focus="handleFocus"
+            @blur="handleBlur"
+            @beforeinput="handleBeforeInput"
+            autocomplete="off"
+            autocorrect="off"
+            autocapitalize="off"
+            spellcheck="false"
+            placeholder="Начните печатать здесь..."
+          />
+        </div>
+
         <!-- Focus Message & Restart -->
         <div class="text-center">
           <p
             :class="[
-              'text-xs mb-6 select-none transition-opacity duration-300',
+              'text-xs mb-4 sm:mb-6 select-none transition-opacity duration-300',
               isDark ? 'text-neutral-700' : 'text-neutral-400',
               { 'opacity-0': hasFocus || store.isTestActive },
             ]"
           >
-            Нажмите на текст и начните печатать
+            <span class="hidden sm:inline">Нажмите на текст и начните печатать</span>
+            <span class="sm:hidden">Нажмите на поле ввода ниже</span>
           </p>
           <div
             @click="restartTest"
@@ -384,13 +408,11 @@ onUnmounted(() => {
           </div>
         </div>
 
-
-
-        <!-- Hidden Input -->
+        <!-- Hidden Input (desktop) -->
         <input
           ref="hiddenInput"
           type="text"
-          class="absolute opacity-0 pointer-events-none"
+          class="hidden sm:block absolute opacity-0 pointer-events-none"
           v-model="inputValue"
           @input="handleInput"
           @focus="handleFocus"
@@ -416,7 +438,10 @@ onUnmounted(() => {
     </main>
   </div>
 
-  <Kbd></Kbd>
+  <!-- Kbd hints only on desktop -->
+  <div class="hidden sm:block">
+    <Kbd></Kbd>
+  </div>
 </template>
 
 <style scoped>
