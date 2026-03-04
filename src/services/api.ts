@@ -81,9 +81,9 @@ class ApiService {
     return this.request('/api/users/me')
   }
 
-  // Words
-  async getWords(limit: number = 100) {
-    return this.request(`/api/words?limit=${limit}`)
+  // Words — теперь с difficulty
+  async getWords(difficulty: 'normal' | 'high' = 'normal', limit: number = 100) {
+    return this.request(`/api/words/${difficulty}?limit=${limit}`)
   }
 
   // Test Results
@@ -102,13 +102,24 @@ class ApiService {
     return this.request(`/api/profile/${username}`)
   }
 
-  // Leaderboard
-  async getLeaderboardWpm(limit: number = 100) {
-    return this.request(`/api/leaderboard/wpm?limit=${limit}`)
+  // Leaderboard — с фильтрами difficulty + time_mode
+  async getLeaderboard(difficulty: 'normal' | 'high', timeMode: number, limit: number = 100) {
+    return this.request(`/api/leaderboard/${difficulty}/${timeMode}?limit=${limit}`)
   }
 
-  async getLeaderboardAccuracy(limit: number = 100) {
-    return this.request(`/api/leaderboard/accuracy?limit=${limit}`)
+  // Глобальный лидерборд
+  async getGlobalLeaderboard(limit: number = 100) {
+    return this.request(`/api/leaderboard/global?limit=${limit}`)
+  }
+
+  // Мой ранг в конкретном лидерборде
+  async getMyRank(difficulty: 'normal' | 'high', timeMode: number) {
+    return this.request(`/api/leaderboard/rank/${difficulty}/${timeMode}`)
+  }
+
+  // Мой глобальный ранг
+  async getMyGlobalRank() {
+    return this.request(`/api/leaderboard/rank/global`)
   }
 }
 
