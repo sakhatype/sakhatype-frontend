@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { computed, ref, onMounted } from 'vue'
+import { computed, ref, onMounted, onUnmounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { Trophy, User, LogOut, Menu, X } from 'lucide-vue-next'
 import { useTheme } from '@/composables/useTheme'
 import { useAuthStore } from '@/stores/auth'
-import { userApi } from '@/shared/api'
+import { apiService } from '@/services/api'
 import LoginDialog from './LoginDialog.vue'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/shared/ui/badge'
@@ -22,15 +22,49 @@ const router = useRouter()
 const userLevel = ref<number>(1)
 const mobileMenuOpen = ref(false)
 
-onMounted(async () => {
+// Загрузить уровень пользователя
+async function loadUserLevel() {
   if (authStore.isAuthenticated && authStore.username) {
     try {
-      const profile = await userApi.getUserProfile(authStore.username)
+      const profile = await apiService.getUserProfile(authStore.username)
       userLevel.value = profile.level
     } catch (error) {
       console.error('Failed to load user profile:', error)
     }
+  } else {
+    userLevel.value = 1
   }
+}
+
+// Загрузить при монтировании
+onMounted(() => {
+  loadUserLevel()
+})
+
+// Перезагрузить при смене авторизации (логин/логаут)
+watch(
+  () => authStore.isAuthenticated,
+  (isAuth) => {
+    if (isAuth) {
+      // Небольшая задержка чтобы токен успел сохраниться
+      setTimeout(() => loadUserLevel(), 100)
+    } else {
+      userLevel.value = 1
+    }
+  }
+)
+
+// Слушаем кастомное событие обновления профиля (после сохранения теста)
+function onProfileUpdate() {
+  loadUserLevel()
+}
+
+onMounted(() => {
+  window.addEventListener('sakhatype:test-saved', onProfileUpdate)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('sakhatype:test-saved', onProfileUpdate)
 })
 
 const handleLogout = () => {

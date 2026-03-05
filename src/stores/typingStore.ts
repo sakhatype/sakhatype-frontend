@@ -253,6 +253,8 @@ export const useTypingStore = defineStore('typing', {
             difficulty: this.testDifficulty,
           })
           console.log('Test result saved successfully')
+          // Уведомляем Header что нужно обновить уровень
+          window.dispatchEvent(new Event('sakhatype:test-saved'))
         } catch (error) {
           console.error('Failed to save test result:', error)
         }
