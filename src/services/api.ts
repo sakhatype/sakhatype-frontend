@@ -81,17 +81,41 @@ class ApiService {
     return this.request('/api/users/me')
   }
 
-  // Words — теперь с difficulty
+  // Words — пробуем новый endpoint, если 404 — fallback на старый
   async getWords(difficulty: 'normal' | 'high' = 'normal', limit: number = 100) {
-    return this.request(`/api/words/${difficulty}?limit=${limit}`)
+    try {
+      // Новый endpoint: /api/words/{difficulty}
+      return await this.request(`/api/words/${difficulty}?limit=${limit}`)
+    } catch (error) {
+      // Fallback: старый endpoint без difficulty (для необновлённого бэкенда)
+      try {
+        return await this.request(`/api/words?limit=${limit}`)
+      } catch {
+        throw error // Если и fallback не сработал — пробрасываем оригинальную ошибку
+      }
+    }
   }
 
-  // Test Results
+  // Test Results — отправляем difficulty, но оборачиваем в try/catch
   async saveTestResult(result: any) {
-    return this.request('/api/results', {
-      method: 'POST',
-      body: JSON.stringify(result),
-    })
+    try {
+      // Попытка с difficulty (новый бэкенд)
+      return await this.request('/api/results', {
+        method: 'POST',
+        body: JSON.stringify(result),
+      })
+    } catch (error) {
+      // Если бэкенд старый и не принимает difficulty — убираем его и пробуем снова
+      const { difficulty, ...resultWithoutDifficulty } = result
+      try {
+        return await this.request('/api/results', {
+          method: 'POST',
+          body: JSON.stringify(resultWithoutDifficulty),
+        })
+      } catch {
+        throw error
+      }
+    }
   }
 
   async getUserResults(username: string, limit: number = 50) {
@@ -102,22 +126,22 @@ class ApiService {
     return this.request(`/api/profile/${username}`)
   }
 
-  // Leaderboard — с фильтрами difficulty + time_mode
+  // Leaderboard — с фильтрами difficulty + time_mode (новый бэкенд)
   async getLeaderboard(difficulty: 'normal' | 'high', timeMode: number, limit: number = 100) {
     return this.request(`/api/leaderboard/${difficulty}/${timeMode}?limit=${limit}`)
   }
 
-  // Глобальный лидерборд
+  // Глобальный лидерборд (новый бэкенд)
   async getGlobalLeaderboard(limit: number = 100) {
     return this.request(`/api/leaderboard/global?limit=${limit}`)
   }
 
-  // Мой ранг в конкретном лидерборде
+  // Мой ранг (новый бэкенд)
   async getMyRank(difficulty: 'normal' | 'high', timeMode: number) {
     return this.request(`/api/leaderboard/rank/${difficulty}/${timeMode}`)
   }
 
-  // Мой глобальный ранг
+  // Мой глобальный ранг (новый бэкенд)
   async getMyGlobalRank() {
     return this.request(`/api/leaderboard/rank/global`)
   }
