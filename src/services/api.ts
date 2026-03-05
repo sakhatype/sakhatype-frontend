@@ -45,7 +45,7 @@ class ApiService {
     return response.json()
   }
 
-  // Auth
+  // ========== AUTH ==========
   async register(username: string, password: string) {
     return this.request('/api/auth/register', {
       method: 'POST',
@@ -60,9 +60,7 @@ class ApiService {
 
     const response = await fetch(`${API_URL}/api/auth/login`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: formData,
     })
 
@@ -81,41 +79,31 @@ class ApiService {
     return this.request('/api/users/me')
   }
 
-  // Words — пробуем новый endpoint, если 404 — fallback на старый
-  async getWords(difficulty: 'normal' | 'high' = 'normal', limit: number = 100) {
-    try {
-      // Новый endpoint: /api/words/{difficulty}
-      return await this.request(`/api/words/${difficulty}?limit=${limit}`)
-    } catch (error) {
-      // Fallback: старый endpoint без difficulty (для необновлённого бэкенда)
-      try {
-        return await this.request(`/api/words?limit=${limit}`)
-      } catch {
-        throw error // Если и fallback не сработал — пробрасываем оригинальную ошибку
-      }
-    }
+  // ========== WORDS ==========
+  // Бэкенд: GET /api/words/{difficulty}?limit=N
+  // difficulty: "normal" | "high"
+  async getWords(difficulty: string = 'normal', limit: number = 100) {
+    return this.request(`/api/words/${difficulty}?limit=${limit}`)
   }
 
-  // Test Results — отправляем difficulty, но оборачиваем в try/catch
-  async saveTestResult(result: any) {
-    try {
-      // Попытка с difficulty (новый бэкенд)
-      return await this.request('/api/results', {
-        method: 'POST',
-        body: JSON.stringify(result),
-      })
-    } catch (error) {
-      // Если бэкенд старый и не принимает difficulty — убираем его и пробуем снова
-      const { difficulty, ...resultWithoutDifficulty } = result
-      try {
-        return await this.request('/api/results', {
-          method: 'POST',
-          body: JSON.stringify(resultWithoutDifficulty),
-        })
-      } catch {
-        throw error
-      }
-    }
+  // ========== RESULTS ==========
+  // Бэкенд: POST /api/results
+  // Body: { difficulty, time_mode, test_duration, wpm, raw_wpm, burst_wpm, accuracy, consistency, total_errors }
+  async saveTestResult(result: {
+    difficulty: string
+    time_mode: number
+    test_duration: number
+    wpm: number
+    raw_wpm: number
+    burst_wpm: number
+    accuracy: number
+    consistency: number
+    total_errors: number
+  }) {
+    return this.request('/api/results', {
+      method: 'POST',
+      body: JSON.stringify(result),
+    })
   }
 
   async getUserResults(username: string, limit: number = 50) {
@@ -126,24 +114,12 @@ class ApiService {
     return this.request(`/api/profile/${username}`)
   }
 
-  // Leaderboard — с фильтрами difficulty + time_mode (новый бэкенд)
-  async getLeaderboard(difficulty: 'normal' | 'high', timeMode: number, limit: number = 100) {
+  // ========== LEADERBOARD ==========
+  // Бэкенд: GET /api/leaderboard/{difficulty}/{time_mode}?limit=N
+  // difficulty: "normal" | "high"
+  // time_mode: 15 | 30 | 60 | 120
+  async getLeaderboard(difficulty: string, timeMode: number, limit: number = 100) {
     return this.request(`/api/leaderboard/${difficulty}/${timeMode}?limit=${limit}`)
-  }
-
-  // Глобальный лидерборд (новый бэкенд)
-  async getGlobalLeaderboard(limit: number = 100) {
-    return this.request(`/api/leaderboard/global?limit=${limit}`)
-  }
-
-  // Мой ранг (новый бэкенд)
-  async getMyRank(difficulty: 'normal' | 'high', timeMode: number) {
-    return this.request(`/api/leaderboard/rank/${difficulty}/${timeMode}`)
-  }
-
-  // Мой глобальный ранг (новый бэкенд)
-  async getMyGlobalRank() {
-    return this.request(`/api/leaderboard/rank/global`)
   }
 }
 

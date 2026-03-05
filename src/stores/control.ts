@@ -7,13 +7,8 @@ export const useControlStore = defineStore('control', () => {
     (localStorage.getItem('selectedDifficulty') as 'normal' | 'high') || 'normal'
   )
 
-  watch(selectedTime, (newValue) => {
-    localStorage.setItem('selectedTime', newValue.toString())
-  })
-
-  watch(selectedDifficulty, (newValue) => {
-    localStorage.setItem('selectedDifficulty', newValue)
-  })
+  watch(selectedTime, (v) => localStorage.setItem('selectedTime', v.toString()))
+  watch(selectedDifficulty, (v) => localStorage.setItem('selectedDifficulty', v))
 
   function setTime(value: number) {
     selectedTime.value = value
