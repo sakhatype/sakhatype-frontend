@@ -33,8 +33,9 @@ export const useTypingStore = defineStore('typing', {
     timerInterval: null as ReturnType<typeof setInterval> | null,
     isEnding: false,
     testEndTime: null as number | null,
-    // Максимум лишних символов после конца слова
     maxExtraChars: 10,
+    // Запоминаем difficulty на момент начала теста чтобы отправить при сохранении
+    testDifficulty: 'normal' as 'normal' | 'high',
   }),
 
   getters: {
@@ -55,11 +56,6 @@ export const useTypingStore = defineStore('typing', {
 
     accuracy: (state) => {
       return state.totalChars > 0 ? Math.round((state.correctChars / state.totalChars) * 100) : 100
-    },
-
-    currentDifficulty(): 'normal' | 'high' {
-      const control = useControlStore()
-      return control.selectedDifficulty
     },
 
     finalStats: (state) => {
@@ -100,8 +96,8 @@ export const useTypingStore = defineStore('typing', {
 
   actions: {
     async loadWords() {
+      const control = useControlStore()
       try {
-        const control = useControlStore()
         const words = await apiService.getWords(control.selectedDifficulty, 200)
         this.serverWords = words
       } catch (error) {
@@ -140,7 +136,11 @@ export const useTypingStore = defineStore('typing', {
       this.isEnding = false
       this.testEndTime = null
 
-      // Перезагружаем слова если сменилась сложность
+      // Запоминаем difficulty для сохранения результата
+      const control = useControlStore()
+      this.testDifficulty = control.selectedDifficulty
+
+      // Загружаем слова
       await this.loadWords()
 
       this.currentText = this.generateText()
@@ -234,9 +234,10 @@ export const useTypingStore = defineStore('typing', {
 
       this.isTestActive = false
 
+      // Собираем статистику ДО async
       const stats = { ...this.finalStats }
-      const control = useControlStore()
 
+      // Сохраняем результат
       const authStore = useAuthStore()
       if (authStore.isAuthenticated && this.startTime) {
         try {
@@ -249,7 +250,7 @@ export const useTypingStore = defineStore('typing', {
             time_mode: this.selectedTime,
             test_duration: this.selectedTime,
             consistency: stats.consistency,
-            difficulty: control.selectedDifficulty,
+            difficulty: this.testDifficulty,
           })
           console.log('Test result saved successfully')
         } catch (error) {
@@ -268,8 +269,12 @@ export const useTypingStore = defineStore('typing', {
 
       if (!currentWord) return
 
-      // Ограничение длины ввода: не более длины слова + maxExtraChars
-      if (newValue.length > currentWord.length + this.maxExtraChars && newValue.length > oldLength && !newValue.endsWith(' ')) {
+      // Ограничение длины ввода
+      if (
+        newValue.length > currentWord.length + this.maxExtraChars &&
+        newValue.length > oldLength &&
+        !newValue.endsWith(' ')
+      ) {
         return
       }
 
@@ -279,7 +284,7 @@ export const useTypingStore = defineStore('typing', {
         this.wordHistory[this.currentWordIndex] = []
         const now = Date.now()
 
-        // Burst WPM — реальное время набора слова
+        // Burst WPM
         if (this.wordStartTime) {
           const wordTimeMin = (now - this.wordStartTime) / 60000
           if (wordTimeMin > 0) {
@@ -289,13 +294,14 @@ export const useTypingStore = defineStore('typing', {
         }
         this.wordStartTime = now
 
-        // Считаем пробел как 1 символ
+        // Пробел как 1 символ (корректный, разделитель)
         this.totalChars++
         this.totalPerSecond[sec] = (this.totalPerSecond[sec] || 0) + 1
         this.correctChars++
         this.correctPerSecond[sec] = (this.correctPerSecond[sec] || 0) + 1
 
-        // Посимвольное сравнение слова (без двойного счёта)
+        // Посимвольное сравнение слова — только запись в историю
+        // Символы уже были подсчитаны при вводе (в else-ветке ниже)
         for (let i = 0; i < Math.max(typedWord.length, currentWord.length); i++) {
           if (i < typedWord.length && i < currentWord.length && typedWord[i] === currentWord[i]) {
             this.wordHistory[this.currentWordIndex][i] = 'correct'
@@ -328,15 +334,15 @@ export const useTypingStore = defineStore('typing', {
             this.correctChars++
             this.correctPerSecond[sec] = (this.correctPerSecond[sec] || 0) + 1
           } else {
-            // ФИКС: ошибка фиксируется навсегда, backspace НЕ отменяет
+            // Ошибка зафиксирована навсегда
             this.currentErrors++
             this.totalErrors++
             this.errorsPerSecond[sec] = (this.errorsPerSecond[sec] || 0) + 1
             this.errorTimestamps.push(sec)
           }
         } else if (newValue.length < oldLength) {
-          // Backspace — уменьшаем только totalChars и correctChars для пересчёта WPM
-          // Но totalErrors НЕ уменьшаем — ошибки зафиксированы
+          // Backspace — уменьшаем totalChars/correctChars для корректного WPM
+          // НО totalErrors НЕ уменьшаем
           if (this.totalChars > 0) {
             this.totalChars--
             this.totalPerSecond[sec] = Math.max((this.totalPerSecond[sec] || 1) - 1, 0)
@@ -352,7 +358,6 @@ export const useTypingStore = defineStore('typing', {
               this.correctPerSecond[sec] = Math.max((this.correctPerSecond[sec] || 1) - 1, 0)
             }
           }
-          // НЕ уменьшаем currentErrors и totalErrors при backspace
         }
 
         this.inputValue = newValue

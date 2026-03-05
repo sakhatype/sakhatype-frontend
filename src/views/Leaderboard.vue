@@ -4,14 +4,13 @@ import { useTheme } from '@/composables/useTheme'
 import { useAuthStore } from '@/stores/auth'
 import { apiService } from '@/services/api'
 import { Card, CardContent } from '@/shared/ui/card'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/ui/tabs'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/shared/ui/table'
 import { Input } from '@/shared/ui/input'
 import { Button } from '@/shared/ui/button'
 import { Badge } from '@/shared/ui/badge'
 import { Alert } from '@/components/ui/alert'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
-import { Trophy, Zap, Medal, Search, ArrowUp, ArrowDown, Globe, Filter } from 'lucide-vue-next'
+import { Trophy, Medal, Search, ArrowUp, ArrowDown, Globe, Filter } from 'lucide-vue-next'
 
 const { isDark } = useTheme()
 const authStore = useAuthStore()
@@ -37,7 +36,7 @@ const leaderboardData = ref<LeaderboardEntry[]>([])
 const myRank = ref<UserRank | null>(null)
 
 // Фильтры
-const activeTab = ref<'filtered' | 'global'>('filtered')
+const activeMode = ref<'filtered' | 'global'>('filtered')
 const selectedDifficulty = ref<'normal' | 'high'>('normal')
 const selectedTimeMode = ref<number>(30)
 const searchQuery = ref('')
@@ -49,6 +48,10 @@ const difficultyOptions = [
   { value: 'normal', label: 'Обычная' },
   { value: 'high', label: 'Якутская' },
 ]
+const modeOptions = [
+  { value: 'filtered', label: 'По режиму' },
+  { value: 'global', label: 'Общий' },
+]
 
 // Загрузка данных
 async function loadLeaderboard() {
@@ -56,13 +59,15 @@ async function loadLeaderboard() {
   myRank.value = null
 
   try {
-    if (activeTab.value === 'global') {
+    if (activeMode.value === 'global') {
       leaderboardData.value = await apiService.getGlobalLeaderboard(100)
 
       if (authStore.isAuthenticated) {
         try {
           myRank.value = await apiService.getMyGlobalRank()
-        } catch {}
+        } catch (e) {
+          // Нет данных — нормально
+        }
       }
     } else {
       leaderboardData.value = await apiService.getLeaderboard(
@@ -77,7 +82,9 @@ async function loadLeaderboard() {
             selectedDifficulty.value,
             selectedTimeMode.value
           )
-        } catch {}
+        } catch (e) {
+          // Нет данных — нормально
+        }
       }
     }
   } catch (error) {
@@ -88,8 +95,8 @@ async function loadLeaderboard() {
   }
 }
 
-// Перезагрузка при смене фильтров
-watch([activeTab, selectedDifficulty, selectedTimeMode], () => {
+// Перезагрузка при смене любого фильтра
+watch([activeMode, selectedDifficulty, selectedTimeMode], () => {
   loadLeaderboard()
 })
 
@@ -169,66 +176,85 @@ const isCurrentUser = (username: string) => {
     </header>
 
     <main class="py-3 sm:py-4 md:py-6">
-      <!-- Tabs: Filtered / Global -->
-      <Tabs v-model="activeTab" default-value="filtered" class="w-full">
-        <TabsList class="grid w-full max-w-md mx-auto grid-cols-2 mb-4 sm:mb-6">
-          <TabsTrigger value="filtered" class="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
-            <Filter :size="14" />
-            <span>По режиму</span>
-          </TabsTrigger>
-          <TabsTrigger value="global" class="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
-            <Globe :size="14" />
-            <span>Общий</span>
-          </TabsTrigger>
-        </TabsList>
+      <!-- Все фильтры в одном блоке -->
+      <div class="flex flex-col items-center gap-3 mb-4 sm:mb-6">
+        <!-- Режим: По режиму / Общий -->
+        <Alert class="flex items-center gap-1 sm:gap-2 p-1 px-2 sm:px-3">
+          <ToggleGroup
+            type="single"
+            :model-value="activeMode"
+            @update:model-value="(v: string) => { if (v) activeMode = v as 'filtered' | 'global' }"
+            class="flex gap-1"
+          >
+            <ToggleGroupItem
+              v-for="opt in modeOptions"
+              :key="opt.value"
+              :value="opt.value"
+              :class="[
+                'px-2 sm:px-3 rounded-lg text-xs sm:text-sm font-medium transition-all select-none cursor-pointer',
+                isDark
+                  ? 'data-[state=on]:bg-[#2a2a2a] data-[state=on]:text-white text-neutral-500 hover:bg-[#1a1a1a]'
+                  : 'data-[state=on]:bg-gray-100 data-[state=on]:text-gray-900 text-neutral-500 hover:bg-gray-100',
+              ]"
+            >
+              <Filter v-if="opt.value === 'filtered'" :size="14" class="mr-1 hidden sm:inline-block" />
+              <Globe v-if="opt.value === 'global'" :size="14" class="mr-1 hidden sm:inline-block" />
+              {{ opt.label }}
+            </ToggleGroupItem>
+          </ToggleGroup>
+        </Alert>
 
-        <!-- Фильтры (только для режима "По режиму") -->
-        <TabsContent value="filtered">
-          <div class="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-3 mb-4">
-            <!-- Difficulty filter -->
-            <Alert class="flex items-center gap-1 sm:gap-2 p-1 px-2 sm:px-3">
-              <ToggleGroup type="single" :model-value="selectedDifficulty" @update:model-value="(v: string) => selectedDifficulty = v as 'normal' | 'high'" class="flex gap-1">
-                <ToggleGroupItem
-                  v-for="opt in difficultyOptions"
-                  :key="opt.value"
-                  :value="opt.value"
-                  :class="[
-                    'px-2 sm:px-3 rounded-lg text-xs sm:text-sm font-medium transition-all select-none cursor-pointer',
-                    isDark
-                      ? 'data-[state=on]:bg-[#2a2a2a] data-[state=on]:text-white text-neutral-500 hover:bg-[#1a1a1a]'
-                      : 'data-[state=on]:bg-gray-100 data-[state=on]:text-gray-900 text-neutral-500 hover:bg-gray-100',
-                  ]"
-                >
-                  {{ opt.label }}
-                </ToggleGroupItem>
-              </ToggleGroup>
-            </Alert>
+        <!-- Фильтры difficulty + time_mode (только для режима "По режиму") -->
+        <div v-if="activeMode === 'filtered'" class="flex flex-col sm:flex-row items-center gap-2 sm:gap-3">
+          <!-- Difficulty -->
+          <Alert class="flex items-center gap-1 sm:gap-2 p-1 px-2 sm:px-3">
+            <ToggleGroup
+              type="single"
+              :model-value="selectedDifficulty"
+              @update:model-value="(v: string) => { if (v) selectedDifficulty = v as 'normal' | 'high' }"
+              class="flex gap-1"
+            >
+              <ToggleGroupItem
+                v-for="opt in difficultyOptions"
+                :key="opt.value"
+                :value="opt.value"
+                :class="[
+                  'px-2 sm:px-3 rounded-lg text-xs sm:text-sm font-medium transition-all select-none cursor-pointer',
+                  isDark
+                    ? 'data-[state=on]:bg-[#2a2a2a] data-[state=on]:text-white text-neutral-500 hover:bg-[#1a1a1a]'
+                    : 'data-[state=on]:bg-gray-100 data-[state=on]:text-gray-900 text-neutral-500 hover:bg-gray-100',
+                ]"
+              >
+                {{ opt.label }}
+              </ToggleGroupItem>
+            </ToggleGroup>
+          </Alert>
 
-            <!-- Time mode filter -->
-            <Alert class="flex items-center gap-1 sm:gap-2 p-1 px-2 sm:px-3">
-              <ToggleGroup type="single" :model-value="String(selectedTimeMode)" @update:model-value="(v: string) => selectedTimeMode = Number(v)" class="flex gap-1">
-                <ToggleGroupItem
-                  v-for="opt in timeModeOptions"
-                  :key="opt"
-                  :value="String(opt)"
-                  :class="[
-                    'px-2 sm:px-3 rounded-lg text-xs sm:text-sm font-medium transition-all select-none cursor-pointer',
-                    isDark
-                      ? 'data-[state=on]:bg-[#2a2a2a] data-[state=on]:text-white text-neutral-500 hover:bg-[#1a1a1a]'
-                      : 'data-[state=on]:bg-gray-100 data-[state=on]:text-gray-900 text-neutral-500 hover:bg-gray-100',
-                  ]"
-                >
-                  {{ opt }}с
-                </ToggleGroupItem>
-              </ToggleGroup>
-            </Alert>
-          </div>
-        </TabsContent>
-
-        <TabsContent value="global">
-          <!-- Global не нуждается в фильтрах -->
-        </TabsContent>
-      </Tabs>
+          <!-- Time mode -->
+          <Alert class="flex items-center gap-1 sm:gap-2 p-1 px-2 sm:px-3">
+            <ToggleGroup
+              type="single"
+              :model-value="String(selectedTimeMode)"
+              @update:model-value="(v: string) => { if (v) selectedTimeMode = Number(v) }"
+              class="flex gap-1"
+            >
+              <ToggleGroupItem
+                v-for="opt in timeModeOptions"
+                :key="opt"
+                :value="String(opt)"
+                :class="[
+                  'px-2 sm:px-3 rounded-lg text-xs sm:text-sm font-medium transition-all select-none cursor-pointer',
+                  isDark
+                    ? 'data-[state=on]:bg-[#2a2a2a] data-[state=on]:text-white text-neutral-500 hover:bg-[#1a1a1a]'
+                    : 'data-[state=on]:bg-gray-100 data-[state=on]:text-gray-900 text-neutral-500 hover:bg-gray-100',
+                ]"
+              >
+                {{ opt }}с
+              </ToggleGroupItem>
+            </ToggleGroup>
+          </Alert>
+        </div>
+      </div>
 
       <!-- Мой ранг -->
       <div
@@ -278,7 +304,7 @@ const isCurrentUser = (username: string) => {
         />
       </div>
 
-      <!-- Leaderboard table -->
+      <!-- Leaderboard -->
       <Card v-else :class="[isDark ? '' : 'bg-white']">
         <CardContent class="p-0">
           <!-- Desktop Table -->
