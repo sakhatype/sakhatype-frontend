@@ -1,0 +1,12 @@
+version: "3.8"
+
+services:
+  frontend:
+    build:
+      context: .
+      args:
+        VITE_API_URL: https://api.sakhatype.ru/api
+    container_name: sakhatype-front
+    restart: always
+    ports:
+      - "80:80"
