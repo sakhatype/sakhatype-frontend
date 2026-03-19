@@ -31,12 +31,12 @@
         <div class="absolute top-0 right-0 p-6 opacity-10">
           <svg class="w-20 h-20 text-blue-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"/></svg>
         </div>
-        <h3 class="text-[10px] mono font-[800] text-blue-500 uppercase tracking-[0.3em] mb-8">Бодоруһук // Leaderboard</h3>
-        <p class="text-xs text-slate-500 italic">Билиҥҥи режим:</p>
+        <h3 class="text-[10px] mono font-[800] text-blue-500 uppercase tracking-[0.3em] mb-8">Лидерборд</h3>
+        <p class="text-xs text-slate-500 italic">Режим:</p>
         <p class="text-2xl font-[800] italic tracking-tighter uppercase mt-2"
            class:text-white={theme === 'dark'}
            class:text-slate-900={theme === 'light'}>
-          {mode === 'time' ? 'Бириэмэ' : 'Тыллар'} {modeValue}{mode === 'time' ? 'с' : ''}
+          {mode === 'time' ? 'Время' : 'Слова'} {modeValue}{mode === 'time' ? 'с' : ''}
         </p>
       </div>
 
@@ -44,10 +44,10 @@
         <div class="flex gap-2">
           <button class="flex-1 px-4 py-3 rounded-2xl text-[10px] font-[800] uppercase tracking-widest italic text-left transition-all
                          {mode === 'time' ? 'bg-blue-600/10 text-blue-500' : 'text-slate-500 hover:text-white'}"
-                  on:click={() => selMode('time')}>Бириэмэ</button>
+                  on:click={() => selMode('time')}>Время</button>
           <button class="flex-1 px-4 py-3 rounded-2xl text-[10px] font-[800] uppercase tracking-widest italic text-left transition-all
                          {mode === 'words' ? 'bg-blue-600/10 text-blue-500' : 'text-slate-500 hover:text-white'}"
-                  on:click={() => selMode('words')}>Тыллар</button>
+                  on:click={() => selMode('words')}>Слова</button>
         </div>
         {#each currentValues as val}
           <button class="px-6 py-4 rounded-2xl text-[10px] font-[800] uppercase tracking-widest italic text-left transition-all flex justify-between items-center
@@ -70,9 +70,9 @@
         <div class="premium-border p-20 rounded-[40px] text-center">
           <p class="text-xl font-[800] italic uppercase mb-2"
              class:text-white={theme === 'dark'}
-             class:text-slate-900={theme === 'light'}>Ыйынньык суох</p>
-          <p class="text-[10px] text-slate-500 uppercase tracking-widest italic">Бастакы рекорду тургус!</p>
-          <a href="/" class="inline-block mt-8 px-10 py-4 bg-white text-black rounded-[20px] font-[800] uppercase text-[11px] tracking-[0.2em] hover:bg-blue-600 hover:text-white transition-all">Суруйуу саҕалаа</a>
+             class:text-slate-900={theme === 'light'}>Лидерборд</p>
+          <p class="text-[10px] text-slate-500 uppercase tracking-widest italic">Будьте первыми в лидерборде!</p>
+          <a href="/" class="inline-block mt-8 px-10 py-4 bg-white text-black rounded-[20px] font-[800] uppercase text-[11px] tracking-[0.2em] hover:bg-blue-600 hover:text-white transition-all">Начать печатать</a>
         </div>
       {:else}
         <div class="premium-border rounded-[40px] overflow-hidden">

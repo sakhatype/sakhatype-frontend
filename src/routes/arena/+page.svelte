@@ -60,9 +60,9 @@
   <div class="premium-border p-16 rounded-[40px] text-center max-w-md">
     <h2 class="text-2xl font-[800] italic uppercase tracking-tighter mb-4"
         class:text-white={theme === 'dark'}
-        class:text-slate-900={theme === 'light'}>Күрэх_Arena</h2>
-    <p class="text-xs text-slate-500 italic mb-8">Аренаҕа кириэхтээхкин бэлиэтэниэхтээх</p>
-    <a href="/auth" class="px-10 py-4 bg-white text-black rounded-[20px] font-[800] uppercase text-[11px] tracking-[0.2em] hover:bg-blue-600 hover:text-white transition-all inline-block">Киир</a>
+        class:text-slate-900={theme === 'light'}>Совернования</h2>
+    <p class="text-xs text-slate-500 italic mb-8">Авторизуйтесь для начала совернований</p>
+    <a href="/auth" class="px-10 py-4 bg-white text-black rounded-[20px] font-[800] uppercase text-[11px] tracking-[0.2em] hover:bg-blue-600 hover:text-white transition-all inline-block">Войти</a>
   </div>
 </div>
 
