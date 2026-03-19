@@ -30,11 +30,6 @@
 
 {#if state.status === 'finished'}
 <div class="w-full max-w-5xl mx-auto animate-fade-in relative z-10 px-4 sm:px-0">
-  <div class="flex items-center gap-3 mb-6">
-    <span class="w-2 h-2 rounded-full bg-blue-500 shadow-[0_0_10px_#2563eb]"></span>
-    <p class="text-[10px] mono font-[800] text-blue-500 uppercase tracking-[0.5em]">Session_Complete</p>
-  </div>
-
   <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
     <!-- WPM -->
     <div class="lg:col-span-4 premium-border p-6 sm:p-8 rounded-[35px]">
