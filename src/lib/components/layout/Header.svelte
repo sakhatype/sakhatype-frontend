@@ -12,17 +12,12 @@
 
 <header class="container mx-auto px-6 md:px-12 py-8 flex justify-between items-center relative z-20">
   <a href="/" class="flex items-center gap-4 group cursor-pointer">
-    <div class="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center text-white shadow-[0_0_30px_rgba(37,99,235,0.2)] group-hover:scale-105 transition-transform">
-      <svg width="30" height="30" viewBox="0 0 33 33" fill="none" xmlns="http://www.w3.org/2000/svg">
-<path d="M28.875 6.875H4.125C3.39565 6.875 2.69618 7.16473 2.18046 7.68046C1.66473 8.19618 1.375 8.89565 1.375 9.625V23.375C1.375 24.1043 1.66473 24.8038 2.18046 25.3195C2.69618 25.8353 3.39565 26.125 4.125 26.125H28.875C29.6043 26.125 30.3038 25.8353 30.8195 25.3195C31.3353 24.8038 31.625 24.1043 31.625 23.375V9.625C31.625 8.89565 31.3353 8.19618 30.8195 7.68046C30.3038 7.16473 29.6043 6.875 28.875 6.875ZM17.875 9.625H20.625V12.375H17.875V9.625ZM17.875 15.125H20.625V17.875H17.875V15.125ZM12.375 9.625H15.125V12.375H12.375V9.625ZM12.375 15.125H15.125V17.875H12.375V15.125ZM6.875 9.625H9.625V12.375H6.875V9.625ZM6.875 15.125H9.625V17.875H6.875V15.125ZM23.375 23.375H9.625V20.625H23.375V23.375ZM26.125 17.875H23.375V15.125H26.125V17.875ZM26.125 12.375H23.375V9.625H26.125V12.375Z" fill="white"/>
-</svg>
-
-    </div>
-    <div class="flex flex-col">
+    <img src={theme === 'light' ? '/logo-b.svg' : '/logo.svg'} alt="Logo">
+    <!-- <div class="flex flex-col">
       <h1 class="font-[800] italic tracking-tighter text-2xl leading-none uppercase"
           class:text-white={theme === 'dark'}
           class:text-slate-900={theme === 'light'}>SAKHATYPE</h1>
-    </div>
+    </div> -->
   </a>
 
   <nav class="hidden md:flex items-center gap-8 glass-ui px-8 py-3 rounded-2xl">
