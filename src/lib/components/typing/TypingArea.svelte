@@ -409,7 +409,7 @@
       <div class="w-10 h-10 rounded-xl border border-white/5 flex items-center justify-center group-hover:border-blue-500/50 group-hover:bg-blue-600/5 transition-all">
         <svg class="w-5 h-5 group-hover:rotate-[360deg] transition-transform duration-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 4v6h6"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
       </div>
-      <span class="text-[9px] font-[800] uppercase tracking-[0.2em] italic">Restart (Tab / Esc)</span>
+      <span class="text-[9px] font-[800] uppercase tracking-[0.2em] italic">Рестарт (Tab или Esc)</span>
     </button>
 
     <!-- Sakha Hints -->

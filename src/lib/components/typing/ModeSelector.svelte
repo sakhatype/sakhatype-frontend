@@ -13,9 +13,9 @@
 
 <div class="glass-ui p-1.5 rounded-2xl flex flex-wrap gap-1 items-center justify-center">
   <button class="px-4 sm:px-6 py-2.5 rounded-xl text-[10px] font-[800] uppercase italic tracking-widest transition-all {settings.mode === 'time' ? (theme === 'dark' ? 'bg-white/5 text-white' : 'bg-slate-900/5 text-slate-900') : (theme === 'dark' ? 'hover:text-white' : 'hover:text-slate-900')}"
-          on:click={() => setMode('time')}>Бириэмэ</button>
+          on:click={() => setMode('time')}>Время</button>
   <button class="px-4 sm:px-6 py-2.5 rounded-xl text-[10px] font-[800] uppercase italic tracking-widest transition-all {settings.mode === 'words' ? (theme === 'dark' ? 'bg-white/5 text-white' : 'bg-slate-900/5 text-slate-900') : (theme === 'dark' ? 'hover:text-white' : 'hover:text-slate-900')}"
-          on:click={() => setMode('words')}>Тыллар</button>
+          on:click={() => setMode('words')}>Слова</button>
 
   <div class="w-px h-5 bg-white/10 mx-2"></div>
 
@@ -37,6 +37,6 @@
           class:text-blue-500={settings.difficulty !== 'expert'}
           class:underline-offset-4={settings.difficulty !== 'expert'}
           on:click={toggleDifficulty}>
-    {settings.difficulty === 'expert' ? 'Ыарахан' : 'Кэпчэки'}
+    {settings.difficulty === 'expert' ? 'Сложный' : 'Легкий'}
   </button>
 </div>
