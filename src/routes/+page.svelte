@@ -10,6 +10,9 @@
   let testResult = null;
   $: state = $typingStore;
 
+  // Auto-clear result when store is reset externally (e.g. logo click)
+  $: if (state.status === 'idle' && testResult !== null) { testResult = null; }
+
   function handleTestComplete(data) { testResult = data; }
 
   async function handleRestart() {
@@ -44,5 +47,7 @@
     {/if}
   </main>
 
-  <Footer />
+  <div class="transition-all duration-300" style="{state.status === 'running' ? 'opacity:0;max-height:0;overflow:hidden;pointer-events:none;' : 'opacity:1;max-height:200px;'}">
+    <Footer />
+  </div>
 </div>

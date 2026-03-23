@@ -1,6 +1,7 @@
 <script>
   import { userStore } from '$stores/user.js';
   import { settingsStore } from '$stores/settings.js';
+  import { typingStore } from '$stores/typing.js';
   import { page } from '$app/stores';
 
   $: currentPath = $page.url.pathname;
@@ -8,10 +9,18 @@
   $: theme = $settingsStore.theme;
 
   let mobileMenuOpen = false;
+
+  function handleLogoClick(e) {
+    // If on home page and test is finished, restart instead of navigating
+    if (currentPath === '/' && $typingStore.status === 'finished') {
+      e.preventDefault();
+      typingStore.reset();
+    }
+  }
 </script>
 
 <header class="container mx-auto px-6 md:px-12 py-8 flex justify-between items-center relative z-20">
-  <a href="/" class="flex items-center gap-4 group cursor-pointer">
+  <a href="/" on:click={handleLogoClick} class="flex items-center gap-4 group cursor-pointer">
     <img src={theme === 'light' ? '/logo-b.svg' : '/logo.svg'} alt="Logo">
     <!-- <div class="flex flex-col">
       <h1 class="font-[800] italic tracking-tighter text-2xl leading-none uppercase"

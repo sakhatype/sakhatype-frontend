@@ -1,49 +1,45 @@
-import { writable, derived, get } from 'svelte/store';
-
-/**
- * @typedef {'idle' | 'running' | 'finished'} TestStatus
- */
+import { writable } from 'svelte/store';
 
 function createTypingStore() {
   const { subscribe, set, update } = writable({
-    /** @type {string[]} */ words: [],
-    /** @type {string} */ language: 'sakha',
-    /** @type {string} */ mode: 'time',
-    /** @type {number} */ modeValue: 30,
-    /** @type {TestStatus} */ status: 'idle',
-    /** @type {number} */ currentWordIndex: 0,
-    /** @type {string} */ currentInput: '',
-    /** @type {string[][]} */ typedHistory: [],   // array of char arrays per word
-    /** @type {boolean[]} */ wordCorrectness: [],  // true/false per completed word
-    /** @type {number} */ startTime: 0,
-    /** @type {number} */ endTime: 0,
-    /** @type {number} */ timeLeft: 0,
-    /** @type {number} */ wpm: 0,
-    /** @type {number} */ rawWpm: 0,
-    /** @type {number} */ accuracy: 100,
-    /** @type {number} */ charsCorrect: 0,
-    /** @type {number} */ charsIncorrect: 0,
-    /** @type {number} */ charsExtra: 0,
-    /** @type {number} */ charsMissed: 0,
-    /** @type {number|null} */ timerInterval: null,
-    /** @type {Array<{time: number, wpm: number, raw: number}>} */ wpmHistory: [],
+    words: [],
+    language: 'sakha',
+    mode: 'time',
+    modeValue: 30,
+    status: 'idle',        // 'idle' | 'running' | 'finished'
+    currentWordIndex: 0,
+    currentInput: '',
+    typedHistory: [],       // array of char arrays per word
+    wordCorrectness: [],    // true/false per completed word
+    startTime: 0,
+    endTime: 0,
+    timeLeft: 0,
+    wpm: 0,
+    rawWpm: 0,
+    accuracy: 100,
+    charsCorrect: 0,
+    charsIncorrect: 0,
+    charsExtra: 0,
+    charsMissed: 0,
+    timerInterval: null,
+    // Per-word WPM history (recorded on each word commit)
+    wpmHistory: [],
+    // Per-second snapshots for the detailed graph
+    // { sec, wpm, raw, burst, errors }
+    secondSnapshots: [],
+    // Tracking for per-second error counting
+    _errorsThisSecond: 0,
+    _totalErrors: 0,
+    _charsThisSecond: 0,
+    _lastSnapshotSec: 0,
   });
 
   return {
     subscribe,
 
-    /**
-     * @param {string[]} words
-     * @param {string} mode
-     * @param {number} modeValue
-     * @param {string} language
-     */
     init(words, mode, modeValue, language) {
       set({
-        words,
-        language,
-        mode,
-        modeValue,
+        words, language, mode, modeValue,
         status: 'idle',
         currentWordIndex: 0,
         currentInput: '',
@@ -52,36 +48,104 @@ function createTypingStore() {
         startTime: 0,
         endTime: 0,
         timeLeft: mode === 'time' ? modeValue : 0,
-        wpm: 0,
-        rawWpm: 0,
-        accuracy: 100,
-        charsCorrect: 0,
-        charsIncorrect: 0,
-        charsExtra: 0,
-        charsMissed: 0,
+        wpm: 0, rawWpm: 0, accuracy: 100,
+        charsCorrect: 0, charsIncorrect: 0,
+        charsExtra: 0, charsMissed: 0,
         timerInterval: null,
         wpmHistory: [],
+        secondSnapshots: [],
+        _errorsThisSecond: 0,
+        _totalErrors: 0,
+        _charsThisSecond: 0,
+        _lastSnapshotSec: 0,
       });
     },
 
     start() {
-      update((s) => {
+      update(s => {
         if (s.status !== 'idle') return s;
-        const now = Date.now();
-        return { ...s, status: 'running', startTime: now };
+        return { ...s, status: 'running', startTime: Date.now() };
       });
     },
 
-    /** @param {string} input */
     setInput(input) {
-      update((s) => ({ ...s, currentInput: input }));
+      update(s => ({ ...s, currentInput: input }));
     },
 
-    /**
-     * Process space press → commit current word
-     */
+    // Call this when the user types a wrong character (even if they backspace to fix it)
+    recordError() {
+      update(s => ({
+        ...s,
+        _errorsThisSecond: s._errorsThisSecond + 1,
+        _totalErrors: s._totalErrors + 1,
+      }));
+    },
+
+    // Called every second by the timer — records a snapshot
+    tick(timeLeft) {
+      update(s => {
+        const elapsed = (Date.now() - s.startTime) / 1000;
+        const elapsedMin = elapsed / 60;
+        const sec = Math.round(elapsed);
+
+        // WPM at this moment
+        const wpm = elapsedMin > 0 ? (s.charsCorrect / 5) / elapsedMin : 0;
+        const totalAll = s.charsCorrect + s.charsIncorrect + s.charsExtra;
+        const rawWpm = elapsedMin > 0 ? (totalAll / 5) / elapsedMin : 0;
+
+        // Burst = chars typed this second * 12 (chars/sec → chars/5sec/min approx)
+        // More accurate: (charsThisSecond / 5) * 60
+        const burst = (s._charsThisSecond / 5) * 60;
+
+        const snapshot = {
+          sec,
+          wpm: Math.round(wpm * 100) / 100,
+          raw: Math.round(rawWpm * 100) / 100,
+          burst: Math.round(burst * 100) / 100,
+          errors: s._errorsThisSecond,
+        };
+
+        const newSnapshots = [...s.secondSnapshots, snapshot];
+
+        if (timeLeft <= 0 && s.mode === 'time') {
+          const finalElapsed = s.modeValue / 60;
+          const finalWpm = finalElapsed > 0 ? (s.charsCorrect / 5) / finalElapsed : 0;
+          const finalRaw = finalElapsed > 0 ? (totalAll / 5) / finalElapsed : 0;
+          const acc = totalAll > 0 ? (s.charsCorrect / totalAll) * 100 : 100;
+
+          return {
+            ...s,
+            timeLeft: 0,
+            status: 'finished',
+            endTime: Date.now(),
+            wpm: Math.round(finalWpm * 100) / 100,
+            rawWpm: Math.round(finalRaw * 100) / 100,
+            accuracy: Math.round(acc * 100) / 100,
+            secondSnapshots: newSnapshots,
+            _errorsThisSecond: 0,
+            _charsThisSecond: 0,
+            _lastSnapshotSec: sec,
+          };
+        }
+
+        return {
+          ...s,
+          timeLeft,
+          secondSnapshots: newSnapshots,
+          _errorsThisSecond: 0,
+          _charsThisSecond: 0,
+          _lastSnapshotSec: sec,
+        };
+      });
+    },
+
+    // Track chars typed this second (for burst calculation)
+    recordChar() {
+      update(s => ({ ...s, _charsThisSecond: s._charsThisSecond + 1 }));
+    },
+
     commitWord() {
-      update((s) => {
+      update(s => {
         if (s.status !== 'running') return s;
         const word = s.words[s.currentWordIndex];
         const typed = s.currentInput;
@@ -107,21 +171,21 @@ function createTypingStore() {
         const newCorrectness = [...s.wordCorrectness, isCorrect];
         const nextIndex = s.currentWordIndex + 1;
 
+        const elapsed = (Date.now() - s.startTime) / 1000 / 60;
+        const totalCorrect = s.charsCorrect + correct;
+        const totalAll = totalCorrect + s.charsIncorrect + incorrect + extra;
+        const wpm = elapsed > 0 ? (totalCorrect / 5) / elapsed : 0;
+        const rawWpm = elapsed > 0 ? (totalAll / 5) / elapsed : 0;
+        const acc = totalAll > 0 ? (totalCorrect / totalAll) * 100 : 100;
+
+        const newWpmHistory = [...s.wpmHistory, {
+          time: elapsed * 60,
+          wpm: Math.round(wpm * 100) / 100,
+          raw: Math.round(rawWpm * 100) / 100,
+        }];
+
         // Check if words mode is complete
         if (s.mode === 'words' && nextIndex >= s.words.length) {
-          const elapsed = (Date.now() - s.startTime) / 1000 / 60;
-          const totalCorrect = s.charsCorrect + correct;
-          const totalAll = totalCorrect + s.charsIncorrect + incorrect + extra;
-          const wpm = elapsed > 0 ? (totalCorrect / 5) / elapsed : 0;
-          const rawWpm = elapsed > 0 ? (totalAll / 5) / elapsed : 0;
-          const acc = totalAll > 0 ? (totalCorrect / totalAll) * 100 : 100;
-
-          const newWpmHistory = [...s.wpmHistory, {
-            time: elapsed * 60,
-            wpm: Math.round(wpm * 100) / 100,
-            raw: Math.round(rawWpm * 100) / 100,
-          }];
-
           return {
             ...s,
             currentWordIndex: nextIndex,
@@ -141,20 +205,6 @@ function createTypingStore() {
           };
         }
 
-        // Calculate live WPM
-        const elapsed = (Date.now() - s.startTime) / 1000 / 60;
-        const totalCorrect = s.charsCorrect + correct;
-        const totalAll = totalCorrect + s.charsIncorrect + incorrect + extra;
-        const wpm = elapsed > 0 ? (totalCorrect / 5) / elapsed : 0;
-        const rawWpm = elapsed > 0 ? (totalAll / 5) / elapsed : 0;
-        const acc = totalAll > 0 ? (totalCorrect / totalAll) * 100 : 100;
-
-        const newWpmHistory = [...s.wpmHistory, {
-          time: elapsed * 60,
-          wpm: Math.round(wpm * 100) / 100,
-          raw: Math.round(rawWpm * 100) / 100,
-        }];
-
         return {
           ...s,
           currentWordIndex: nextIndex,
@@ -173,33 +223,8 @@ function createTypingStore() {
       });
     },
 
-    /** @param {number} timeLeft */
-    tick(timeLeft) {
-      update((s) => {
-        if (timeLeft <= 0 && s.mode === 'time') {
-          const elapsed = s.modeValue / 60;
-          const wpm = elapsed > 0 ? (s.charsCorrect / 5) / elapsed : 0;
-          const totalAll = s.charsCorrect + s.charsIncorrect + s.charsExtra;
-          const rawWpm = elapsed > 0 ? (totalAll / 5) / elapsed : 0;
-          const acc = totalAll > 0 ? (s.charsCorrect / totalAll) * 100 : 100;
-
-          return {
-            ...s,
-            timeLeft: 0,
-            status: 'finished',
-            endTime: Date.now(),
-            wpm: Math.round(wpm * 100) / 100,
-            rawWpm: Math.round(rawWpm * 100) / 100,
-            accuracy: Math.round(acc * 100) / 100,
-            wpmHistory: s.wpmHistory,
-          };
-        }
-        return { ...s, timeLeft };
-      });
-    },
-
     finish() {
-      update((s) => {
+      update(s => {
         if (s.status !== 'running') return s;
         const elapsed = (Date.now() - s.startTime) / 1000 / 60;
         const totalAll = s.charsCorrect + s.charsIncorrect + s.charsExtra;
@@ -214,13 +239,12 @@ function createTypingStore() {
           wpm: Math.round(wpm * 100) / 100,
           rawWpm: Math.round(rawWpm * 100) / 100,
           accuracy: Math.round(acc * 100) / 100,
-          wpmHistory: s.wpmHistory,
         };
       });
     },
 
     reset() {
-      update((s) => ({
+      update(s => ({
         ...s,
         status: 'idle',
         currentWordIndex: 0,
@@ -230,14 +254,15 @@ function createTypingStore() {
         startTime: 0,
         endTime: 0,
         timeLeft: s.mode === 'time' ? s.modeValue : 0,
-        wpm: 0,
-        rawWpm: 0,
-        accuracy: 100,
-        charsCorrect: 0,
-        charsIncorrect: 0,
-        charsExtra: 0,
-        charsMissed: 0,
+        wpm: 0, rawWpm: 0, accuracy: 100,
+        charsCorrect: 0, charsIncorrect: 0,
+        charsExtra: 0, charsMissed: 0,
         wpmHistory: [],
+        secondSnapshots: [],
+        _errorsThisSecond: 0,
+        _totalErrors: 0,
+        _charsThisSecond: 0,
+        _lastSnapshotSec: 0,
       }));
     },
   };

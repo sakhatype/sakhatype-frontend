@@ -2,7 +2,6 @@
   import { userStore } from '$stores/user.js';
   import { settingsStore } from '$stores/settings.js';
   import { goto } from '$app/navigation';
-  import Footer from '$components/layout/Footer.svelte';
 
   $: theme = $settingsStore.theme;
 
@@ -66,6 +65,4 @@
       </div>
     </div>
   </div>
-
-  <Footer />
 </div>
