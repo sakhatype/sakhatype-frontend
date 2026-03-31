@@ -18,18 +18,21 @@
 
 <header class="container mx-auto px-6 md:px-10 py-6 flex justify-between items-center relative z-20">
   <!-- Logo -->
-  <a href="/" on:click={handleLogoClick} class="flex items-center gap-3.5 group cursor-pointer">
-    <div class="w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-300 group-hover:scale-105 {theme === 'dark' ? 'bg-primary-500/10' : 'bg-primary-500/15'}">
-      <svg class="w-5 h-5 text-primary-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <rect x="2" y="4" width="20" height="16" rx="2"/>
-        <path d="M6 8h.01M10 8h.01M14 8h.01M18 8h.01M8 12h.01M12 12h.01M16 12h.01M7 16h10"/>
-      </svg>
-    </div>
+  <a href="/" on:click={handleLogoClick} class="flex items-center gap-1.5 group cursor-pointer">
+    <img
+      src={theme === 'dark' ? '/logo-b.svg' : '/logo.svg'}
+      alt="SAKHATYPE"
+      class="h-10 w-auto transition-all duration-300 group-hover:scale-105"
+    />
     <div class="flex flex-col">
-      <span class="font-heading font-extrabold text-lg tracking-tight leading-none transition-colors"
-            class:text-surface-50={theme === 'dark'}
-            class:text-surface-900={theme === 'light'}>SAKHATYPE</span>
-      <span class="mono text-[9px] tracking-[0.25em] text-primary-400/70 uppercase">v2.0</span>
+      <span
+        class="font-heading font-extrabold text-lg tracking-tight leading-none transition-all duration-300 group-hover:translate-x-0.5"
+        class:text-surface-50={theme === 'dark'}
+        class:text-surface-900={theme === 'light'}
+      >
+        Sakhatype
+      </span>
+      <span class="mono text-[9px] tracking-[0.25em] text-primary-400/70 transition-all duration-300 group-hover:text-primary-400 group-hover:translate-x-0.5" style="height: 8px;">DOTX TEAM</span>
     </div>
   </a>
 
