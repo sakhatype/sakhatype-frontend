@@ -35,7 +35,7 @@
               class:text-surface-50={theme === 'dark'}
               class:text-surface-900={theme === 'light'}>{mode === 'login' ? 'Войти' : 'Регистрация'}</h2>
           <p class="mono text-[9px] text-surface-400 uppercase tracking-widest mt-2">
-            {mode === 'login' ? 'Welcome back' : 'Create account'}
+            {mode === 'login' ? 'Добро пожаловать' : 'Создать аккаунтй'}
           </p>
         </div>
 
@@ -46,7 +46,7 @@
         <div class="space-y-5 relative z-10">
           <div>
             <label class="mono text-[9px] uppercase tracking-[0.2em] text-surface-400 block mb-2">Имя пользователя</label>
-            <input bind:value={username} class="input-sakha w-full" placeholder="username" />
+            <input bind:value={username} class="input-sakha w-full" placeholder="юзернейм" />
           </div>
           {#if mode === 'register'}
           <div>
