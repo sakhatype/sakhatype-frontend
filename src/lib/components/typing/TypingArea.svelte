@@ -751,7 +751,7 @@
            spellcheck="false" inputmode="text" enterkeyhint="next" />
 
     {#if !isFocused && state.status !== 'finished'}
-      <div class="absolute inset-0 flex items-center justify-center z-20 rounded-2xl backdrop-blur-lg {theme === 'dark' ? 'bg-surface-900/95' : 'bg-surface-50/95'}">
+      <div class="absolute inset-0 flex items-center justify-center z-20 rounded-none backdrop-blur-lg {theme === 'dark' ? 'bg-surface-900/80' : 'bg-surface-50/80'}">
         <span class="mono text-xs uppercase tracking-[0.25em] text-surface-400 animate-pulse">
           {isMobile ? 'Нажмите для начала...' : ' Нажмите и начните печатать '}
         </span>
@@ -767,7 +767,7 @@
   {#if state.status !== 'running'}
     <div class="mt-8 sm:mt-10 flex flex-col items-center gap-4">
       <button class="flex items-center gap-3 text-surface-400 hover:text-primary-400 transition-all group" on:click={restart}>
-        <div class="s-card w-10 h-10 !rounded-xl flex items-center justify-center group-hover:!border-primary-500/40 transition-all">
+        <div class="s-card w-10 h-10 !rounded-lg flex items-center justify-center group-hover:!border-primary-500/40 transition-all">
           <svg class="w-5 h-5 group-hover:rotate-[360deg] transition-transform duration-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 4v6h6"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
         </div>
         <span class="mono text-[10px] font-bold uppercase tracking-wider"></span>

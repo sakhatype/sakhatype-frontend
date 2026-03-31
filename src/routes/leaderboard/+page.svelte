@@ -37,15 +37,15 @@
 
         <div class="s-card p-5 flex flex-col gap-2">
           <div class="flex gap-2">
-            <button class="flex-1 px-4 py-3 rounded-xl text-xs font-bold uppercase tracking-wider text-left transition-all
+            <button class="flex-1 px-4 py-3 rounded-lg text-xs font-bold uppercase tracking-wider text-left transition-all
                            {mode === 'time' ? 'bg-primary-500/10 text-primary-400' : 'text-surface-400 hover:text-surface-100'}"
                     on:click={() => selMode('time')}>Время</button>
-            <button class="flex-1 px-4 py-3 rounded-xl text-xs font-bold uppercase tracking-wider text-left transition-all
+            <button class="flex-1 px-4 py-3 rounded-lg text-xs font-bold uppercase tracking-wider text-left transition-all
                            {mode === 'words' ? 'bg-primary-500/10 text-primary-400' : 'text-surface-400 hover:text-surface-100'}"
                     on:click={() => selMode('words')}>Слова</button>
           </div>
           {#each currentValues as val}
-            <button class="px-6 py-4 rounded-xl text-xs font-bold uppercase tracking-wider text-left transition-all flex justify-between items-center
+            <button class="px-6 py-4 rounded-lg text-xs font-bold uppercase tracking-wider text-left transition-all flex justify-between items-center
                            {modeValue === val ? 'bg-primary-500/10 text-primary-400' : 'text-surface-400 hover:text-surface-100'}"
                     on:click={() => selVal(val)}>
               {val}{mode === 'time' ? ' сек' : ' слов'}

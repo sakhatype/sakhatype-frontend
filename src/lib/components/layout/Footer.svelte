@@ -54,7 +54,7 @@
     <!-- Theme Toggle -->
     <button
       on:click={toggleTheme}
-      class="s-card w-10 h-10 !rounded-xl flex items-center justify-center group transition-all hover:!border-primary-500/30"
+      class="s-card w-10 h-10 !rounded-lg flex items-center justify-center group transition-all hover:!border-primary-500/30"
       title={settings.theme === 'dark' ? 'Светлая тема' : 'Темная тема'}
     >
       {#if settings.theme === 'dark'}
@@ -72,7 +72,7 @@
     <!-- Sound Toggle -->
     <button
       on:click={toggleSound}
-      class="s-card w-10 h-10 !rounded-xl flex items-center justify-center group transition-all hover:!border-primary-500/30"
+      class="s-card w-10 h-10 !rounded-lg flex items-center justify-center group transition-all hover:!border-primary-500/30"
       title={settings.soundEnabled ? 'Выключить звук' : 'Включить звук'}
     >
       {#if settings.soundEnabled}
@@ -93,7 +93,7 @@
     <div class="relative binds-menu-container">
       <button
         on:click|stopPropagation={toggleBinds}
-        class="s-card w-10 h-10 !rounded-xl flex items-center justify-center group transition-all hover:!border-primary-500/30 {showBindsMenu ? '!border-primary-500/40 !bg-primary-500/5' : ''}"
+        class="s-card w-10 h-10 !rounded-lg flex items-center justify-center group transition-all hover:!border-primary-500/30 {showBindsMenu ? '!border-primary-500/40 !bg-primary-500/5' : ''}"
         title="Настройки ввода"
       >
         <svg class="w-4 h-4 text-surface-400 group-hover:text-primary-400 transition-colors {showBindsMenu ? '!text-primary-400' : ''}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
