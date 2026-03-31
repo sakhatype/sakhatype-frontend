@@ -143,17 +143,17 @@
     on:click={() => fileInput?.click()}
     class="relative group cursor-pointer"
   >
-    <div class="w-28 h-28 rounded-[32px] border-2 border-blue-500/30 overflow-hidden bg-gradient-to-br from-blue-600/20 to-transparent flex items-center justify-center">
+    <div class="w-28 h-28 rounded-2xl border-2 border-primary-500/30 overflow-hidden bg-gradient-to-br from-blue-600/20 to-transparent flex items-center justify-center">
       {#if currentAvatarUrl}
         <img src={currentAvatarUrl} alt="Avatar" class="w-full h-full object-cover" />
       {:else}
-        <span class="text-5xl font-[800] italic"
-              class:text-white={theme === 'dark'}
-              class:text-slate-900={theme === 'light'}>{username.charAt(0).toUpperCase()}</span>
+        <span class="text-5xl font-bold "
+              class:text-surface-50={theme === 'dark'}
+              class:text-surface-900={theme === 'light'}>{username.charAt(0).toUpperCase()}</span>
       {/if}
     </div>
-    <div class="absolute inset-0 rounded-[32px] bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-      <svg class="w-8 h-8 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <div class="absolute inset-0 rounded-2xl bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+      <svg class="w-8 h-8 text-surface-50" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
         <circle cx="12" cy="13" r="4"/>
       </svg>
@@ -169,24 +169,24 @@
   />
 
   {#if error}
-    <p class="text-red-400 text-[10px] font-[800] italic mt-2">{error}</p>
+    <p class="text-error-400 text-[10px] font-bold  mt-2">{error}</p>
   {/if}
 </div>
 
 <!-- Crop Modal -->
 {#if showCropModal && previewUrl}
   <div
-    class="fixed inset-0 z-[60] flex items-center justify-center bg-black/80 backdrop-blur-sm animate-fade-in"
+    class="fixed inset-0 z-[60] flex items-center justify-center bg-black/80 backdrop-blur-sm animate-fade-up"
     on:click|self={cancelCrop}
     role="dialog"
     aria-modal="true"
   >
-    <div class="glass-ui rounded-[40px] p-8 max-w-lg w-full mx-4">
-      <h3 class="text-xl font-[800] italic uppercase tracking-tighter mb-6"
-          class:text-white={theme === 'dark'}
-          class:text-slate-900={theme === 'light'}>Обрезать аватар</h3>
+    <div class="s-card rounded-3xl p-8 max-w-lg w-full mx-4">
+      <h3 class="text-xl font-bold  uppercase tracking-tight mb-6"
+          class:text-surface-50={theme === 'dark'}
+          class:text-surface-900={theme === 'light'}>Обрезать аватар</h3>
 
-      <p class="text-[9px] mono text-slate-500 uppercase tracking-widest mb-4">Перетащите область, прокрутите для масштаба</p>
+      <p class="text-[9px] mono text-surface-400 uppercase tracking-widest mb-4">Перетащите область, прокрутите для масштаба</p>
 
       <!-- Crop area -->
       <div class="relative mx-auto overflow-hidden rounded-2xl bg-black/50 select-none"
@@ -230,15 +230,15 @@
 
       <!-- Preview thumbnail -->
       <div class="flex items-center gap-4 mt-6">
-        <span class="text-[9px] mono text-slate-500 uppercase tracking-widest">Предпросмотр:</span>
-        <div class="w-12 h-12 rounded-xl overflow-hidden border border-white/10 bg-black/50">
+        <span class="text-[9px] mono text-surface-400 uppercase tracking-widest">Предпросмотр:</span>
+        <div class="w-12 h-12 rounded-xl overflow-hidden border border-surface-600/50 bg-black/50">
           {#if previewUrl && imgNaturalW > 0}
             <img src={previewUrl} alt="Crop preview"
                  style="width: {(imgNaturalW / cropSize) * 48}px; height: {(imgNaturalH / cropSize) * 48}px;
                         margin-left: {-(cropX / cropSize) * 48}px; margin-top: {-(cropY / cropSize) * 48}px;" />
           {/if}
         </div>
-        <span class="text-[9px] mono text-slate-600">160 × 160 WebP</span>
+        <span class="text-[9px] mono text-surface-500">160 × 160 WebP</span>
       </div>
 
       <!-- Actions -->
@@ -246,13 +246,13 @@
         <button
           on:click={handleUpload}
           disabled={uploading}
-          class="flex-1 bg-blue-600 hover:bg-blue-500 text-white py-4 rounded-2xl text-[11px] font-[800] uppercase tracking-[0.2em] transition-all disabled:opacity-50"
+          class="flex-1 bg-primary-500 hover:bg-primary-400 text-surface-50 py-4 rounded-2xl text-[11px] font-bold uppercase tracking-[0.2em] transition-all disabled:opacity-50"
         >
           {uploading ? 'Загрузка...' : 'Сохранить аватар'}
         </button>
         <button
           on:click={cancelCrop}
-          class="px-6 py-4 border border-white/10 hover:bg-white/5 rounded-2xl text-[11px] font-[800] uppercase tracking-[0.2em] text-slate-400 transition-all"
+          class="px-6 py-4 border border-surface-600/50 hover:bg-surface-700/50 rounded-2xl text-[11px] font-bold uppercase tracking-[0.2em] text-surface-300 transition-all"
         >
           Отмена
         </button>

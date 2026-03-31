@@ -1,6 +1,6 @@
 {
-  "name": "dotx-type",
-  "version": "1.0.0",
+  "name": "sakhatype",
+  "version": "2.0.0",
   "private": true,
   "scripts": {
     "dev": "vite dev",
@@ -16,6 +16,11 @@
     "svelte": "^5.2.9",
     "tailwindcss": "^3.4.17",
     "vite": "^5.4.11"
+  },
+  "dependencies": {
+    "@skeletonlabs/skeleton": "^2.10.0",
+    "@skeletonlabs/tw-plugin": "^0.4.0",
+    "@floating-ui/dom": "^1.6.0"
   },
   "type": "module"
 }

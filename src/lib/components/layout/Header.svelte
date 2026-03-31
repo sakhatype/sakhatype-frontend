@@ -8,10 +8,7 @@
   $: user = $userStore.user;
   $: theme = $settingsStore.theme;
 
-  let mobileMenuOpen = false;
-
   function handleLogoClick(e) {
-    // If on home page and test is finished, restart instead of navigating
     if (currentPath === '/' && $typingStore.status === 'finished') {
       e.preventDefault();
       typingStore.reset();
@@ -19,73 +16,93 @@
   }
 </script>
 
-<header class="container mx-auto px-6 md:px-12 py-8 flex justify-between items-center relative z-20">
-  <a href="/" on:click={handleLogoClick} class="flex items-center gap-4 group cursor-pointer">
-    <img src={theme === 'light' ? '/logo-b.svg' : '/logo.svg'} alt="Logo">
-    <!-- <div class="flex flex-col">
-      <h1 class="font-[800] italic tracking-tighter text-2xl leading-none uppercase"
-          class:text-white={theme === 'dark'}
-          class:text-slate-900={theme === 'light'}>SAKHATYPE</h1>
-    </div> -->
+<header class="container mx-auto px-6 md:px-10 py-6 flex justify-between items-center relative z-20">
+  <!-- Logo -->
+  <a href="/" on:click={handleLogoClick} class="flex items-center gap-3.5 group cursor-pointer">
+    <div class="w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-300 group-hover:scale-105"
+         class:bg-primary-500/10={theme === 'dark'}
+         class:bg-primary-500/15={theme === 'light'}>
+      <svg class="w-5 h-5 text-primary-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="2" y="4" width="20" height="16" rx="2"/>
+        <path d="M6 8h.01M10 8h.01M14 8h.01M18 8h.01M8 12h.01M12 12h.01M16 12h.01M7 16h10"/>
+      </svg>
+    </div>
+    <div class="flex flex-col">
+      <span class="font-heading font-extrabold text-lg tracking-tight leading-none transition-colors"
+            class:text-surface-50={theme === 'dark'}
+            class:text-surface-900={theme === 'light'}>SAKHATYPE</span>
+      <span class="mono text-[9px] tracking-[0.25em] text-primary-400/70 uppercase">v2.0</span>
+    </div>
   </a>
 
-  <nav class="hidden md:flex items-center gap-8 glass-ui px-8 py-3 rounded-2xl">
-    <!-- <a href="/"
-       class="font-[800] text-[10px] uppercase tracking-widest flex items-center gap-2 italic transition-colors"
-       class:text-white={currentPath === '/' && theme === 'dark'}
-       class:text-slate-900={currentPath === '/' && theme === 'light'}
-       class:hover:text-white={theme === 'dark'}
-       class:hover:text-slate-900={theme === 'light'}>
-      <svg class="w-4 h-4 {currentPath === '/' ? 'text-blue-500' : ''}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="m8 21 4-4 4 4"/></svg>
-      Суруйуу
-    </a> -->
+  <!-- Navigation -->
+  <nav class="hidden md:flex items-center gap-1.5 s-card px-2 py-1.5">
     <a href="/leaderboard"
-       class="font-[800] text-[10px] uppercase tracking-widest flex items-center gap-2 italic transition-colors"
-       class:text-white={currentPath === '/leaderboard' && theme === 'dark'}
-       class:text-slate-900={currentPath === '/leaderboard' && theme === 'light'}
-       class:hover:text-white={theme === 'dark'}
-       class:hover:text-slate-900={theme === 'light'}>
-      <!-- <svg class="w-4 h-4 {currentPath === '/leaderboard' ? 'text-blue-500' : ''}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg> -->
-      Лидерборд
+       class="chip-sakha {currentPath === '/leaderboard' ? 'active' : ''}"
+       class:text-surface-300={currentPath !== '/leaderboard' && theme === 'dark'}
+       class:text-surface-500={currentPath !== '/leaderboard' && theme === 'light'}
+       class:hover:text-surface-100={theme === 'dark'}
+       class:hover:text-surface-800={theme === 'light'}>
+      <span class="flex items-center gap-2">
+        <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+        Лидерборд
+      </span>
     </a>
+
     <a href="/arena"
-       class="font-[800] text-[10px] uppercase tracking-widest flex items-center gap-2 italic transition-colors"
-       class:text-white={currentPath === '/arena' && theme === 'dark'}
-       class:text-slate-900={currentPath === '/arena' && theme === 'light'}
-       class:hover:text-white={theme === 'dark'}
-       class:hover:text-slate-900={theme === 'light'}>
-      <!-- <svg class="w-4 h-4 {currentPath === '/arena' ? 'text-blue-500' : ''}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 12h4m-2-2v4m8-4h.01"/></svg> -->
-      Совернования
+       class="chip-sakha {currentPath === '/arena' ? 'active' : ''}"
+       class:text-surface-300={currentPath !== '/arena' && theme === 'dark'}
+       class:text-surface-500={currentPath !== '/arena' && theme === 'light'}
+       class:hover:text-surface-100={theme === 'dark'}
+       class:hover:text-surface-800={theme === 'light'}>
+      <span class="flex items-center gap-2">
+        <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+        Соревнования
+      </span>
     </a>
-    <div class="w-px h-4 bg-white/10"></div>
+
+    <div class="w-px h-6 bg-surface-600/40 mx-1"></div>
 
     {#if user}
-      <a href="/profile/{user.username}" class="flex items-center gap-3 group">
+      <a href="/profile/{user.username}" class="flex items-center gap-3 chip-sakha group">
         <div class="text-right leading-none">
-          <p class="text-[10px] font-[800] uppercase"
-             class:text-white={theme === 'dark'}
-             class:text-slate-900={theme === 'light'}>{user.username}</p>
-          <p class="text-blue-500 text-[8px] mono">LVL {user.level}</p>
+          <p class="text-xs font-bold"
+             class:text-surface-100={theme === 'dark'}
+             class:text-surface-800={theme === 'light'}>{user.username}</p>
+          <p class="text-primary-400 text-[9px] mono">LVL {user.level}</p>
         </div>
-        <div class="w-9 h-9 rounded-xl border flex items-center justify-center font-[800] italic text-xs {theme === 'dark' ? 'bg-slate-900 border-white/5 text-white' : 'bg-white border-slate-200 text-slate-900'}">
+        <div class="w-8 h-8 rounded-xl flex items-center justify-center font-bold text-xs border transition-all group-hover:border-primary-500/40"
+             class:bg-surface-700={theme === 'dark'}
+             class:border-surface-600={theme === 'dark'}
+             class:text-surface-100={theme === 'dark'}
+             class:bg-white={theme === 'light'}
+             class:border-surface-200={theme === 'light'}
+             class:text-surface-800={theme === 'light'}>
           {user.username.charAt(0).toUpperCase()}
         </div>
       </a>
     {:else}
-      <a href="/auth" class="text-blue-500 font-[800] text-[10px] uppercase tracking-widest italic transition-colors"
-         class:hover:text-white={theme === 'dark'}
-         class:hover:text-slate-900={theme === 'light'}>Войти</a>
+      <a href="/auth"
+         class="chip-sakha bg-primary-500/10 text-primary-400 hover:bg-primary-500/20 transition-all">
+        Войти
+      </a>
     {/if}
   </nav>
 
   <!-- Mobile -->
   <div class="md:hidden flex items-center gap-3">
     {#if user}
-      <a href="/profile/{user.username}" class="w-9 h-9 rounded-xl border flex items-center justify-center font-[800] text-xs {theme === 'dark' ? 'bg-slate-900 border-white/5 text-white' : 'bg-white border-slate-200 text-slate-900'}">
+      <a href="/profile/{user.username}" class="w-9 h-9 rounded-xl border flex items-center justify-center font-bold text-xs transition-all"
+         class:bg-surface-700={theme === 'dark'}
+         class:border-surface-600={theme === 'dark'}
+         class:text-surface-100={theme === 'dark'}
+         class:bg-white={theme === 'light'}
+         class:border-surface-200={theme === 'light'}
+         class:text-surface-800={theme === 'light'}>
         {user.username.charAt(0).toUpperCase()}
       </a>
     {:else}
-      <a href="/auth" class="bg-blue-600 px-4 py-2 rounded-xl text-[9px] font-[800] uppercase text-white">Войти</a>
+      <a href="/auth" class="bg-primary-500 px-5 py-2.5 rounded-xl text-xs font-bold uppercase text-white tracking-wider hover:bg-primary-400 transition-all">Войти</a>
     {/if}
   </div>
 </header>

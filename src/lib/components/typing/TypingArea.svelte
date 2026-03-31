@@ -358,11 +358,11 @@
     const scrollY = scrollLine * lineHeight;
 
     const colors = {
-      c: isDark ? '#ffffff' : '#0f172a',
+      c: isDark ? '#e6e9f0' : '#0c0f1c',
       i: '#ef4444',
       x: '#eab308',
-      a: isDark ? '#64748b' : '#94a3b8',
-      g: isDark ? '#334155' : '#cbd5e1',
+      a: isDark ? '#6e7a94' : '#9ba5b9',
+      g: isDark ? '#283048' : '#c8cfdb',
     };
 
     ctx.textBaseline = 'alphabetic';
@@ -410,14 +410,14 @@
 
       // Glow layer
       ctx.save();
-      ctx.shadowColor = 'rgba(37, 99, 235, 0.7)';
+      ctx.shadowColor = 'rgba(30, 130, 230, 0.7)';
       ctx.shadowBlur = 14;
-      ctx.fillStyle = '#2563eb';
+      ctx.fillStyle = '#1e82e6';
       ctx.fillRect(Math.round(caretDisplayX) - 1, cy, 2.5, ch);
       ctx.restore();
 
       // Solid caret
-      ctx.fillStyle = '#2563eb';
+      ctx.fillStyle = '#1e82e6';
       ctx.fillRect(Math.round(caretDisplayX) - 1, cy, 2.5, ch);
     }
 
@@ -476,7 +476,7 @@
       // Background pill
       ctx.save();
       ctx.globalAlpha = 0.9;
-      ctx.fillStyle = 'rgba(37, 99, 235, 0.15)';
+      ctx.fillStyle = 'rgba(30, 130, 230, 0.15)';
       ctx.beginPath();
       if (ctx.roundRect) {
         ctx.roundRect(hintX, hintTopY, hintW, hintH, hintR);
@@ -492,7 +492,7 @@
       ctx.fill();
 
       // Border
-      ctx.strokeStyle = 'rgba(59, 130, 246, 0.35)';
+      ctx.strokeStyle = 'rgba(62, 156, 255, 0.35)';
       ctx.lineWidth = 1;
       ctx.beginPath();
       if (ctx.roundRect) {
@@ -509,7 +509,7 @@
       ctx.globalAlpha = 1.0;
 
       // Hint text
-      ctx.fillStyle = '#60a5fa';
+      ctx.fillStyle = '#66b5ff';
       ctx.textBaseline = 'middle';
       ctx.font = `700 ${hintFontSize}px 'JetBrains Mono', monospace`;
       ctx.fillText(hintText, hintX + hintFontSize * 0.8, hintTopY + hintH / 2);
@@ -520,8 +520,8 @@
     // Bottom gradient fade
     const gradH = Math.round(lineHeight * 0.6);
     const grad = ctx.createLinearGradient(0, canvasH - gradH, 0, canvasH);
-    grad.addColorStop(0, isDark ? 'rgba(3,3,3,0)' : 'rgba(248,250,252,0)');
-    grad.addColorStop(1, isDark ? 'rgba(3,3,3,1)' : 'rgba(248,250,252,1)');
+    grad.addColorStop(0, isDark ? 'rgba(8,10,20,0)' : 'rgba(230,233,240,0)');
+    grad.addColorStop(1, isDark ? 'rgba(8,10,20,1)' : 'rgba(230,233,240,1)');
     ctx.fillStyle = grad;
     ctx.fillRect(0, canvasH - gradH, canvasW, gradH);
   }
@@ -724,9 +724,9 @@
   <!-- Timer only during running -->
   {#if state.status === 'running'}
     <div class="flex justify-center mb-6">
-      <div class="flex flex-col items-center">
-        <span class="text-[9px] mono uppercase text-slate-500">{settings.mode === 'time' ? 'Timer' : 'Progress'}</span>
-        <span class="text-2xl sm:text-3xl font-[800] italic text-blue-500 tracking-tighter">
+      <div class="s-card px-6 py-3 flex flex-col items-center glow-primary">
+        <span class="mono text-[9px] uppercase tracking-widest text-surface-400">{settings.mode === 'time' ? 'Timer' : 'Progress'}</span>
+        <span class="text-2xl sm:text-3xl font-heading font-extrabold text-primary-400 tracking-tight">
           {#if settings.mode === 'time'}
             {String(Math.floor(state.timeLeft / 60)).padStart(2,'0')}:{String(state.timeLeft % 60).padStart(2,'0')}
           {:else}
@@ -751,8 +751,8 @@
            spellcheck="false" inputmode="text" enterkeyhint="next" />
 
     {#if !isFocused && state.status !== 'finished'}
-      <div class="absolute inset-0 flex items-center justify-center z-20 rounded-3xl backdrop-blur-md {theme === 'dark' ? 'bg-[#030303]/95' : 'bg-slate-50/95'}">
-        <span class="text-[9px] mono uppercase tracking-[0.3em] text-slate-600 animate-pulse">
+      <div class="absolute inset-0 flex items-center justify-center z-20 rounded-2xl backdrop-blur-lg {theme === 'dark' ? 'bg-surface-900/95' : 'bg-surface-50/95'}">
+        <span class="mono text-xs uppercase tracking-[0.25em] text-surface-400 animate-pulse">
           {isMobile ? 'Нажмите для начала...' : 'Click to focus...'}
         </span>
       </div>
@@ -766,19 +766,19 @@
   <!-- Restart + key bindings (hidden during typing) -->
   {#if state.status !== 'running'}
     <div class="mt-8 sm:mt-10 flex flex-col items-center gap-4">
-      <button class="flex items-center gap-3 text-slate-600 hover:text-blue-500 transition-all group" on:click={restart}>
-        <div class="w-10 h-10 rounded-xl border border-white/5 flex items-center justify-center group-hover:border-blue-500/50 group-hover:bg-blue-600/5 transition-all">
+      <button class="flex items-center gap-3 text-surface-400 hover:text-primary-400 transition-all group" on:click={restart}>
+        <div class="s-card w-10 h-10 !rounded-xl flex items-center justify-center group-hover:!border-primary-500/40 transition-all">
           <svg class="w-5 h-5 group-hover:rotate-[360deg] transition-transform duration-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 4v6h6"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
         </div>
-        <span class="text-[9px] font-[800] uppercase tracking-[0.2em] italic">Рестарт (Tab / Esc)</span>
+        <span class="mono text-[10px] font-bold uppercase tracking-wider">Рестарт (Tab / Esc)</span>
       </button>
 
-      <div class="flex flex-wrap items-center justify-center gap-3 sm:gap-5 opacity-20 hover:opacity-50 transition-opacity duration-500 select-none">
+      <div class="flex flex-wrap items-center justify-center gap-3 sm:gap-5 opacity-20 hover:opacity-60 transition-opacity duration-500 select-none">
         {#each Object.entries(settings.customBindings || {}) as [key, char]}
           <div class="flex items-center gap-1.5">
-            <span class="mono text-[9px] px-1 py-0.5 rounded border bg-white/5 text-slate-500 {theme === 'dark' ? 'border-white/10' : 'border-slate-300'}">{key}</span>
-            <span class="text-[9px] mono text-slate-600">→</span>
-            <span class="text-[10px] font-[800] italic text-slate-400">{char}</span>
+            <span class="mono text-[9px] px-1.5 py-0.5 rounded-md border text-surface-400 {theme === 'dark' ? 'bg-surface-800/50 border-surface-600/50' : 'bg-white border-surface-300'}">{key}</span>
+            <span class="text-[9px] mono text-surface-500">→</span>
+            <span class="text-[10px] font-bold text-primary-400/70">{char}</span>
           </div>
         {/each}
       </div>

@@ -12,12 +12,34 @@
   onMount(() => { userStore.refresh(); });
 </script>
 
-<div class="min-h-screen text-slate-500 selection:bg-blue-600 selection:text-white flex flex-col transition-colors duration-300"
-     class:bg-[#030303]={theme === 'dark'}
-     class:bg-slate-50={theme === 'light'}>
-  <div class="noise" class:opacity-[0.02]={theme === 'dark'} class:opacity-[0.01]={theme === 'light'}></div>
-  <div class="transition-all duration-300" style="{isTyping ? 'opacity:0;max-height:0;overflow:hidden;pointer-events:none;' : 'opacity:1;max-height:200px;'}">
+<div class="min-h-screen flex flex-col transition-colors duration-500 relative"
+     class:dark={theme === 'dark'}
+     class:light={theme === 'light'}
+     class:bg-surface-900={theme === 'dark'}
+     class:bg-surface-50={theme === 'light'}>
+
+  <!-- Noise -->
+  <div class="noise-overlay"></div>
+
+  <!-- Grid background -->
+  <div class="fixed inset-0 grid-bg pointer-events-none z-0"
+       class:opacity-100={theme === 'dark'}
+       class:opacity-40={theme === 'light'}></div>
+
+  <!-- Ambient glow orbs -->
+  <div class="fixed top-[-20%] left-[-10%] w-[600px] h-[600px] rounded-full pointer-events-none z-0 blur-[120px] opacity-[0.07]"
+       style="background: radial-gradient(circle, rgb(30 130 230), transparent 70%);"></div>
+  <div class="fixed bottom-[-10%] right-[-5%] w-[400px] h-[400px] rounded-full pointer-events-none z-0 blur-[100px] opacity-[0.05]"
+       style="background: radial-gradient(circle, rgb(102 181 255), transparent 70%);"></div>
+
+  <!-- Header (hide during typing) -->
+  <div class="transition-all duration-500 relative z-30"
+       style="{isTyping ? 'opacity:0;max-height:0;overflow:hidden;pointer-events:none;' : 'opacity:1;max-height:200px;'}">
     <Header />
   </div>
-  <slot />
+
+  <!-- Content -->
+  <div class="relative z-10 flex-1 flex flex-col">
+    <slot />
+  </div>
 </div>

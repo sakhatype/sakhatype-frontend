@@ -23,11 +23,8 @@
     if (!user) return; currentRoom = rid; gameState = 'waiting';
     const apiUrl = import.meta.env.VITE_API_URL || '';
     let wsBase;
-    if (apiUrl && apiUrl.startsWith('http')) {
-      wsBase = apiUrl.replace(/^http/, 'ws');
-    } else {
-      wsBase = `${location.protocol==='https:'?'wss':'ws'}://${location.host}/api`;
-    }
+    if (apiUrl && apiUrl.startsWith('http')) { wsBase = apiUrl.replace(/^http/, 'ws'); }
+    else { wsBase = `${location.protocol==='https:'?'wss':'ws'}://${location.host}/api`; }
     ws = new WebSocket(`${wsBase}/arena/ws/${rid}/${user.username}`);
     ws.onmessage = (e) => { const m = JSON.parse(e.data);
       if (m.type==='player_joined'||m.type==='player_left') players = m.players||{};
@@ -57,57 +54,57 @@
 <div class="flex-1 flex flex-col">
 {#if !user}
 <div class="flex items-center justify-center flex-1">
-  <div class="premium-border p-16 rounded-[40px] text-center max-w-md">
-    <h2 class="text-2xl font-[800] italic uppercase tracking-tighter mb-4"
-        class:text-white={theme === 'dark'}
-        class:text-slate-900={theme === 'light'}>Совернования</h2>
-    <p class="text-xs text-slate-500 italic mb-8">Авторизуйтесь для начала совернований</p>
-    <a href="/auth" class="px-10 py-4 bg-white text-black rounded-[20px] font-[800] uppercase text-[11px] tracking-[0.2em] hover:bg-blue-600 hover:text-white transition-all inline-block">Войти</a>
+  <div class="s-card p-16 text-center max-w-md animate-fade-up">
+    <div class="w-16 h-16 rounded-2xl bg-primary-500/10 border border-primary-500/20 flex items-center justify-center mx-auto mb-6">
+      <svg class="w-8 h-8 text-primary-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+    </div>
+    <h2 class="text-2xl font-heading font-extrabold uppercase tracking-tight mb-4"
+        class:text-surface-50={theme === 'dark'} class:text-surface-900={theme === 'light'}>Соревнования</h2>
+    <p class="text-xs text-surface-400 mb-8">Авторизуйтесь для начала соревнований</p>
+    <a href="/auth" class="px-10 py-4 bg-primary-500 text-white rounded-2xl font-heading font-bold uppercase text-xs tracking-wider hover:bg-primary-400 transition-all inline-block glow-primary">Войти</a>
   </div>
 </div>
 
 {:else if gameState === 'lobby'}
-<main class="container mx-auto px-4 sm:px-6 md:px-12 flex-1 relative z-20 py-8">
-  <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
-    <div class="lg:col-span-8 flex flex-col gap-6">
-      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 mb-4">
-        <h2 class="text-2xl font-[800] italic uppercase tracking-tighter"
-            class:text-white={theme === 'dark'}
-            class:text-slate-900={theme === 'light'}>Лоббилар</h2>
-      </div>
+<main class="container mx-auto px-4 sm:px-6 md:px-10 flex-1 relative z-20 py-8">
+  <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+    <div class="lg:col-span-8 flex flex-col gap-5">
+      <h2 class="text-2xl font-heading font-extrabold uppercase tracking-tight mb-2"
+          class:text-surface-50={theme === 'dark'} class:text-surface-900={theme === 'light'}>Лоббилар</h2>
       {#if rooms.length === 0}
-        <div class="premium-border p-12 rounded-[32px] text-center opacity-50">
-          <p class="text-[9px] mono uppercase tracking-[0.3em] text-slate-600 italic">Отой билигин ким да суох // Аан бастыкы буол! Лоббита оҥор</p>
+        <div class="s-card p-12 text-center">
+          <p class="mono text-xs uppercase tracking-[0.2em] text-surface-400">Отой билигин ким да суох // Лоббита оҥор</p>
         </div>
       {:else}
         {#each rooms as room}
-          <div class="premium-border p-6 rounded-[32px] flex items-center justify-between bento-item cursor-pointer">
-            <div class="flex items-center gap-8">
-              <div class="w-16 h-16 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-blue-500">
-                <svg class="w-8 h-8" viewBox="0 0 24 24" fill="currentColor"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+          <div class="s-card p-6 flex items-center justify-between cursor-pointer">
+            <div class="flex items-center gap-6">
+              <div class="w-14 h-14 rounded-2xl bg-primary-500/10 border border-primary-500/20 flex items-center justify-center text-primary-400">
+                <svg class="w-7 h-7" viewBox="0 0 24 24" fill="currentColor"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
               </div>
               <div>
-                <h3 class="font-[800] italic text-xl uppercase tracking-tighter"
-                    class:text-white={theme === 'dark'}
-                    class:text-slate-900={theme === 'light'}>{room.room_id}</h3>
-                <span class="text-[10px] mono text-slate-500 uppercase tracking-widest">{room.player_count} оонньооччу</span>
+                <h3 class="font-heading font-bold text-lg uppercase tracking-tight"
+                    class:text-surface-100={theme === 'dark'} class:text-surface-900={theme === 'light'}>{room.room_id}</h3>
+                <span class="mono text-[10px] text-surface-400 uppercase tracking-wider">{room.player_count} оонньооччу</span>
               </div>
             </div>
-            <button on:click={() => joinRoom(room.room_id)} class="px-8 py-3 rounded-xl border border-white/10 text-[10px] font-[800] uppercase tracking-widest text-white hover:bg-white hover:text-black transition-all">Join</button>
+            <button on:click={() => joinRoom(room.room_id)} class="px-6 py-3 rounded-xl s-card mono text-xs font-bold uppercase tracking-wider transition-all hover:!bg-primary-500 hover:!text-white"
+                    class:text-surface-200={theme === 'dark'}>Join</button>
           </div>
         {/each}
       {/if}
     </div>
+
     <div class="lg:col-span-4">
-      <div class="premium-border p-10 rounded-[40px] bg-blue-600/[0.03] flex flex-col items-center text-center">
-        <div class="w-20 h-20 bg-blue-600 rounded-[30px] flex items-center justify-center mb-8 godzilla-glow shadow-[0_0_40px_rgba(37,99,235,0.4)]">
+      <div class="s-card p-10 flex flex-col items-center text-center relative overflow-hidden">
+        <div class="absolute -top-10 -right-10 w-32 h-32 rounded-full blur-[50px] opacity-15 pointer-events-none" style="background: rgb(30 130 230);"></div>
+        <div class="w-20 h-20 bg-primary-500 rounded-2xl flex items-center justify-center mb-8 glow-primary-strong">
           <svg class="w-10 h-10 text-white translate-x-0.5" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
         </div>
-        <h3 class="text-2xl font-[800] italic uppercase tracking-tighter mb-4 leading-none"
-            class:text-white={theme === 'dark'}
-            class:text-slate-900={theme === 'light'}>Тургэн оонньуу</h3>
-        <p class="text-xs text-slate-500 italic mb-8">Доҕотторуҥ эбэтэр атын дьоннору кытта оонньон саҕылаа</p>
-        <button on:click={createRoom} class="w-full bg-white text-black py-5 rounded-2xl text-[11px] font-[800] uppercase tracking-[0.2em] hover:bg-blue-500 hover:text-white transition-all">Лобби оноруута</button>
+        <h3 class="text-2xl font-heading font-extrabold uppercase tracking-tight mb-3"
+            class:text-surface-50={theme === 'dark'} class:text-surface-900={theme === 'light'}>Тургэн оонньуу</h3>
+        <p class="text-xs text-surface-400 mb-8">Доҕотторуҥ эбэтэр атын дьоннору кытта оонньон саҕылаа</p>
+        <button on:click={createRoom} class="w-full bg-primary-500 text-white py-4 rounded-2xl font-heading font-bold uppercase text-xs tracking-wider hover:bg-primary-400 transition-all glow-primary">Лобби оноруута</button>
       </div>
     </div>
   </div>
@@ -115,54 +112,52 @@
 
 {:else if gameState === 'waiting'}
 <div class="flex items-center justify-center flex-1 px-4">
-  <div class="premium-border p-10 rounded-[40px] max-w-lg w-full text-center">
-    <h2 class="font-[800] italic text-xl mb-2 uppercase tracking-tighter"
-        class:text-white={theme === 'dark'}
-        class:text-slate-900={theme === 'light'}>Хос: {currentRoom}</h2>
-    <p class="text-[9px] mono text-slate-600 uppercase tracking-[0.3em] italic mb-8">Дьоннору куутэ турабыт...</p>
+  <div class="s-card p-10 max-w-lg w-full text-center animate-fade-up">
+    <h2 class="font-heading font-extrabold text-xl mb-2 uppercase tracking-tight"
+        class:text-surface-50={theme === 'dark'} class:text-surface-900={theme === 'light'}>Хос: {currentRoom}</h2>
+    <p class="mono text-[10px] text-surface-400 uppercase tracking-[0.2em] mb-8">Дьоннору куутэ турабыт...</p>
     <div class="space-y-3 mb-8">
       {#each Object.entries(players) as [name]}
-        <div class="premium-border p-4 rounded-2xl flex items-center justify-between">
-          <span class="font-[800] italic"
-                class:text-white={theme === 'dark'}
-                class:text-slate-900={theme === 'light'}>{name}</span>
-          <span class="text-blue-500 mono text-[9px] uppercase italic">Ready</span>
+        <div class="s-card p-4 flex items-center justify-between !rounded-xl">
+          <span class="font-heading font-bold"
+                class:text-surface-100={theme === 'dark'} class:text-surface-800={theme === 'light'}>{name}</span>
+          <span class="badge-sakha bg-primary-500/10 text-primary-400">Ready</span>
         </div>
       {/each}
     </div>
     <div class="flex gap-3 justify-center">
-      <button on:click={startGame} class="bg-blue-600 hover:bg-blue-500 px-8 py-3 rounded-xl text-[10px] font-[800] uppercase italic text-white tracking-widest transition-all">Саҕалаа</button>
-      <button on:click={leave} class="premium-border px-6 py-3 rounded-xl text-[10px] font-[800] uppercase italic text-slate-500 hover:text-white transition-all">Тахсыы</button>
+      <button on:click={startGame} class="bg-primary-500 hover:bg-primary-400 px-8 py-3 rounded-xl font-heading font-bold uppercase text-xs text-white tracking-wider transition-all glow-primary">Саҕалаа</button>
+      <button on:click={leave} class="s-card px-6 py-3 !rounded-xl font-heading font-bold uppercase text-xs text-surface-400 hover:text-surface-100 transition-all">Тахсыы</button>
     </div>
   </div>
 </div>
 
 {:else if gameState === 'playing'}
-<div class="container mx-auto px-4 sm:px-6 md:px-12 max-w-6xl flex-1 flex flex-col justify-center">
+<div class="container mx-auto px-4 sm:px-6 md:px-10 max-w-6xl flex-1 flex flex-col justify-center">
   <div class="text-center mb-8">
-    <span class="text-4xl sm:text-5xl font-[800] italic text-blue-500 tracking-tighter mono">{String(Math.floor(timeLeft/60)).padStart(2,'0')}:{String(timeLeft%60).padStart(2,'0')}</span>
+    <span class="text-4xl sm:text-5xl font-heading font-extrabold text-primary-400 tracking-tight mono">{String(Math.floor(timeLeft/60)).padStart(2,'0')}:{String(timeLeft%60).padStart(2,'0')}</span>
   </div>
   <div class="space-y-3 mb-8">
     {#each Object.entries(players) as [name, data]}
       {@const pct = words.length > 0 ? ((data.progress||0)/words.length)*100 : 0}
-      <div class="premium-border p-4 rounded-2xl flex items-center gap-4">
-        <span class="font-[800] italic text-sm w-20 sm:w-28 truncate"
-              class:text-white={theme === 'dark'}
-              class:text-slate-900={theme === 'light'}>{name}</span>
-        <div class="flex-1 h-2 bg-white/5 rounded-full overflow-hidden"><div class="h-full bg-blue-600 rounded-full transition-all duration-300 shadow-[0_0_10px_#2563eb]" style="width:{pct}%"></div></div>
-        <span class="text-blue-500 mono font-[800] italic text-sm w-16 sm:w-20 text-right">{data.wpm||0}</span>
+      <div class="s-card p-4 flex items-center gap-4 !rounded-xl">
+        <span class="font-heading font-bold text-sm w-20 sm:w-28 truncate"
+              class:text-surface-100={theme === 'dark'} class:text-surface-800={theme === 'light'}>{name}</span>
+        <div class="flex-1 h-2 bg-surface-700/50 rounded-full overflow-hidden">
+          <div class="h-full bg-primary-500 rounded-full transition-all duration-300" style="width:{pct}%; box-shadow: 0 0 10px rgba(30,130,230,0.5);"></div>
+        </div>
+        <span class="text-primary-400 mono font-bold text-sm w-16 sm:w-20 text-right">{data.wpm||0}</span>
       </div>
     {/each}
   </div>
   <div class="mono text-2xl sm:text-3xl leading-relaxed select-none"
-       class:text-slate-700={theme === 'dark'}
-       class:text-slate-400={theme === 'light'}>
+       class:text-surface-500={theme === 'dark'} class:text-surface-400={theme === 'light'}>
     {#each words as word, i}
       <span class="inline-block mr-[0.4em] leading-[1.7]"
-            class:text-white={i<currentWordIndex && theme === 'dark'}
-            class:text-slate-900={i<currentWordIndex && theme === 'light'}
-            class:font-[800]={i<currentWordIndex}>
-        {#if i===currentWordIndex}{#each word.split('') as char,ci}<span class="{ci<currentInput.length?(currentInput[ci]===char?(theme === 'dark' ? 'text-white font-[800]' : 'text-slate-900 font-[800]'):'text-red-500 border-b-2 border-red-500'):(theme === 'dark' ? 'text-slate-500' : 'text-slate-400')}">{char}</span>{/each}{#if currentInput.length>word.length}<span class="text-yellow-500 line-through">{currentInput.slice(word.length)}</span>{/if}{:else}{word}{/if}
+            class:text-surface-100={i<currentWordIndex && theme === 'dark'}
+            class:text-surface-800={i<currentWordIndex && theme === 'light'}
+            class:font-bold={i<currentWordIndex}>
+        {#if i===currentWordIndex}{#each word.split('') as char,ci}<span class="{ci<currentInput.length?(currentInput[ci]===char?(theme === 'dark' ? 'text-surface-100 font-bold' : 'text-surface-800 font-bold'):'text-error-400 border-b-2 border-error-400'):(theme === 'dark' ? 'text-surface-500' : 'text-surface-400')}">{char}</span>{/each}{#if currentInput.length>word.length}<span class="text-warning-400 line-through">{currentInput.slice(word.length)}</span>{/if}{:else}{word}{/if}
       </span>
     {/each}
   </div>
@@ -170,26 +165,28 @@
 
 {:else if gameState === 'finished'}
 <div class="flex items-center justify-center flex-1">
-  <div class="text-center max-w-lg w-full animate-fade-in">
-    <div class="inline-flex items-center gap-4 mb-4 px-6 py-2 rounded-full border border-blue-500/30 bg-blue-600/10">
-      <svg class="w-5 h-5 text-blue-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5C7 4 7 7 7 7m12-3h1.5a2.5 2.5 0 0 1 0 5H18s0-3-2.5-5M12 14l-3.5 5h7z"/></svg>
-      <span class="text-[10px] mono font-[800] tracking-[0.5em] text-blue-400 uppercase">Match_Results</span>
+  <div class="text-center max-w-lg w-full animate-fade-up">
+    <div class="inline-flex items-center gap-3 mb-4 px-5 py-2 rounded-full border border-primary-500/30 bg-primary-500/10">
+      <svg class="w-5 h-5 text-primary-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5C7 4 7 7 7 7m12-3h1.5a2.5 2.5 0 0 1 0 5H18s0-3-2.5-5M12 14l-3.5 5h7z"/></svg>
+      <span class="mono text-[10px] font-bold tracking-[0.3em] text-primary-400 uppercase">Match Results</span>
     </div>
-    <h1 class="text-7xl font-[800] italic tracking-tighter uppercase leading-none text-white mb-8">
+    <h1 class="text-7xl font-heading font-black tracking-tighter uppercase leading-none mb-8"
+        class:text-surface-50={theme === 'dark'} class:text-surface-900={theme === 'light'}>
       {winner === user.username ? 'WINNER' : winner}
     </h1>
     <div class="space-y-3 mb-8">
       {#each Object.entries(results).sort((a,b)=>(b[1].wpm||0)-(a[1].wpm||0)) as [name,data],i}
-        <div class="premium-border p-4 rounded-2xl flex items-center justify-between {name===winner?'border-blue-500/30 bg-blue-600/[0.03]':''}">
+        <div class="s-card p-4 flex items-center justify-between !rounded-xl {name===winner?'!border-primary-500/30 glow-primary':''}">
           <div class="flex items-center gap-3">
-            <span class="mono text-xs text-slate-500">#{i+1}</span>
-            <span class="text-white font-[800] italic">{name}</span>
+            <span class="mono text-xs text-surface-400">#{i+1}</span>
+            <span class="font-heading font-bold"
+                  class:text-surface-100={theme === 'dark'} class:text-surface-800={theme === 'light'}>{name}</span>
           </div>
-          <span class="text-blue-500 font-[800] italic">{data.wpm||0} WPM</span>
+          <span class="text-primary-400 font-heading font-extrabold">{data.wpm||0} WPM</span>
         </div>
       {/each}
     </div>
-    <button on:click={leave} class="px-12 py-5 bg-white text-black rounded-[20px] font-[800] uppercase text-[11px] tracking-[0.2em] hover:bg-blue-600 hover:text-white transition-all">Play Again</button>
+    <button on:click={leave} class="px-12 py-4 bg-primary-500 text-white rounded-2xl font-heading font-bold uppercase text-xs tracking-wider hover:bg-primary-400 transition-all glow-primary">Play Again</button>
   </div>
 </div>
 {/if}

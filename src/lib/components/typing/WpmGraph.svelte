@@ -10,24 +10,13 @@
   $: snapshots = $typingStore.secondSnapshots || [];
   $: totalErrors = $typingStore._totalErrors || 0;
 
-  // Use secondSnapshots if available, fallback to wpmHistory
   $: data = snapshots.length > 0 ? snapshots : wpmHistory.map((h, i) => ({
-    sec: Math.round(h.time),
-    wpm: h.wpm,
-    raw: h.raw,
-    burst: 0,
-    errors: 0,
+    sec: Math.round(h.time), wpm: h.wpm, raw: h.raw, burst: 0, errors: 0,
   }));
 
-  // Chart dimensions
-  const W = 900;
-  const H = 300;
-  const PAD_L = 50;
-  const PAD_R = 50;
-  const PAD_T = 20;
-  const PAD_B = 35;
-  const chartW = W - PAD_L - PAD_R;
-  const chartH = H - PAD_T - PAD_B;
+  const W = 900; const H = 300;
+  const PAD_L = 50; const PAD_R = 50; const PAD_T = 20; const PAD_B = 35;
+  const chartW = W - PAD_L - PAD_R; const chartH = H - PAD_T - PAD_B;
 
   $: maxWpm = Math.max(...data.map(d => Math.max(d.wpm, d.raw, d.burst || 0)), 10) * 1.15;
   $: maxErrors = Math.max(...data.map(d => d.errors), 1);
@@ -37,41 +26,30 @@
   function yWpm(v) { return PAD_T + chartH - (v / maxWpm) * chartH; }
   function yErr(v) { return PAD_T + chartH - (v / maxErrors) * chartH; }
 
-  // Smooth SVG path using catmull-rom → cubic bezier
   function smoothPath(pts) {
     if (pts.length < 2) return '';
     if (pts.length === 2) return `M${pts[0].x},${pts[0].y}L${pts[1].x},${pts[1].y}`;
-
     let d = `M${pts[0].x},${pts[0].y}`;
     for (let i = 0; i < pts.length - 1; i++) {
-      const p0 = pts[Math.max(i - 1, 0)];
-      const p1 = pts[i];
-      const p2 = pts[i + 1];
-      const p3 = pts[Math.min(i + 2, pts.length - 1)];
-
-      const cp1x = p1.x + (p2.x - p0.x) / 6;
-      const cp1y = p1.y + (p2.y - p0.y) / 6;
-      const cp2x = p2.x - (p3.x - p1.x) / 6;
-      const cp2y = p2.y - (p3.y - p1.y) / 6;
-
+      const p0 = pts[Math.max(i - 1, 0)]; const p1 = pts[i];
+      const p2 = pts[i + 1]; const p3 = pts[Math.min(i + 2, pts.length - 1)];
+      const cp1x = p1.x + (p2.x - p0.x) / 6; const cp1y = p1.y + (p2.y - p0.y) / 6;
+      const cp2x = p2.x - (p3.x - p1.x) / 6; const cp2y = p2.y - (p3.y - p1.y) / 6;
       d += `C${cp1x},${cp1y} ${cp2x},${cp2y} ${p2.x},${p2.y}`;
     }
     return d;
   }
 
-  // Smooth area path (adds bottom close)
   function smoothArea(pts) {
     if (pts.length < 2) return '';
     const linePath = smoothPath(pts);
-    const lastPt = pts[pts.length - 1];
-    const firstPt = pts[0];
+    const lastPt = pts[pts.length - 1]; const firstPt = pts[0];
     return `${linePath}L${lastPt.x},${PAD_T + chartH}L${firstPt.x},${PAD_T + chartH}Z`;
   }
 
   $: wpmPts = data.map(d => ({ x: xPos(d.sec), y: yWpm(d.wpm) }));
   $: rawPts = data.map(d => ({ x: xPos(d.sec), y: yWpm(d.raw) }));
   $: burstPts = data.map(d => ({ x: xPos(d.sec), y: yWpm(d.burst || 0) }));
-
   $: wpmLine = smoothPath(wpmPts);
   $: rawLine = smoothPath(rawPts);
   $: burstLine = smoothPath(burstPts);
@@ -79,52 +57,33 @@
   $: wpmArea = smoothArea(wpmPts);
 
   $: errorDots = data.filter(d => d.errors > 0).map(d => ({
-    x: xPos(d.sec),
-    y: yErr(d.errors),
-    errors: d.errors,
-    sec: d.sec,
+    x: xPos(d.sec), y: yErr(d.errors), errors: d.errors, sec: d.sec,
   }));
 
-  // Y-axis ticks for WPM
   $: yTicks = (() => {
-    const step = Math.ceil(maxWpm / 5 / 10) * 10;
-    const ticks = [];
-    for (let v = 0; v <= maxWpm; v += step) ticks.push(v);
-    return ticks;
+    const step = Math.ceil(maxWpm / 5 / 10) * 10; const ticks = [];
+    for (let v = 0; v <= maxWpm; v += step) ticks.push(v); return ticks;
   })();
 
-  // Y-axis ticks for errors (right side)
   $: errTicks = (() => {
-    const ticks = [];
-    for (let v = 0; v <= maxErrors; v++) ticks.push(v);
-    return ticks;
+    const ticks = []; for (let v = 0; v <= maxErrors; v++) ticks.push(v); return ticks;
   })();
 
-  // X-axis ticks
   $: xTicks = (() => {
     const ticks = [];
     const step = maxSec <= 15 ? 1 : maxSec <= 30 ? 2 : maxSec <= 60 ? 5 : 10;
-    for (let v = step; v <= maxSec; v += step) ticks.push(v);
-    return ticks;
+    for (let v = step; v <= maxSec; v += step) ticks.push(v); return ticks;
   })();
 
-  // Hover state
-  let hoverIdx = -1;
-  let tooltipX = 0;
-  let tooltipY = 0;
+  let hoverIdx = -1; let tooltipX = 0; let tooltipY = 0;
 
   function handleMouseMove(e) {
     if (data.length === 0) return;
-    const svg = e.currentTarget;
-    const rect = svg.getBoundingClientRect();
+    const svg = e.currentTarget; const rect = svg.getBoundingClientRect();
     const mouseX = ((e.clientX - rect.left) / rect.width) * W;
-
-    // Find closest data point
-    let closest = 0;
-    let closestDist = Infinity;
+    let closest = 0; let closestDist = Infinity;
     for (let i = 0; i < data.length; i++) {
-      const px = xPos(data[i].sec);
-      const dist = Math.abs(px - mouseX);
+      const px = xPos(data[i].sec); const dist = Math.abs(px - mouseX);
       if (dist < closestDist) { closestDist = dist; closest = i; }
     }
     hoverIdx = closest;
@@ -136,182 +95,140 @@
 </script>
 
 {#if data.length > 1}
-<div class="premium-border p-5 sm:p-7 rounded-[35px]">
+<div class="s-card p-5 sm:p-7">
   <div class="flex justify-between items-center mb-4">
-    <h3 class="text-[10px] mono font-[800] uppercase tracking-[0.3em]"
-        class:text-white={theme === 'dark'}
-        class:text-slate-900={theme === 'light'}>WPM График</h3>
-    <div class="flex gap-4 text-[9px] mono">
+    <h3 class="font-heading font-bold text-xs uppercase tracking-[0.2em]"
+        class:text-surface-100={theme === 'dark'}
+        class:text-surface-800={theme === 'light'}>WPM График</h3>
+    <div class="flex gap-4 mono text-[9px]">
       <div class="flex items-center gap-1.5">
-        <div class="w-3 h-0.5 bg-blue-500 rounded-full"></div>
-        <span class="text-slate-500">wpm</span>
+        <div class="w-3 h-0.5 bg-primary-400 rounded-full"></div>
+        <span class="text-surface-400">wpm</span>
       </div>
       <div class="flex items-center gap-1.5">
-        <div class="w-3 h-0.5 bg-slate-500 rounded-full" style="border-top: 1px dashed;"></div>
-        <span class="text-slate-500">raw</span>
+        <div class="w-3 h-0.5 bg-surface-400 rounded-full opacity-60"></div>
+        <span class="text-surface-400">raw</span>
       </div>
       {#if snapshots.length > 0}
         <div class="flex items-center gap-1.5">
-          <div class="w-3 h-0.5 rounded-full" style="background: rgba(96,165,250,0.5);"></div>
-          <span class="text-slate-500">burst</span>
+          <div class="w-3 h-0.5 rounded-full bg-primary-300/50"></div>
+          <span class="text-surface-400">burst</span>
         </div>
         <div class="flex items-center gap-1.5">
-          <div class="w-2 h-2 rounded-full bg-red-500"></div>
-          <span class="text-slate-500">ошибки</span>
+          <div class="w-2 h-2 rounded-full bg-error-500"></div>
+          <span class="text-surface-400">ошибки</span>
         </div>
       {/if}
     </div>
   </div>
 
-  <!-- SVG Chart -->
   <div class="relative w-full" style="aspect-ratio: {W}/{H};">
     <!-- svelte-ignore a11y-no-static-element-interactions -->
     <svg viewBox="0 0 {W} {H}" class="w-full h-full"
-         on:mousemove={handleMouseMove}
-         on:mouseleave={handleMouseLeave}>
-
+         on:mousemove={handleMouseMove} on:mouseleave={handleMouseLeave}>
       <defs>
         <linearGradient id="wpmFill" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stop-color="#3b82f6" stop-opacity="0.15"/>
-          <stop offset="100%" stop-color="#3b82f6" stop-opacity="0"/>
+          <stop offset="0%" stop-color="#1e82e6" stop-opacity="0.15"/>
+          <stop offset="100%" stop-color="#1e82e6" stop-opacity="0"/>
         </linearGradient>
         <linearGradient id="rawFill" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stop-color="{theme === 'dark' ? '#64748b' : '#94a3b8'}" stop-opacity="0.08"/>
-          <stop offset="100%" stop-color="{theme === 'dark' ? '#64748b' : '#94a3b8'}" stop-opacity="0"/>
+          <stop offset="0%" stop-color="{theme === 'dark' ? '#6e7a94' : '#9ba5b9'}" stop-opacity="0.08"/>
+          <stop offset="100%" stop-color="{theme === 'dark' ? '#6e7a94' : '#9ba5b9'}" stop-opacity="0"/>
         </linearGradient>
       </defs>
 
-      <!-- Grid lines -->
       {#each yTicks as v}
         <line x1={PAD_L} y1={yWpm(v)} x2={W - PAD_R} y2={yWpm(v)}
-              stroke={theme === 'dark' ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.06)'}
-              stroke-width="1"/>
+              stroke={theme === 'dark' ? 'rgba(40,48,72,0.5)' : 'rgba(0,0,0,0.06)'} stroke-width="1"/>
       {/each}
 
-      <!-- Raw area fill -->
-      {#if rawArea}
-        <path d={rawArea} fill="url(#rawFill)"/>
-      {/if}
+      {#if rawArea}<path d={rawArea} fill="url(#rawFill)"/>{/if}
+      {#if wpmArea}<path d={wpmArea} fill="url(#wpmFill)"/>{/if}
 
-      <!-- WPM area fill -->
-      {#if wpmArea}
-        <path d={wpmArea} fill="url(#wpmFill)"/>
-      {/if}
-
-      <!-- Raw line (dashed) -->
       {#if rawLine}
-        <path d={rawLine} fill="none"
-              stroke={theme === 'dark' ? '#475569' : '#94a3b8'}
-              stroke-width="1.5" stroke-dasharray="4 3"
-              stroke-linecap="round" stroke-linejoin="round"/>
+        <path d={rawLine} fill="none" stroke={theme === 'dark' ? '#46526e' : '#9ba5b9'}
+              stroke-width="1.5" stroke-dasharray="4 3" stroke-linecap="round" stroke-linejoin="round"/>
       {/if}
 
-      <!-- Burst line -->
       {#if snapshots.length > 0 && burstLine}
-        <path d={burstLine} fill="none"
-              stroke="rgba(96,165,250,0.4)"
-              stroke-width="1.5"
-              stroke-linecap="round" stroke-linejoin="round"/>
+        <path d={burstLine} fill="none" stroke="rgba(102,181,255,0.4)"
+              stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
       {/if}
 
-      <!-- WPM line (main, on top) -->
       {#if wpmLine}
-        <path d={wpmLine} fill="none"
-              stroke="#3b82f6"
-              stroke-width="2.5"
-              stroke-linecap="round" stroke-linejoin="round"/>
+        <path d={wpmLine} fill="none" stroke="#1e82e6"
+              stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
       {/if}
 
-      <!-- Error dots -->
       {#each errorDots as dot}
         <circle cx={dot.x} cy={yWpm(data.find(d => d.sec === dot.sec)?.wpm || 0) - 12}
-                r={3 + dot.errors * 1.5}
-                fill="#ef4444" fill-opacity="0.8"/>
+                r={3 + dot.errors * 1.5} fill="#ef4444" fill-opacity="0.8"/>
       {/each}
 
-      <!-- Y-axis labels left (WPM) -->
       {#each yTicks as v}
-        <text x={PAD_L - 8} y={yWpm(v) + 3}
-              text-anchor="end"
-              class="text-[10px]"
-              fill={theme === 'dark' ? '#475569' : '#94a3b8'}
-              font-family="'JetBrains Mono', monospace"
-              font-size="10">{v}</text>
+        <text x={PAD_L - 8} y={yWpm(v) + 3} text-anchor="end"
+              fill={theme === 'dark' ? '#46526e' : '#9ba5b9'}
+              font-family="'JetBrains Mono', monospace" font-size="10">{v}</text>
       {/each}
 
-      <!-- Y-axis labels right (Errors) -->
       {#if snapshots.length > 0}
         {#each errTicks as v}
-          <text x={W - PAD_R + 8} y={yErr(v) + 3}
-                text-anchor="start"
+          <text x={W - PAD_R + 8} y={yErr(v) + 3} text-anchor="start"
                 fill="#ef4444" fill-opacity="0.5"
-                font-family="'JetBrains Mono', monospace"
-                font-size="10">{v}</text>
+                font-family="'JetBrains Mono', monospace" font-size="10">{v}</text>
         {/each}
       {/if}
 
-      <!-- X-axis labels -->
       {#each xTicks as v}
-        <text x={xPos(v)} y={H - 5}
-              text-anchor="middle"
-              fill={theme === 'dark' ? '#475569' : '#94a3b8'}
-              font-family="'JetBrains Mono', monospace"
-              font-size="10">{v}</text>
+        <text x={xPos(v)} y={H - 5} text-anchor="middle"
+              fill={theme === 'dark' ? '#46526e' : '#9ba5b9'}
+              font-family="'JetBrains Mono', monospace" font-size="10">{v}</text>
       {/each}
 
-      <!-- Axis labels -->
-      <text x={PAD_L - 8} y={PAD_T - 6}
-            text-anchor="end"
-            fill={theme === 'dark' ? '#334155' : '#cbd5e1'}
-            font-family="'JetBrains Mono', monospace"
-            font-size="8">wpm</text>
+      <text x={PAD_L - 8} y={PAD_T - 6} text-anchor="end"
+            fill={theme === 'dark' ? '#283048' : '#c8cfdb'}
+            font-family="'JetBrains Mono', monospace" font-size="8">wpm</text>
       {#if snapshots.length > 0}
-        <text x={W - PAD_R + 8} y={PAD_T - 6}
-              text-anchor="start"
+        <text x={W - PAD_R + 8} y={PAD_T - 6} text-anchor="start"
               fill="#ef4444" fill-opacity="0.4"
-              font-family="'JetBrains Mono', monospace"
-              font-size="8">ошибки</text>
+              font-family="'JetBrains Mono', monospace" font-size="8">ошибки</text>
       {/if}
 
-      <!-- Hover crosshair -->
       {#if hoverIdx >= 0}
         <line x1={tooltipX} y1={PAD_T} x2={tooltipX} y2={PAD_T + chartH}
-              stroke={theme === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}
-              stroke-width="1"/>
+              stroke={theme === 'dark' ? 'rgba(102,181,255,0.15)' : 'rgba(0,0,0,0.1)'} stroke-width="1"/>
         <circle cx={tooltipX} cy={tooltipY} r="4"
-                fill="#3b82f6" stroke={theme === 'dark' ? '#030303' : '#f8fafc'}
-                stroke-width="2"/>
+                fill="#1e82e6" stroke={theme === 'dark' ? '#080a14' : '#e6e9f0'} stroke-width="2"/>
       {/if}
     </svg>
 
-    <!-- Hover tooltip -->
     {#if hoverIdx >= 0 && data[hoverIdx]}
       {@const d = data[hoverIdx]}
       <div class="absolute pointer-events-none z-30 animate-fade-in"
            style="left: {(tooltipX / W) * 100}%; top: {((tooltipY - 10) / H) * 100}%; transform: translate(-50%, -100%);">
-        <div class="glass-ui rounded-xl px-4 py-3 shadow-lg text-left"
-             style="min-width: 130px; {theme === 'dark' ? 'background: rgba(15,23,42,0.95); border-color: rgba(255,255,255,0.1);' : 'background: rgba(255,255,255,0.95); border-color: rgba(0,0,0,0.1);'}">
-          <p class="text-[10px] mono font-[800] mb-2 {theme === 'dark' ? 'text-white' : 'text-slate-900'}">
+        <div class="s-card px-4 py-3 shadow-xl text-left !rounded-xl" style="min-width: 130px;">
+          <p class="mono text-[10px] font-bold mb-2"
+             class:text-surface-100={theme === 'dark'} class:text-surface-800={theme === 'light'}>
             Секунда {d.sec}
           </p>
-          <div class="space-y-1 text-[9px] mono">
+          <div class="space-y-1 mono text-[9px]">
             <div class="flex justify-between gap-4">
-              <span class="text-blue-500 font-[800]">wpm:</span>
-              <span class="{theme === 'dark' ? 'text-white' : 'text-slate-900'} font-[800]">{Math.round(d.wpm)}</span>
+              <span class="text-primary-400 font-bold">wpm:</span>
+              <span class="font-bold" class:text-surface-100={theme === 'dark'} class:text-surface-800={theme === 'light'}>{Math.round(d.wpm)}</span>
             </div>
             <div class="flex justify-between gap-4">
-              <span class="text-slate-500 font-[800]">raw:</span>
-              <span class="{theme === 'dark' ? 'text-slate-300' : 'text-slate-700'} font-[800]">{Math.round(d.raw)}</span>
+              <span class="text-surface-400 font-bold">raw:</span>
+              <span class="font-bold" class:text-surface-200={theme === 'dark'} class:text-surface-600={theme === 'light'}>{Math.round(d.raw)}</span>
             </div>
             {#if snapshots.length > 0}
               <div class="flex justify-between gap-4">
-                <span style="color:rgba(96,165,250,0.7);" class="font-[800]">burst:</span>
-                <span class="{theme === 'dark' ? 'text-slate-300' : 'text-slate-700'} font-[800]">{Math.round(d.burst || 0)}</span>
+                <span class="text-primary-300/70 font-bold">burst:</span>
+                <span class="font-bold" class:text-surface-200={theme === 'dark'} class:text-surface-600={theme === 'light'}>{Math.round(d.burst || 0)}</span>
               </div>
               {#if d.errors > 0}
                 <div class="flex justify-between gap-4">
-                  <span class="text-red-500 font-[800]">ошибки:</span>
-                  <span class="text-red-400 font-[800]">{d.errors}</span>
+                  <span class="text-error-400 font-bold">ошибки:</span>
+                  <span class="text-error-400 font-bold">{d.errors}</span>
                 </div>
               {/if}
             {/if}
@@ -321,25 +238,26 @@
     {/if}
   </div>
 
-  <!-- Stats below graph -->
-  <div class="grid grid-cols-4 gap-4 mt-5 pt-5 border-t {theme === 'dark' ? 'border-white/5' : 'border-slate-200'}">
+  <div class="grid grid-cols-4 gap-4 mt-5 pt-5 border-t"
+       class:border-surface-700/50={theme === 'dark'}
+       class:border-surface-200={theme === 'light'}>
     <div>
-      <p class="text-[8px] mono uppercase text-blue-500 mb-1">Avg WPM</p>
-      <p class="text-xl font-[800] italic text-blue-500">{wpm}</p>
+      <p class="mono text-[8px] uppercase text-primary-400 mb-1">Avg WPM</p>
+      <p class="text-xl font-heading font-extrabold text-primary-400">{wpm}</p>
     </div>
     <div>
-      <p class="text-[8px] mono uppercase text-slate-500 mb-1">Raw WPM</p>
-      <p class="text-xl font-[800] italic text-slate-500">{rawWpm}</p>
+      <p class="mono text-[8px] uppercase text-surface-400 mb-1">Raw WPM</p>
+      <p class="text-xl font-heading font-extrabold text-surface-400">{rawWpm}</p>
     </div>
     <div>
-      <p class="text-[8px] mono uppercase {theme === 'dark' ? 'text-slate-500' : 'text-slate-600'} mb-1">Peak WPM</p>
-      <p class="text-xl font-[800] italic"
-         class:text-white={theme === 'dark'}
-         class:text-slate-900={theme === 'light'}>{Math.round(Math.max(...data.map(d => d.wpm)))}</p>
+      <p class="mono text-[8px] uppercase text-surface-400 mb-1">Peak WPM</p>
+      <p class="text-xl font-heading font-extrabold"
+         class:text-surface-100={theme === 'dark'}
+         class:text-surface-800={theme === 'light'}>{Math.round(Math.max(...data.map(d => d.wpm)))}</p>
     </div>
     <div>
-      <p class="text-[8px] mono uppercase text-red-500/60 mb-1">Ошибки</p>
-      <p class="text-xl font-[800] italic text-red-500">{totalErrors}</p>
+      <p class="mono text-[8px] uppercase text-error-400/60 mb-1">Ошибки</p>
+      <p class="text-xl font-heading font-extrabold text-error-400">{totalErrors}</p>
     </div>
   </div>
 </div>

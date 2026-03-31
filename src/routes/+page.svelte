@@ -10,14 +10,12 @@
   let testResult = null;
   $: state = $typingStore;
 
-  // Auto-clear result when store is reset externally (e.g. logo click)
   $: if (state.status === 'idle' && testResult !== null) { testResult = null; }
 
   function handleTestComplete(data) { testResult = data; }
 
   async function handleRestart() {
     testResult = null;
-    // Reload words and reset store
     const s = $settingsStore;
     const count = s.mode === 'words' ? s.modeValue : 100;
     try {
@@ -29,7 +27,7 @@
   }
 </script>
 
-<svelte:head><title>SAKHATYPE // Terminal</title></svelte:head>
+<svelte:head><title>SAKHATYPE</title></svelte:head>
 
 <div class="flex-1 flex flex-col">
   <main class="flex-1 flex flex-col justify-center px-4 sm:px-6 md:px-10 relative z-10">

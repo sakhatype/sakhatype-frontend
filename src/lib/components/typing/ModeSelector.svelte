@@ -11,32 +11,57 @@
   function toggleDifficulty() { settingsStore.update(s => ({ ...s, difficulty: s.difficulty === 'normal' ? 'expert' : 'normal' })); }
 </script>
 
-<div class="glass-ui p-1.5 rounded-2xl flex flex-wrap gap-1 items-center justify-center">
-  <button class="px-4 sm:px-6 py-2.5 rounded-xl text-[10px] font-[800] uppercase italic tracking-widest transition-all {settings.mode === 'time' ? (theme === 'dark' ? 'bg-white/5 text-white' : 'bg-slate-900/5 text-slate-900') : (theme === 'dark' ? 'hover:text-white' : 'hover:text-slate-900')}"
-          on:click={() => setMode('time')}>Время</button>
-  <button class="px-4 sm:px-6 py-2.5 rounded-xl text-[10px] font-[800] uppercase italic tracking-widest transition-all {settings.mode === 'words' ? (theme === 'dark' ? 'bg-white/5 text-white' : 'bg-slate-900/5 text-slate-900') : (theme === 'dark' ? 'hover:text-white' : 'hover:text-slate-900')}"
-          on:click={() => setMode('words')}>Слова</button>
+<div class="s-card px-2 py-1.5 flex flex-wrap gap-1 items-center justify-center">
+  <!-- Mode type -->
+  <button class="chip-sakha transition-all {settings.mode === 'time' ? 'active' : ''}"
+          class:text-surface-400={settings.mode !== 'time'}
+          class:hover:text-surface-100={theme === 'dark' && settings.mode !== 'time'}
+          class:hover:text-surface-800={theme === 'light' && settings.mode !== 'time'}
+          on:click={() => setMode('time')}>
+    <span class="flex items-center gap-1.5">
+      <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+      Время
+    </span>
+  </button>
+  <button class="chip-sakha transition-all {settings.mode === 'words' ? 'active' : ''}"
+          class:text-surface-400={settings.mode !== 'words'}
+          class:hover:text-surface-100={theme === 'dark' && settings.mode !== 'words'}
+          class:hover:text-surface-800={theme === 'light' && settings.mode !== 'words'}
+          on:click={() => setMode('words')}>
+    <span class="flex items-center gap-1.5">
+      <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M4 7h16M4 12h10M4 17h12"/></svg>
+      Слова
+    </span>
+  </button>
 
-  <div class="w-px h-5 bg-white/10 mx-2"></div>
+  <div class="w-px h-6 mx-1"
+       class:bg-surface-600/40={theme === 'dark'}
+       class:bg-surface-300={theme === 'light'}></div>
 
+  <!-- Mode values -->
   {#each currentModeValues as val}
-    <button class="px-3 sm:px-5 py-2.5 rounded-xl text-[10px] font-[800] uppercase italic tracking-widest transition-all"
-            class:text-blue-500={settings.modeValue === val}
-            class:underline={settings.modeValue === val}
-            class:decoration-2={settings.modeValue === val}
-            class:underline-offset-4={settings.modeValue === val}
-            class:hover:text-white={theme === 'dark'}
-            class:hover:text-slate-900={theme === 'light'}
-            on:click={() => setModeValue(val)}>{val}</button>
+    <button class="chip-sakha transition-all"
+            class:text-primary-400={settings.modeValue === val}
+            class:bg-primary-500/10={settings.modeValue === val}
+            class:text-surface-400={settings.modeValue !== val}
+            class:hover:text-surface-100={theme === 'dark' && settings.modeValue !== val}
+            class:hover:text-surface-800={theme === 'light' && settings.modeValue !== val}
+            on:click={() => setModeValue(val)}>
+      {val}
+    </button>
   {/each}
 
-  <div class="w-px h-5 bg-white/10 mx-2"></div>
+  <div class="w-px h-6 mx-1"
+       class:bg-surface-600/40={theme === 'dark'}
+       class:bg-surface-300={theme === 'light'}></div>
 
-  <button class="px-3 sm:px-5 py-2.5 rounded-xl text-[10px] font-[800] uppercase italic tracking-widest transition-all"
-          class:text-red-400={settings.difficulty === 'expert'}
-          class:text-blue-500={settings.difficulty !== 'expert'}
-          class:underline-offset-4={settings.difficulty !== 'expert'}
+  <!-- Difficulty -->
+  <button class="chip-sakha transition-all"
+          class:text-error-400={settings.difficulty === 'expert'}
+          class:bg-error-500/10={settings.difficulty === 'expert'}
+          class:text-success-400={settings.difficulty !== 'expert'}
+          class:bg-success-500/10={settings.difficulty !== 'expert'}
           on:click={toggleDifficulty}>
-    {settings.difficulty === 'expert' ? 'Сложный' : 'Легкий'}
+    {settings.difficulty === 'expert' ? '⚡ Сложный' : '✦ Легкий'}
   </button>
 </div>
