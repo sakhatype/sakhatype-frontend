@@ -1,5 +1,6 @@
 <script>
   import { settingsStore } from '$stores/settings.js';
+  import { Clock, Type } from 'lucide-svelte';
   const timeModes = [15, 30, 60];
   const wordModes = [10, 25, 50];
   $: settings = $settingsStore;
@@ -19,7 +20,7 @@
           class:hover:text-surface-800={theme === 'light' && settings.mode !== 'time'}
           on:click={() => setMode('time')}>
     <span class="flex items-center gap-1.5">
-      <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+      <Clock size={14} strokeWidth={2.25} />
       Время
     </span>
   </button>
@@ -29,7 +30,7 @@
           class:hover:text-surface-800={theme === 'light' && settings.mode !== 'words'}
           on:click={() => setMode('words')}>
     <span class="flex items-center gap-1.5">
-      <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M4 7h16M4 12h10M4 17h12"/></svg>
+      <Type size={14} strokeWidth={2.25} />
       Слова
     </span>
   </button>

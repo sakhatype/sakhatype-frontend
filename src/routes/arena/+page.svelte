@@ -70,10 +70,10 @@
   <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
     <div class="lg:col-span-8 flex flex-col gap-5">
       <h2 class="text-2xl font-heading font-extrabold uppercase tracking-tight mb-2"
-          class:text-surface-50={theme === 'dark'} class:text-surface-900={theme === 'light'}>Лоббилар</h2>
+          class:text-surface-50={theme === 'dark'} class:text-surface-900={theme === 'light'}>Лобби</h2>
       {#if rooms.length === 0}
         <div class="s-card p-12 text-center">
-          <p class="mono text-xs uppercase tracking-[0.2em] text-surface-400">Пока никого нет // Создайте лобби</p>
+          <p class="mono text-xs uppercase tracking-[0.2em] text-surface-400">Пока никого нет</p>
         </div>
       {:else}
         {#each rooms as room}
