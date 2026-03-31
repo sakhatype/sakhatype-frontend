@@ -13,6 +13,8 @@
   async function load() { loading = true; try { leaderboard = await api.getLeaderboard(mode, modeValue, 50); } catch { leaderboard = []; } loading = false; }
   function selMode(m) { mode = m; modeValue = m === 'time' ? 30 : 25; load(); }
   function selVal(v) { modeValue = v; load(); }
+
+  const leaderboardSkeletonRows = 10;
 </script>
 
 <svelte:head><title>Sakhatype - Либерборд</title></svelte:head>
@@ -60,8 +62,38 @@
       <!-- Table -->
       <div class="lg:col-span-8">
         {#if loading}
-          <div class="s-card p-20 text-center">
-            <p class="mono text-xs uppercase tracking-[0.3em] text-surface-400 animate-pulse">Loading_Data...</p>
+          <div class="s-card overflow-hidden !rounded-2xl">
+            <table class="w-full text-left border-collapse">
+              <thead>
+                <tr class="border-b border-surface-600/30">
+                  <th class="px-6 sm:px-8 py-5 mono text-[10px] font-bold uppercase tracking-wider text-surface-400">Rank</th>
+                  <th class="px-4 sm:px-6 py-5 mono text-[10px] font-bold uppercase tracking-wider text-surface-400">User</th>
+                  <th class="px-4 sm:px-6 py-5 mono text-[10px] font-bold uppercase tracking-wider text-surface-400 text-right">WPM</th>
+                  <th class="hidden sm:table-cell px-6 py-5 mono text-[10px] font-bold uppercase tracking-wider text-surface-400 text-right">Accuracy</th>
+                </tr>
+              </thead>
+              <tbody>
+                {#each Array.from({ length: leaderboardSkeletonRows }) as _, i (i)}
+                  <tr class="border-b border-surface-700/30">
+                    <td class="px-6 sm:px-8 py-5 align-middle">
+                      <div class="skeleton w-8 h-8 rounded-xl"></div>
+                    </td>
+                    <td class="px-4 sm:px-6 py-5 align-middle">
+                      <div class="flex items-center gap-2">
+                        <div class="skeleton h-5 w-[min(12rem,40vw)] rounded-md"></div>
+                        <div class="skeleton h-6 w-14 rounded-lg shrink-0"></div>
+                      </div>
+                    </td>
+                    <td class="px-4 sm:px-6 py-5 align-middle text-right">
+                      <div class="skeleton h-8 w-12 ml-auto rounded-lg"></div>
+                    </td>
+                    <td class="hidden sm:table-cell px-6 py-5 align-middle text-right">
+                      <div class="skeleton h-6 w-10 ml-auto rounded-md"></div>
+                    </td>
+                  </tr>
+                {/each}
+              </tbody>
+            </table>
           </div>
         {:else if leaderboard.length === 0}
           <div class="s-card p-20 text-center">

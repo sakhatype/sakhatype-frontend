@@ -142,6 +142,9 @@
 
     return labels;
   }
+
+  const profileStatPlaceholders = [1, 2, 3];
+  const profileTestSkeletonRows = 5;
 </script>
 
 <svelte:head><title>Sakhatype - Профиль {username}</title></svelte:head>
@@ -150,9 +153,73 @@
 
 <div class="flex-1 flex flex-col">
 {#if loading}
-  <div class="flex items-center justify-center flex-1">
-    <p class="mono text-xs uppercase tracking-[0.3em] text-surface-400 animate-pulse">Загрузка профиля...</p>
+<main class="container mx-auto px-6 md:px-10 flex-1 relative z-20 py-8">
+  <div class="grid grid-cols-12 gap-3">
+    <div class="col-span-12 lg:col-span-4 flex flex-col gap-6">
+      <div class="s-card p-8 relative overflow-hidden">
+        <div class="absolute -top-10 -right-10 w-32 h-32 rounded-full blur-[50px] opacity-10 pointer-events-none" style="background: rgb(113 113 122);"></div>
+        <div class="relative z-10">
+          <div class="skeleton w-24 h-24 rounded-2xl border-2 border-transparent mb-6"></div>
+          <div class="skeleton h-9 w-[min(100%,14rem)] rounded-lg mb-2"></div>
+          <div class="skeleton h-3 w-24 rounded mb-4"></div>
+          <div class="mt-6 space-y-2">
+            <div class="flex justify-between">
+              <div class="skeleton h-2.5 w-24 rounded"></div>
+              <div class="skeleton h-2.5 w-16 rounded"></div>
+            </div>
+            <div class="skeleton h-2 w-full rounded-full"></div>
+          </div>
+          {#if isOwnProfile}
+            <div class="skeleton h-12 w-full rounded-xl mt-6"></div>
+          {/if}
+        </div>
+      </div>
+    </div>
+    <div class="col-span-12 lg:col-span-8 flex flex-col gap-3">
+      <div class="grid grid-cols-3 gap-4">
+        {#each profileStatPlaceholders as _}
+          <div class="s-card p-6">
+            <div class="skeleton h-2.5 w-28 rounded mb-4"></div>
+            <div class="skeleton h-10 w-20 rounded-lg"></div>
+          </div>
+        {/each}
+      </div>
+      <div class="s-card p-6">
+        <div class="flex justify-between items-center mb-6">
+          <div class="skeleton h-4 w-28 rounded"></div>
+          <div class="skeleton h-3 w-20 rounded"></div>
+        </div>
+        <div class="skeleton h-32 w-full rounded-xl"></div>
+        <div class="mt-4 flex items-center justify-between gap-3">
+          <div class="skeleton h-2.5 w-36 rounded"></div>
+          <div class="skeleton h-3 w-48 max-w-[50%] rounded"></div>
+        </div>
+      </div>
+      <div class="s-card p-6">
+        <div class="flex justify-between items-center mb-5">
+          <div class="skeleton h-4 w-44 rounded"></div>
+          <div class="skeleton h-3 w-28 rounded"></div>
+        </div>
+        <div class="space-y-2.5 max-h-[600px] overflow-hidden pr-2">
+          {#each Array.from({ length: profileTestSkeletonRows }) as _, i (i)}
+            <div class="s-card p-4 !rounded-xl">
+              <div class="flex items-center justify-between mb-3">
+                <div class="skeleton h-3 w-40 rounded"></div>
+                <div class="skeleton h-6 w-14 rounded-lg"></div>
+              </div>
+              <div class="grid grid-cols-4 gap-4">
+                <div class="skeleton h-8 w-full rounded-md"></div>
+                <div class="skeleton h-8 w-full rounded-md"></div>
+                <div class="skeleton h-8 w-full rounded-md"></div>
+                <div class="skeleton h-8 w-full rounded-md"></div>
+              </div>
+            </div>
+          {/each}
+        </div>
+      </div>
+    </div>
   </div>
+</main>
 {:else if !profile}
   <div class="flex items-center justify-center flex-1">
     <div class="text-center">

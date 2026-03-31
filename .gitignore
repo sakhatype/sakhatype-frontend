@@ -11,3 +11,4 @@ node_modules
 .git
 build/
 package-lock.json
+build
