@@ -22,6 +22,7 @@
   $: xpPercent = user ? (user.xp / user.xp_to_next) * 100 : 0;
   $: contributionDays = buildContributionDays(history, 140);
   $: contributionWeeks = chunkByWeek(contributionDays);
+  $: contributionMonthLabels = getContributionMonthLabels(contributionWeeks);
 
   function formatYakutskTime(timestamp) {
     if (!timestamp) return 'N/A';
@@ -118,6 +119,29 @@
   function formatContributionDate(date) {
     return date.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' });
   }
+
+  function getContributionMonthLabels(weeks) {
+    const labels = [];
+    let prevMonth = -1;
+
+    for (const week of weeks) {
+      const firstDay = week?.[0]?.date;
+      if (!firstDay) {
+        labels.push('');
+        continue;
+      }
+
+      const month = firstDay.getMonth();
+      if (month !== prevMonth) {
+        labels.push(firstDay.toLocaleDateString('ru-RU', { month: 'short' }).replace('.', ''));
+        prevMonth = month;
+      } else {
+        labels.push('');
+      }
+    }
+
+    return labels;
+  }
 </script>
 
 <svelte:head><title>{username} // SAKHATYPE</title></svelte:head>
@@ -203,22 +227,41 @@
             <span class="mono text-[9px] text-surface-400 uppercase tracking-wider">{history.length} тестов</span>
           </div>
           <div class="overflow-x-auto">
-            <div class="min-w-max flex gap-1.5">
-              {#each contributionWeeks as week}
-                <div class="flex flex-col gap-1.5">
-                  {#each week as day}
-                    <div
-                      class="w-3.5 h-3.5 rounded-[3px] border border-surface-600/20 transition-all hover:scale-110 cursor-default
-                        {day.level === 0 ? 'bg-surface-700/30' : ''}
-                        {day.level === 1 ? 'bg-primary-500/25' : ''}
-                        {day.level === 2 ? 'bg-primary-500/45' : ''}
-                        {day.level === 3 ? 'bg-primary-500/70' : ''}
-                        {day.level === 4 ? 'bg-primary-500' : ''}"
-                      title="{formatContributionDate(day.date)} • {day.count} тест(ов) • {day.avgWpm} WPM"
-                    ></div>
+            <div class="min-w-max">
+              <div class="flex items-center gap-1.5 mb-2">
+                <div class="w-8"></div>
+                {#each contributionMonthLabels as label}
+                  <div class="w-3.5 mono text-[9px] text-surface-500 uppercase">{label}</div>
+                {/each}
+              </div>
+              <div class="flex gap-1.5">
+                <div class="w-8 flex flex-col gap-1.5 pr-1">
+                  <div class="h-3.5"></div>
+                  <div class="h-3.5 mono text-[9px] text-surface-500 leading-[14px]">Пн</div>
+                  <div class="h-3.5"></div>
+                  <div class="h-3.5 mono text-[9px] text-surface-500 leading-[14px]">Ср</div>
+                  <div class="h-3.5"></div>
+                  <div class="h-3.5 mono text-[9px] text-surface-500 leading-[14px]">Пт</div>
+                  <div class="h-3.5"></div>
+                </div>
+                <div class="flex gap-1.5">
+                  {#each contributionWeeks as week}
+                    <div class="flex flex-col gap-1.5">
+                      {#each week as day}
+                        <div
+                          class="w-3.5 h-3.5 rounded-[3px] border border-surface-600/20 transition-all hover:scale-110 cursor-default
+                            {day.level === 0 ? 'bg-surface-700/30' : ''}
+                            {day.level === 1 ? 'bg-primary-500/25' : ''}
+                            {day.level === 2 ? 'bg-primary-500/45' : ''}
+                            {day.level === 3 ? 'bg-primary-500/70' : ''}
+                            {day.level === 4 ? 'bg-primary-500' : ''}"
+                          title="{formatContributionDate(day.date)} • {day.count} тест(ов) • {day.avgWpm} WPM"
+                        ></div>
+                      {/each}
+                    </div>
                   {/each}
                 </div>
-              {/each}
+              </div>
             </div>
           </div>
           <div class="mt-4 flex items-center justify-between gap-3">
