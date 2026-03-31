@@ -35,7 +35,6 @@
   let caretY = 0;
   let caretVisible = true;
   let caretBlinkTimer = null;
-  const HINT_LOOKAHEAD_WORDS = 5;
 
   // Smooth caret animation
   let caretDisplayX = 0;
@@ -62,19 +61,12 @@
   $: currentHint = (() => {
     if (!settings.showHints || settings.language !== 'sakha') return null;
     if (state.status === 'finished') return null;
+    const word = state.words[state.currentWordIndex];
+    if (!word) return null;
 
-    const startWord = state.currentWordIndex;
-    const endWord = Math.min(state.words.length - 1, startWord + HINT_LOOKAHEAD_WORDS);
-
-    for (let wordIdx = startWord; wordIdx <= endWord; wordIdx++) {
-      const word = state.words[wordIdx];
-      if (!word) continue;
-
-      const startChar = wordIdx === startWord ? state.currentInput.length : 0;
-      for (let charIdx = startChar; charIdx < word.length; charIdx++) {
-        const hint = getSakhaHint(word[charIdx], settings.customBindings);
-        if (hint) return hint;
-      }
+    for (let charIdx = state.currentInput.length; charIdx < word.length; charIdx++) {
+      const hint = getSakhaHint(word[charIdx], settings.customBindings);
+      if (hint) return hint;
     }
 
     return null;
