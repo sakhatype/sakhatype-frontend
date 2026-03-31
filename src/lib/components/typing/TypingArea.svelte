@@ -109,7 +109,7 @@
     charPops = [];
     const count = settings.mode === 'words' ? settings.modeValue : 100;
     try {
-      const data = await api.getWords(settings.language, count);
+      const data = await api.getWords(settings.language, count, settings.difficulty);
       typingStore.init(data.words, settings.mode, settings.modeValue, settings.language);
     } catch {
       typingStore.init(

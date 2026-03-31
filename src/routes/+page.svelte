@@ -19,7 +19,7 @@
     const s = $settingsStore;
     const count = s.mode === 'words' ? s.modeValue : 100;
     try {
-      const data = await api.getWords('sakha', count);
+      const data = await api.getWords('sakha', count, s.difficulty);
       typingStore.init(data.words, s.mode, s.modeValue, 'sakha');
     } catch {
       typingStore.reset();

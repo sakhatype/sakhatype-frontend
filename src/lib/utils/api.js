@@ -48,11 +48,11 @@ export const api = {
   },
 
   // Words
-  async getWords(language = 'sakha', count = 50) {
+  async getWords(language = 'sakha', count = 50, difficulty = 'normal') {
     const res = await fetch(`${API_BASE}/typing/words`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ language, count }),
+      body: JSON.stringify({ language, count, difficulty }),
     });
     const contentType = res.headers.get('content-type') || '';
     if (!res.ok || !contentType.includes('application/json')) {
