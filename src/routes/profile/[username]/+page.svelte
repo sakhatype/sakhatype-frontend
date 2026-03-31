@@ -176,7 +176,7 @@
       </div>
     </div>
     <div class="col-span-12 lg:col-span-8 flex flex-col gap-3">
-      <div class="grid grid-cols-3 gap-4">
+      <div class="grid grid-cols-3 gap-3">
         {#each profileStatPlaceholders as _}
           <div class="s-card p-6">
             <div class="skeleton h-2.5 w-28 rounded mb-4"></div>
