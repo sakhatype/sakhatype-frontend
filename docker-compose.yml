@@ -6,6 +6,7 @@ services:
       context: .
       args:
         VITE_API_URL: https://api.sakhatype.ru/api
+        VITE_SITE_URL: https://sakhatype.ru
     container_name: sakhatype-front
     restart: always
     ports:

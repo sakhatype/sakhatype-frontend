@@ -6,11 +6,40 @@
   import { typingStore } from '$stores/typing.js';
   import { onMount } from 'svelte';
 
+  const metaDescription =
+    'Sakhatype - веб-приложения для проверки скорости печати с элементами культуры и традиций Республики Саха (Якутия)';
+
+  const siteUrl = (import.meta.env.VITE_SITE_URL || '').replace(/\/$/, '');
+  const ogImage = siteUrl ? `${siteUrl}/og-image.png` : '/og-image.png';
+
   $: theme = $settingsStore.theme;
   $: isTyping = $typingStore.status === 'running';
 
   onMount(() => { userStore.refresh(); });
 </script>
+
+<svelte:head>
+  <meta name="description" content={metaDescription} />
+  {#if siteUrl}
+    <link rel="canonical" href={siteUrl} />
+  {/if}
+  <meta property="og:site_name" content="Sakhatype" />
+  <meta property="og:title" content="Sakhatype" />
+  <meta property="og:description" content={metaDescription} />
+  <meta property="og:type" content="website" />
+  <meta property="og:image" content={ogImage} />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content={metaDescription} />
+  <meta property="og:locale" content="ru_RU" />
+  {#if siteUrl}
+    <meta property="og:url" content={siteUrl} />
+  {/if}
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Sakhatype" />
+  <meta name="twitter:description" content={metaDescription} />
+  <meta name="twitter:image" content={ogImage} />
+</svelte:head>
 
 <div class="min-h-screen flex flex-col transition-colors duration-500 relative"
      class:dark={theme === 'dark'}
