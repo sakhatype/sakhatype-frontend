@@ -2,7 +2,7 @@
   <img src="icon.png" alt="Sakhatype" width="200" />
 </p>
 
-<h1 align="center">Sakhatype — Frontend</h1>
+<h1 align="center">Sakhatype Frontend</h1>
 
 <p align="center">
   Веб-клиент тренажёра скорости печати на <strong>якутском языке</strong>.<br />
