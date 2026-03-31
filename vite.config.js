@@ -3,41 +3,34 @@ import { defineConfig, loadEnv } from 'vite';
 import fs from 'fs';
 import path from 'path';
 
-/** После сборки: абсолютные og:image / canonical при VITE_SITE_URL (Docker и прод). */
-function embedAbsoluteSeoUrls(siteUrl) {
+/** Дефолтный прод-домен в app.html; при другом VITE_SITE_URL подменяется после сборки. */
+const BAKED_SITE_ORIGIN = 'https://sakhatype.ru';
+
+function seoSiteOriginOverride(desiredOrigin) {
   return {
-    name: 'embed-absolute-seo-urls',
+    name: 'seo-site-origin-override',
     enforce: 'post',
     apply: 'build',
     closeBundle() {
       const indexPath = path.resolve('build/index.html');
       if (!fs.existsSync(indexPath)) return;
 
+      const target = (desiredOrigin || '').replace(/\/$/, '');
+      if (!target || target === BAKED_SITE_ORIGIN) return;
+
       let html = fs.readFileSync(indexPath, 'utf8');
-      const base = (siteUrl || '').replace(/\/$/, '');
-      if (!base) return;
-
-      const absImg = `${base}/og-image.png`;
-      html = html.replaceAll('content="/og-image.png"', `content="${absImg}"`);
-
-      if (!html.includes('rel="canonical"')) {
-        html = html.replace(
-          '<title>Sakhatype</title>',
-          `<title>Sakhatype</title>\n    <link rel="canonical" href="${base}" />\n    <meta property="og:url" content="${base}" />`
-        );
-      }
-
+      html = html.replaceAll(BAKED_SITE_ORIGIN, target);
       fs.writeFileSync(indexPath, html);
     }
   };
 }
 
 export default defineConfig(({ mode }) => {
-  const env = loadEnv(mode, process.cwd(), '');
-  const siteUrl = env.VITE_SITE_URL || '';
+  const fileEnv = loadEnv(mode, process.cwd(), '');
+  const siteUrl = (process.env.VITE_SITE_URL || fileEnv.VITE_SITE_URL || '').trim();
 
   return {
-    plugins: [sveltekit(), embedAbsoluteSeoUrls(siteUrl)],
+    plugins: [sveltekit(), seoSiteOriginOverride(siteUrl)],
     server: {
       proxy: {
         '/api': {
