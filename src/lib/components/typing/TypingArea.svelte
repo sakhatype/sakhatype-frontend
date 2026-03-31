@@ -765,22 +765,34 @@
 
   <!-- Restart + key bindings (hidden during typing) -->
   {#if state.status !== 'running'}
-    <div class="mt-8 sm:mt-10 flex flex-col items-center gap-4">
+    <div class="mt-8 sm:mt-10 flex justify-center">
       <button class="flex items-center gap-3 text-surface-400 hover:text-primary-400 transition-all group" on:click={restart}>
         <div class="s-card w-10 h-10 !rounded-lg flex items-center justify-center group-hover:!border-primary-500/40 transition-all">
           <svg class="w-5 h-5 group-hover:rotate-[360deg] transition-transform duration-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 4v6h6"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
         </div>
         <span class="mono text-[10px] font-bold uppercase tracking-wider"></span>
       </button>
+    </div>
 
-      <div class="flex flex-wrap items-center justify-center gap-3 sm:gap-5 opacity-20 hover:opacity-60 transition-opacity duration-500 select-none">
-        {#each Object.entries(settings.customBindings || {}) as [key, char]}
-          <div class="flex items-center gap-1.5">
-            <span class="mono text-[9px] px-1.5 py-0.5 rounded-md border text-surface-400 {theme === 'dark' ? 'bg-surface-800/50 border-surface-600/50' : 'bg-white border-surface-300'}">{key}</span>
-            <span class="text-[9px] mono text-surface-500">→</span>
-            <span class="text-[10px] font-bold text-primary-400/70">{char}</span>
-          </div>
-        {/each}
+    <div class="mt-[75px] sm:mt-[75px] h-[72px] flex flex-wrap items-center justify-center gap-3 sm:gap-5 select-none {theme === 'dark' ? 'opacity-50' : 'opacity-100'}">
+      {#each Object.entries(settings.customBindings || {}) as [key, char]}
+        <div class="flex items-center gap-1.5">
+          <span class="mono text-[10px] px-2 py-0 rounded-md border text-surface-400 {theme === 'dark' ? 'bg-surface-800/50 border-surface-600/50' : 'bg-white border-surface-300'}">{key}</span>
+          <span class="text-[14px] mono text-surface-500">→</span>
+          <span class="text-[14px] font-normal text-primary-400/70">{char}</span>
+        </div>
+      {/each}
+      <div class="w-full flex items-center justify-center gap-3 sm:gap-5 mt-0">
+        <div class="flex items-center gap-1.5">
+          <span class="mono text-[10px] px-2 py-0 rounded-md border text-surface-400 {theme === 'dark' ? 'bg-surface-800/50 border-surface-600/50' : 'bg-white border-surface-300'}">Tab</span>
+          <span class="text-[14px] mono text-surface-500">→</span>
+          <span class="text-[14px] font-normal text-primary-400/70">обновить текст</span>
+        </div>
+        <div class="flex items-center gap-1.5">
+          <span class="mono text-[10px] px-2 py-0 rounded-md border text-surface-400 {theme === 'dark' ? 'bg-surface-800/50 border-surface-600/50' : 'bg-white border-surface-300'}">Esc</span>
+          <span class="text-[14px] mono text-surface-500">→</span>
+          <span class="text-[14px] font-normal text-primary-400/70">отмена</span>
+        </div>
       </div>
     </div>
   {/if}

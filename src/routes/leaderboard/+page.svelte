@@ -19,9 +19,9 @@
 
 <div class="flex-1 flex flex-col">
   <main class="container mx-auto px-4 sm:px-6 md:px-10 flex-1 relative z-10 py-8">
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-y-6 gap-x-3">
       <!-- Left sidebar -->
-      <div class="lg:col-span-4 flex flex-col gap-6">
+      <div class="lg:col-span-4 flex flex-col gap-3">
         <div class="s-card p-8 relative overflow-hidden">
           <div class="absolute top-0 right-0 p-6 opacity-10">
             <svg class="w-20 h-20 text-primary-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"/></svg>

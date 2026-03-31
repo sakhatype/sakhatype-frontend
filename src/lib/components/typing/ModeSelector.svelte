@@ -48,7 +48,7 @@
     </button>
   {/each}
 
-  <div class="w-px h-6 mx-1 {theme === 'dark' ? 'bg-surface-600/40' : 'bg-surface-300'}"></div>
+  <!-- <div class="w-px h-6 mx-1 {theme === 'dark' ? 'bg-surface-600/40' : 'bg-surface-300'}"></div> -->
 
   <!-- Difficulty -->
   <button class="chip-sakha transition-all {settings.difficulty === 'expert' ? 'bg-error-500/10' : 'bg-success-500/10'}"
