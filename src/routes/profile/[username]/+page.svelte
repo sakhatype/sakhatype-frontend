@@ -59,7 +59,7 @@
   <div class="flex items-center justify-center flex-1">
     <div class="text-center">
       <p class="text-2xl font-heading font-extrabold uppercase mb-4"
-         class:text-surface-50={theme === 'dark'} class:text-surface-900={theme === 'light'}>Киһи табыллыбата</p>
+         class:text-surface-50={theme === 'dark'} class:text-surface-900={theme === 'light'}>Error Backend</p>
       <a href="/" class="px-10 py-4 bg-primary-500 text-white rounded-2xl font-heading font-bold uppercase text-xs tracking-wider hover:bg-primary-400 transition-all inline-block">Terminal</a>
     </div>
   </div>
@@ -69,7 +69,7 @@
     <!-- Profile card -->
     <div class="col-span-12 lg:col-span-4 flex flex-col gap-6">
       <div class="s-card p-8 relative overflow-hidden">
-        <div class="absolute -top-10 -right-10 w-32 h-32 rounded-full blur-[50px] opacity-10 pointer-events-none" style="background: rgb(30 130 230);"></div>
+        <div class="absolute -top-10 -right-10 w-32 h-32 rounded-full blur-[50px] opacity-10 pointer-events-none" style="background: rgb(113 113 122);"></div>
         <div class="relative z-10">
           <div class="w-24 h-24 rounded-2xl border-2 border-primary-500/30 flex items-center justify-center mb-6 bg-gradient-to-br from-primary-500/15 to-transparent">
             <span class="text-4xl font-heading font-black text-primary-400">{user.username.charAt(0).toUpperCase()}</span>
@@ -84,7 +84,7 @@
               <span>{user.xp} / {user.xp_to_next}</span>
             </div>
             <div class="w-full h-2 bg-surface-700/50 rounded-full overflow-hidden">
-              <div class="h-full bg-primary-500 rounded-full transition-all" style="width: {xpPercent}%; box-shadow: 0 0 12px rgba(30,130,230,0.4);"></div>
+              <div class="h-full bg-primary-500 rounded-full transition-all" style="width: {xpPercent}%; box-shadow: 0 0 12px rgba(113,113,122,0.35);"></div>
             </div>
           </div>
 

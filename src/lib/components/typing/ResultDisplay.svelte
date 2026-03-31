@@ -80,7 +80,7 @@
     <p class="mono text-[10px] font-bold uppercase tracking-[0.3em] text-surface-400 mb-3">Скорость печати</p>
     <div class="relative">
       <span class="text-[80px] sm:text-[120px] md:text-[150px] font-heading font-black leading-none tracking-tighter text-primary-400"
-            style="filter: drop-shadow(0 0 40px rgba(30,130,230,0.25)) drop-shadow(0 0 80px rgba(30,130,230,0.1));">
+            style="filter: drop-shadow(0 0 40px rgba(113,113,122,0.22)) drop-shadow(0 0 80px rgba(113,113,122,0.12));">
         {Math.round(displayWpm)}
       </span>
       <span class="absolute -bottom-1 left-1/2 -translate-x-1/2 mono text-[11px] font-bold uppercase tracking-[0.5em] text-surface-400">

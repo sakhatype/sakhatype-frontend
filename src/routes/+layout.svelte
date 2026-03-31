@@ -28,9 +28,9 @@
 
   <!-- Ambient glow orbs -->
   <div class="fixed top-[-20%] left-[-10%] w-[600px] h-[600px] rounded-full pointer-events-none z-0 blur-[120px] opacity-[0.07]"
-       style="background: radial-gradient(circle, rgb(30 130 230), transparent 70%);"></div>
+       style="background: radial-gradient(circle, rgb(113 113 122), transparent 70%);"></div>
   <div class="fixed bottom-[-10%] right-[-5%] w-[400px] h-[400px] rounded-full pointer-events-none z-0 blur-[100px] opacity-[0.05]"
-       style="background: radial-gradient(circle, rgb(102 181 255), transparent 70%);"></div>
+       style="background: radial-gradient(circle, rgb(161 161 170), transparent 70%);"></div>
 
   <!-- Header (hide during typing) -->
   <div class="transition-all duration-500 relative z-30"

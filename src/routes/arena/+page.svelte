@@ -73,7 +73,7 @@
           class:text-surface-50={theme === 'dark'} class:text-surface-900={theme === 'light'}>Лоббилар</h2>
       {#if rooms.length === 0}
         <div class="s-card p-12 text-center">
-          <p class="mono text-xs uppercase tracking-[0.2em] text-surface-400">Отой билигин ким да суох // Лоббита оҥор</p>
+          <p class="mono text-xs uppercase tracking-[0.2em] text-surface-400">Пока никого нет // Создайте лобби</p>
         </div>
       {:else}
         {#each rooms as room}
@@ -85,7 +85,7 @@
               <div>
                 <h3 class="font-heading font-bold text-lg uppercase tracking-tight"
                     class:text-surface-100={theme === 'dark'} class:text-surface-900={theme === 'light'}>{room.room_id}</h3>
-                <span class="mono text-[10px] text-surface-400 uppercase tracking-wider">{room.player_count} оонньооччу</span>
+                <span class="mono text-[10px] text-surface-400 uppercase tracking-wider">{room.player_count} игроков</span>
               </div>
             </div>
             <button on:click={() => joinRoom(room.room_id)} class="px-6 py-3 rounded-xl s-card mono text-xs font-bold uppercase tracking-wider transition-all hover:!bg-primary-500 hover:!text-white"
@@ -97,14 +97,14 @@
 
     <div class="lg:col-span-4">
       <div class="s-card p-10 flex flex-col items-center text-center relative overflow-hidden">
-        <div class="absolute -top-10 -right-10 w-32 h-32 rounded-full blur-[50px] opacity-15 pointer-events-none" style="background: rgb(30 130 230);"></div>
+        <div class="absolute -top-10 -right-10 w-32 h-32 rounded-full blur-[50px] opacity-15 pointer-events-none" style="background: rgb(113 113 122);"></div>
         <div class="w-20 h-20 bg-primary-500 rounded-2xl flex items-center justify-center mb-8 glow-primary-strong">
           <svg class="w-10 h-10 text-white translate-x-0.5" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
         </div>
         <h3 class="text-2xl font-heading font-extrabold uppercase tracking-tight mb-3"
-            class:text-surface-50={theme === 'dark'} class:text-surface-900={theme === 'light'}>Тургэн оонньуу</h3>
-        <p class="text-xs text-surface-400 mb-8">Доҕотторуҥ эбэтэр атын дьоннору кытта оонньон саҕылаа</p>
-        <button on:click={createRoom} class="w-full bg-primary-500 text-white py-4 rounded-2xl font-heading font-bold uppercase text-xs tracking-wider hover:bg-primary-400 transition-all glow-primary">Лобби оноруута</button>
+            class:text-surface-50={theme === 'dark'} class:text-surface-900={theme === 'light'}>Быстрая игра</h3>
+        <p class="text-xs text-surface-400 mb-8">Играйте с друзьями или другими игроками</p>
+        <button on:click={createRoom} class="w-full bg-primary-500 text-white py-4 rounded-2xl font-heading font-bold uppercase text-xs tracking-wider hover:bg-primary-400 transition-all glow-primary">Создать лобби</button>
       </div>
     </div>
   </div>
@@ -114,8 +114,8 @@
 <div class="flex items-center justify-center flex-1 px-4">
   <div class="s-card p-10 max-w-lg w-full text-center animate-fade-up">
     <h2 class="font-heading font-extrabold text-xl mb-2 uppercase tracking-tight"
-        class:text-surface-50={theme === 'dark'} class:text-surface-900={theme === 'light'}>Хос: {currentRoom}</h2>
-    <p class="mono text-[10px] text-surface-400 uppercase tracking-[0.2em] mb-8">Дьоннору куутэ турабыт...</p>
+        class:text-surface-50={theme === 'dark'} class:text-surface-900={theme === 'light'}>Комната: {currentRoom}</h2>
+    <p class="mono text-[10px] text-surface-400 uppercase tracking-[0.2em] mb-8">Ожидаем игроков...</p>
     <div class="space-y-3 mb-8">
       {#each Object.entries(players) as [name]}
         <div class="s-card p-4 flex items-center justify-between !rounded-xl">
@@ -126,8 +126,8 @@
       {/each}
     </div>
     <div class="flex gap-3 justify-center">
-      <button on:click={startGame} class="bg-primary-500 hover:bg-primary-400 px-8 py-3 rounded-xl font-heading font-bold uppercase text-xs text-white tracking-wider transition-all glow-primary">Саҕалаа</button>
-      <button on:click={leave} class="s-card px-6 py-3 !rounded-xl font-heading font-bold uppercase text-xs text-surface-400 hover:text-surface-100 transition-all">Тахсыы</button>
+      <button on:click={startGame} class="bg-primary-500 hover:bg-primary-400 px-8 py-3 rounded-xl font-heading font-bold uppercase text-xs text-white tracking-wider transition-all glow-primary">Начать</button>
+      <button on:click={leave} class="s-card px-6 py-3 !rounded-xl font-heading font-bold uppercase text-xs text-surface-400 hover:text-surface-100 transition-all">Выйти</button>
     </div>
   </div>
 </div>
@@ -144,7 +144,7 @@
         <span class="font-heading font-bold text-sm w-20 sm:w-28 truncate"
               class:text-surface-100={theme === 'dark'} class:text-surface-800={theme === 'light'}>{name}</span>
         <div class="flex-1 h-2 bg-surface-700/50 rounded-full overflow-hidden">
-          <div class="h-full bg-primary-500 rounded-full transition-all duration-300" style="width:{pct}%; box-shadow: 0 0 10px rgba(30,130,230,0.5);"></div>
+          <div class="h-full bg-primary-500 rounded-full transition-all duration-300" style="width:{pct}%; box-shadow: 0 0 10px rgba(113,113,122,0.4);"></div>
         </div>
         <span class="text-primary-400 mono font-bold text-sm w-16 sm:w-20 text-right">{data.wpm||0}</span>
       </div>

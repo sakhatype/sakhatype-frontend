@@ -1,0 +1,1 @@
+const e={4:"ҥ",5:"ҕ",6:"ө",7:"ү",8:"һ"};function r(n,t={}){const i={...e,...t};for(const[o,s]of Object.entries(i))if(s===n)return`${o}→${n}`;return null}function u(n,t={}){return{...e,...t}[n]||null}export{r as g,u as m};

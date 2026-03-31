@@ -7,6 +7,27 @@
   export let wpm = 0;
 
   $: theme = $settingsStore.theme;
+  $: chartColors = theme === 'dark'
+    ? {
+      primary: '#a1a1aa',
+      primarySoft: 'rgba(161,161,170,0.4)',
+      primaryGlow: 'rgba(161,161,170,0.15)',
+      raw: '#71717a',
+      grid: 'rgba(63,63,70,0.45)',
+      text: '#71717a',
+      textSoft: '#52525b',
+      pointStroke: '#18181b',
+    }
+    : {
+      primary: '#52525b',
+      primarySoft: 'rgba(82,82,91,0.35)',
+      primaryGlow: 'rgba(82,82,91,0.12)',
+      raw: '#a1a1aa',
+      grid: 'rgba(24,24,27,0.08)',
+      text: '#71717a',
+      textSoft: '#a1a1aa',
+      pointStroke: '#f4f4f5',
+    };
   $: snapshots = $typingStore.secondSnapshots || [];
   $: totalErrors = $typingStore._totalErrors || 0;
 
@@ -128,35 +149,35 @@
          on:mousemove={handleMouseMove} on:mouseleave={handleMouseLeave}>
       <defs>
         <linearGradient id="wpmFill" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stop-color="#1e82e6" stop-opacity="0.15"/>
-          <stop offset="100%" stop-color="#1e82e6" stop-opacity="0"/>
+          <stop offset="0%" stop-color={chartColors.primary} stop-opacity="0.18"/>
+          <stop offset="100%" stop-color={chartColors.primary} stop-opacity="0"/>
         </linearGradient>
         <linearGradient id="rawFill" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stop-color="{theme === 'dark' ? '#6e7a94' : '#9ba5b9'}" stop-opacity="0.08"/>
-          <stop offset="100%" stop-color="{theme === 'dark' ? '#6e7a94' : '#9ba5b9'}" stop-opacity="0"/>
+          <stop offset="0%" stop-color={chartColors.raw} stop-opacity="0.1"/>
+          <stop offset="100%" stop-color={chartColors.raw} stop-opacity="0"/>
         </linearGradient>
       </defs>
 
       {#each yTicks as v}
         <line x1={PAD_L} y1={yWpm(v)} x2={W - PAD_R} y2={yWpm(v)}
-              stroke={theme === 'dark' ? 'rgba(40,48,72,0.5)' : 'rgba(0,0,0,0.06)'} stroke-width="1"/>
+              stroke={chartColors.grid} stroke-width="1"/>
       {/each}
 
       {#if rawArea}<path d={rawArea} fill="url(#rawFill)"/>{/if}
       {#if wpmArea}<path d={wpmArea} fill="url(#wpmFill)"/>{/if}
 
       {#if rawLine}
-        <path d={rawLine} fill="none" stroke={theme === 'dark' ? '#46526e' : '#9ba5b9'}
+        <path d={rawLine} fill="none" stroke={chartColors.raw}
               stroke-width="1.5" stroke-dasharray="4 3" stroke-linecap="round" stroke-linejoin="round"/>
       {/if}
 
       {#if snapshots.length > 0 && burstLine}
-        <path d={burstLine} fill="none" stroke="rgba(102,181,255,0.4)"
+        <path d={burstLine} fill="none" stroke={chartColors.primarySoft}
               stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
       {/if}
 
       {#if wpmLine}
-        <path d={wpmLine} fill="none" stroke="#1e82e6"
+        <path d={wpmLine} fill="none" stroke={chartColors.primary}
               stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
       {/if}
 
@@ -167,7 +188,7 @@
 
       {#each yTicks as v}
         <text x={PAD_L - 8} y={yWpm(v) + 3} text-anchor="end"
-              fill={theme === 'dark' ? '#46526e' : '#9ba5b9'}
+              fill={chartColors.text}
               font-family="'JetBrains Mono', monospace" font-size="10">{v}</text>
       {/each}
 
@@ -181,12 +202,12 @@
 
       {#each xTicks as v}
         <text x={xPos(v)} y={H - 5} text-anchor="middle"
-              fill={theme === 'dark' ? '#46526e' : '#9ba5b9'}
+              fill={chartColors.text}
               font-family="'JetBrains Mono', monospace" font-size="10">{v}</text>
       {/each}
 
       <text x={PAD_L - 8} y={PAD_T - 6} text-anchor="end"
-            fill={theme === 'dark' ? '#283048' : '#c8cfdb'}
+            fill={chartColors.textSoft}
             font-family="'JetBrains Mono', monospace" font-size="8">wpm</text>
       {#if snapshots.length > 0}
         <text x={W - PAD_R + 8} y={PAD_T - 6} text-anchor="start"
@@ -196,9 +217,9 @@
 
       {#if hoverIdx >= 0}
         <line x1={tooltipX} y1={PAD_T} x2={tooltipX} y2={PAD_T + chartH}
-              stroke={theme === 'dark' ? 'rgba(102,181,255,0.15)' : 'rgba(0,0,0,0.1)'} stroke-width="1"/>
+              stroke={chartColors.primaryGlow} stroke-width="1"/>
         <circle cx={tooltipX} cy={tooltipY} r="4"
-                fill="#1e82e6" stroke={theme === 'dark' ? '#080a14' : '#e6e9f0'} stroke-width="2"/>
+                fill={chartColors.primary} stroke={chartColors.pointStroke} stroke-width="2"/>
       {/if}
     </svg>
 
@@ -238,9 +259,7 @@
     {/if}
   </div>
 
-  <div class="grid grid-cols-4 gap-4 mt-5 pt-5 border-t"
-       class:border-surface-700/50={theme === 'dark'}
-       class:border-surface-200={theme === 'light'}>
+  <div class="grid grid-cols-4 gap-4 mt-5 pt-5 border-t {theme === 'dark' ? 'border-surface-700/50' : 'border-surface-200'}">
     <div>
       <p class="mono text-[8px] uppercase text-primary-400 mb-1">Avg WPM</p>
       <p class="text-xl font-heading font-extrabold text-primary-400">{wpm}</p>

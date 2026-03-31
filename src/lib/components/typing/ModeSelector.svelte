@@ -34,15 +34,12 @@
     </span>
   </button>
 
-  <div class="w-px h-6 mx-1"
-       class:bg-surface-600/40={theme === 'dark'}
-       class:bg-surface-300={theme === 'light'}></div>
+  <div class="w-px h-6 mx-1 {theme === 'dark' ? 'bg-surface-600/40' : 'bg-surface-300'}"></div>
 
   <!-- Mode values -->
   {#each currentModeValues as val}
-    <button class="chip-sakha transition-all"
+    <button class="chip-sakha transition-all {settings.modeValue === val ? 'bg-primary-500/10' : ''}"
             class:text-primary-400={settings.modeValue === val}
-            class:bg-primary-500/10={settings.modeValue === val}
             class:text-surface-400={settings.modeValue !== val}
             class:hover:text-surface-100={theme === 'dark' && settings.modeValue !== val}
             class:hover:text-surface-800={theme === 'light' && settings.modeValue !== val}
@@ -51,17 +48,13 @@
     </button>
   {/each}
 
-  <div class="w-px h-6 mx-1"
-       class:bg-surface-600/40={theme === 'dark'}
-       class:bg-surface-300={theme === 'light'}></div>
+  <div class="w-px h-6 mx-1 {theme === 'dark' ? 'bg-surface-600/40' : 'bg-surface-300'}"></div>
 
   <!-- Difficulty -->
-  <button class="chip-sakha transition-all"
+  <button class="chip-sakha transition-all {settings.difficulty === 'expert' ? 'bg-error-500/10' : 'bg-success-500/10'}"
           class:text-error-400={settings.difficulty === 'expert'}
-          class:bg-error-500/10={settings.difficulty === 'expert'}
           class:text-success-400={settings.difficulty !== 'expert'}
-          class:bg-success-500/10={settings.difficulty !== 'expert'}
           on:click={toggleDifficulty}>
-    {settings.difficulty === 'expert' ? '⚡ Сложный' : '✦ Легкий'}
+    {settings.difficulty === 'expert' ? 'Сложный' : 'Легкий'}
   </button>
 </div>

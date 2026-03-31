@@ -22,7 +22,7 @@
       <div class="s-card p-10 relative overflow-hidden">
         <!-- Decorative corner glow -->
         <div class="absolute -top-20 -right-20 w-40 h-40 rounded-full blur-[60px] opacity-20 pointer-events-none"
-             style="background: rgb(30 130 230);"></div>
+             style="background: rgb(113 113 122);"></div>
 
         <div class="text-center mb-10 relative z-10">
           <div class="w-14 h-14 rounded-2xl bg-primary-500/10 border border-primary-500/20 flex items-center justify-center mx-auto mb-5">
@@ -60,7 +60,7 @@
           </div>
           <button on:click={handleSubmit} disabled={loading}
                   class="w-full bg-primary-500 text-white py-4 rounded-2xl font-heading font-bold uppercase text-xs tracking-[0.15em] hover:bg-primary-400 transition-all disabled:opacity-50 glow-primary">
-            {loading ? 'Күүт...' : (mode === 'login' ? 'Войти' : 'Регистрация')}
+            {loading ? 'Подождите...' : (mode === 'login' ? 'Войти' : 'Регистрация')}
           </button>
         </div>
         <div class="text-center mt-8 relative z-10">

@@ -358,11 +358,11 @@
     const scrollY = scrollLine * lineHeight;
 
     const colors = {
-      c: isDark ? '#e6e9f0' : '#0c0f1c',
+      c: isDark ? '#fafafa' : '#18181b',
       i: '#ef4444',
-      x: '#eab308',
-      a: isDark ? '#6e7a94' : '#9ba5b9',
-      g: isDark ? '#283048' : '#c8cfdb',
+      x: '#f59e0b',
+      a: isDark ? '#a1a1aa' : '#71717a',
+      g: isDark ? '#52525b' : '#d4d4d8',
     };
 
     ctx.textBaseline = 'alphabetic';
@@ -390,14 +390,14 @@
         // Underline for incorrect
         if (ch.cls === 'i') {
           const underY = drawY + 3;
-          ctx.fillStyle = '#ef4444';
+          ctx.fillStyle = colors.i;
           ctx.fillRect(drawX, underY, ch.w, 2);
         }
 
         // Strikethrough for extra
         if (ch.cls === 'x') {
           const strikeY = drawY - fontSize * 0.35;
-          ctx.fillStyle = 'rgba(234,179,8,0.5)';
+          ctx.fillStyle = 'rgba(245,158,11,0.45)';
           ctx.fillRect(drawX, strikeY, ch.w, 1.5);
         }
       }
@@ -410,14 +410,14 @@
 
       // Glow layer
       ctx.save();
-      ctx.shadowColor = 'rgba(30, 130, 230, 0.7)';
+      ctx.shadowColor = isDark ? 'rgba(161,161,170,0.55)' : 'rgba(82,82,91,0.45)';
       ctx.shadowBlur = 14;
-      ctx.fillStyle = '#1e82e6';
+      ctx.fillStyle = isDark ? '#a1a1aa' : '#52525b';
       ctx.fillRect(Math.round(caretDisplayX) - 1, cy, 2.5, ch);
       ctx.restore();
 
       // Solid caret
-      ctx.fillStyle = '#1e82e6';
+      ctx.fillStyle = isDark ? '#a1a1aa' : '#52525b';
       ctx.fillRect(Math.round(caretDisplayX) - 1, cy, 2.5, ch);
     }
 
@@ -444,10 +444,10 @@
 
       if (pop.cls === 'c') {
         ctx.font = `800 ${fontSize}px 'JetBrains Mono', monospace`;
-        ctx.fillStyle = isDark ? '#ffffff' : '#0f172a';
+        ctx.fillStyle = isDark ? '#fafafa' : '#18181b';
       } else {
         ctx.font = `500 ${fontSize}px 'JetBrains Mono', monospace`;
-        ctx.fillStyle = '#ef4444';
+        ctx.fillStyle = colors.i;
       }
       ctx.fillText(pop.char, drawX, drawY);
       ctx.restore();
@@ -476,7 +476,7 @@
       // Background pill
       ctx.save();
       ctx.globalAlpha = 0.9;
-      ctx.fillStyle = 'rgba(30, 130, 230, 0.15)';
+      ctx.fillStyle = isDark ? 'rgba(161,161,170,0.16)' : 'rgba(82,82,91,0.12)';
       ctx.beginPath();
       if (ctx.roundRect) {
         ctx.roundRect(hintX, hintTopY, hintW, hintH, hintR);
@@ -492,7 +492,7 @@
       ctx.fill();
 
       // Border
-      ctx.strokeStyle = 'rgba(62, 156, 255, 0.35)';
+      ctx.strokeStyle = isDark ? 'rgba(161,161,170,0.36)' : 'rgba(82,82,91,0.3)';
       ctx.lineWidth = 1;
       ctx.beginPath();
       if (ctx.roundRect) {
@@ -509,7 +509,7 @@
       ctx.globalAlpha = 1.0;
 
       // Hint text
-      ctx.fillStyle = '#66b5ff';
+      ctx.fillStyle = isDark ? '#d4d4d8' : '#3f3f46';
       ctx.textBaseline = 'middle';
       ctx.font = `700 ${hintFontSize}px 'JetBrains Mono', monospace`;
       ctx.fillText(hintText, hintX + hintFontSize * 0.8, hintTopY + hintH / 2);
@@ -520,8 +520,8 @@
     // Bottom gradient fade
     const gradH = Math.round(lineHeight * 0.6);
     const grad = ctx.createLinearGradient(0, canvasH - gradH, 0, canvasH);
-    grad.addColorStop(0, isDark ? 'rgba(8,10,20,0)' : 'rgba(230,233,240,0)');
-    grad.addColorStop(1, isDark ? 'rgba(8,10,20,1)' : 'rgba(230,233,240,1)');
+    grad.addColorStop(0, isDark ? 'rgba(9,9,11,0)' : 'rgba(250,250,250,0)');
+    grad.addColorStop(1, isDark ? 'rgba(9,9,11,1)' : 'rgba(250,250,250,1)');
     ctx.fillStyle = grad;
     ctx.fillRect(0, canvasH - gradH, canvasW, gradH);
   }
@@ -753,7 +753,7 @@
     {#if !isFocused && state.status !== 'finished'}
       <div class="absolute inset-0 flex items-center justify-center z-20 rounded-2xl backdrop-blur-lg {theme === 'dark' ? 'bg-surface-900/95' : 'bg-surface-50/95'}">
         <span class="mono text-xs uppercase tracking-[0.25em] text-surface-400 animate-pulse">
-          {isMobile ? 'Нажмите для начала...' : 'Click to focus...'}
+          {isMobile ? 'Нажмите для начала...' : ' Нажмите и начните печатать '}
         </span>
       </div>
     {/if}
@@ -770,7 +770,7 @@
         <div class="s-card w-10 h-10 !rounded-xl flex items-center justify-center group-hover:!border-primary-500/40 transition-all">
           <svg class="w-5 h-5 group-hover:rotate-[360deg] transition-transform duration-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 4v6h6"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
         </div>
-        <span class="mono text-[10px] font-bold uppercase tracking-wider">Рестарт (Tab / Esc)</span>
+        <span class="mono text-[10px] font-bold uppercase tracking-wider"></span>
       </button>
 
       <div class="flex flex-wrap items-center justify-center gap-3 sm:gap-5 opacity-20 hover:opacity-60 transition-opacity duration-500 select-none">

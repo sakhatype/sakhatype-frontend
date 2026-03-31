@@ -48,7 +48,7 @@
             <button class="px-6 py-4 rounded-xl text-xs font-bold uppercase tracking-wider text-left transition-all flex justify-between items-center
                            {modeValue === val ? 'bg-primary-500/10 text-primary-400' : 'text-surface-400 hover:text-surface-100'}"
                     on:click={() => selVal(val)}>
-              {val}{mode === 'time' ? ' сөкүүндэ' : ' тыл'}
+              {val}{mode === 'time' ? ' сек' : ' слов'}
               {#if modeValue === val}
                 <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg>
               {/if}

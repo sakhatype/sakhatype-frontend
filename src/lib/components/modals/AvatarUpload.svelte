@@ -143,7 +143,7 @@
     on:click={() => fileInput?.click()}
     class="relative group cursor-pointer"
   >
-    <div class="w-28 h-28 rounded-2xl border-2 border-primary-500/30 overflow-hidden bg-gradient-to-br from-blue-600/20 to-transparent flex items-center justify-center">
+    <div class="w-28 h-28 rounded-2xl border-2 border-primary-500/30 overflow-hidden bg-gradient-to-br from-primary-500/20 to-transparent flex items-center justify-center">
       {#if currentAvatarUrl}
         <img src={currentAvatarUrl} alt="Avatar" class="w-full h-full object-cover" />
       {:else}

@@ -107,7 +107,7 @@
         <div>
           <h2 class="text-2xl font-bold  uppercase tracking-tight"
               class:text-surface-50={theme === 'dark'}
-              class:text-surface-900={theme === 'light'}>Доҕоттор</h2>
+              class:text-surface-900={theme === 'light'}>Друзья</h2>
           <p class="text-[9px] mono text-surface-400 uppercase tracking-widest mt-1">Friends</p>
         </div>
         <button on:click={onClose}
@@ -146,10 +146,10 @@
       {:else if tab === 'friends'}
         {#if friends.length === 0}
           <div class="py-12 text-center">
-            <p class="text-surface-400 text-sm  mb-4">Доҕоттор суох эрэ</p>
+            <p class="text-surface-400 text-sm  mb-4">Пока нет друзей</p>
             <button on:click={() => tab = 'search'}
                     class="px-6 py-3 bg-primary-500/10 text-primary-400 rounded-2xl text-[10px] font-bold uppercase tracking-widest transition-all hover:bg-primary-500/20">
-              Доҕор буларга
+              Найти друзей
             </button>
           </div>
         {:else}
@@ -157,7 +157,7 @@
             {#each friends as friend}
               <div class="s-card p-4 rounded-2xl flex items-center justify-between group">
                 <a href="/profile/{friend.username}" class="flex items-center gap-3" on:click={onClose}>
-                  <div class="w-10 h-10 rounded-xl border border-surface-600/50 overflow-hidden flex items-center justify-center bg-gradient-to-br from-blue-600/20 to-transparent flex-shrink-0">
+                  <div class="w-10 h-10 rounded-xl border border-surface-600/50 overflow-hidden flex items-center justify-center bg-gradient-to-br from-primary-500/20 to-transparent flex-shrink-0">
                     {#if friend.avatar_url}
                       <img src={friend.avatar_url} alt="" class="w-full h-full object-cover" />
                     {:else}
@@ -189,7 +189,7 @@
             {#each requests.incoming as req}
               <div class="s-card p-4 rounded-2xl flex items-center justify-between">
                 <div class="flex items-center gap-3">
-                  <div class="w-10 h-10 rounded-xl border border-surface-600/50 overflow-hidden flex items-center justify-center bg-gradient-to-br from-blue-600/20 to-transparent flex-shrink-0">
+                  <div class="w-10 h-10 rounded-xl border border-surface-600/50 overflow-hidden flex items-center justify-center bg-gradient-to-br from-primary-500/20 to-transparent flex-shrink-0">
                     {#if req.avatar_url}
                       <img src={req.avatar_url} alt="" class="w-full h-full object-cover" />
                     {:else}
@@ -226,7 +226,7 @@
             {#each requests.outgoing as req}
               <div class="s-card p-4 rounded-2xl flex items-center justify-between opacity-60">
                 <div class="flex items-center gap-3">
-                  <div class="w-10 h-10 rounded-xl border border-surface-600/50 overflow-hidden flex items-center justify-center bg-gradient-to-br from-blue-600/20 to-transparent flex-shrink-0">
+                  <div class="w-10 h-10 rounded-xl border border-surface-600/50 overflow-hidden flex items-center justify-center bg-gradient-to-br from-primary-500/20 to-transparent flex-shrink-0">
                     {#if req.avatar_url}
                       <img src={req.avatar_url} alt="" class="w-full h-full object-cover" />
                     {:else}
@@ -270,7 +270,7 @@
         {#if searchResult}
           <div class="s-card p-6 rounded-2xl">
             <div class="flex items-center gap-4 mb-4">
-              <div class="w-14 h-14 rounded-2xl border border-surface-600/50 overflow-hidden flex items-center justify-center bg-gradient-to-br from-blue-600/20 to-transparent flex-shrink-0">
+              <div class="w-14 h-14 rounded-2xl border border-surface-600/50 overflow-hidden flex items-center justify-center bg-gradient-to-br from-primary-500/20 to-transparent flex-shrink-0">
                 {#if searchResult.avatar_url}
                   <img src={searchResult.avatar_url} alt="" class="w-full h-full object-cover" />
                 {:else}
