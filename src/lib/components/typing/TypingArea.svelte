@@ -24,7 +24,7 @@
   let visibleLines = 3;
   let scrollLine = 0;
   let targetScrollLine = 0;
-  const PAD_TOP = 36; // reserved space above text for hints
+  const PAD_TOP = 48; // reserved space above text for hints
 
   // Precomputed layout
   let layout = [];
@@ -455,13 +455,13 @@
 
     // ─── HINT BUBBLE above current char ───────────────────────────
     if (currentHint && state.status !== 'finished') {
-      const hintFontSize = Math.round(fontSize * 0.35);
+      const hintFontSize = Math.round(fontSize * 0.55);
       ctx.font = `700 ${hintFontSize}px 'JetBrains Mono', monospace`;
       const hintText = currentHint;
       const hintMetrics = ctx.measureText(hintText);
-      const hintW = hintMetrics.width + hintFontSize * 1.6;
-      const hintH = hintFontSize * 2;
-      const hintR = hintFontSize * 0.5;
+      const hintW = hintMetrics.width + hintFontSize * 1.8;
+      const hintH = hintFontSize * 2.4;
+      const hintR = hintFontSize * 0.6;
 
       // Position: centered above the caret
       const hintCenterX = Math.round(caretX);
