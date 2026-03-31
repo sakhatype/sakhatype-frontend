@@ -52,7 +52,7 @@
         <div>
           <h2 class="text-2xl font-heading font-extrabold tracking-tight"
               class:text-surface-50={theme === 'dark'} class:text-surface-900={theme === 'light'}>Управление аккаунтом</h2>
-          <p class="mono text-[9px] text-surface-400 uppercase tracking-widest mt-1">Account Settings</p>
+          <p class="mono text-[9px] text-surface-400 uppercase tracking-widest mt-1">Настройки аккаунта</p>
         </div>
         <button on:click={onClose} class="w-10 h-10 rounded-xl hover:bg-surface-700/50 flex items-center justify-center transition-all group">
           <svg class="w-5 h-5 text-surface-400 group-hover:text-surface-100 transition-colors" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>

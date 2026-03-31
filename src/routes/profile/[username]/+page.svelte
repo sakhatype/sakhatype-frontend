@@ -20,7 +20,7 @@
   $: user = profile?.user;
   $: history = profile?.history || [];
   $: xpPercent = user ? (user.xp / user.xp_to_next) * 100 : 0;
-  $: contributionDays = buildContributionDays(history, 140);
+  $: contributionDays = buildContributionDays(history, 288);
   $: contributionWeeks = chunkByWeek(contributionDays);
   $: contributionMonthLabels = getContributionMonthLabels(contributionWeeks);
 
@@ -163,7 +163,7 @@
   </div>
 {:else}
 <main class="container mx-auto px-6 md:px-10 flex-1 relative z-20 py-8">
-  <div class="grid grid-cols-12 gap-6">
+  <div class="grid grid-cols-12 gap-3">
     <!-- Profile card -->
     <div class="col-span-12 lg:col-span-4 flex flex-col gap-6">
       <div class="s-card p-8 relative overflow-hidden">
@@ -200,7 +200,7 @@
     </div>
 
     <!-- Stats + History -->
-    <div class="col-span-12 lg:col-span-8 flex flex-col gap-6">
+    <div class="col-span-12 lg:col-span-8 flex flex-col gap-3">
       <div class="grid grid-cols-3 gap-4">
         <div class="s-card p-6">
           <span class="mono text-[9px] font-bold text-primary-400 uppercase tracking-wider mb-3 block">Средний WPM</span>
@@ -223,8 +223,9 @@
         <div class="s-card p-6">
           <div class="flex justify-between items-center mb-6">
             <h3 class="font-heading font-bold text-xs uppercase tracking-[0.2em]"
-                class:text-surface-100={theme === 'dark'} class:text-surface-800={theme === 'light'}>WPM История</h3>
-            <span class="mono text-[9px] text-surface-400 uppercase tracking-wider">{history.length} тестов</span>
+                class:text-surface-100={theme === 'dark'} class:text-surface-800={theme === 'light'}>История</h3>
+            <span class="mono text-[9px] text-surface-400 uppercase tracking-wider">{history.length}Взносы</span>
+            <!-- <span class="mono text-[9px] text-surface-400 uppercase tracking-wider">{history.length} тестов</span> -->
           </div>
           <div class="overflow-x-auto">
             <div class="min-w-max">
@@ -266,10 +267,10 @@
           </div>
           <div class="mt-4 flex items-center justify-between gap-3">
             <span class="mono text-[9px] text-surface-500 uppercase tracking-wider">
-              Последние {contributionDays.length} дней
+              Последние 288 дней
             </span>
             <div class="flex items-center gap-2">
-              <span class="mono text-[9px] text-surface-500 uppercase">Less</span>
+              <span class="mono text-[9px] text-surface-500 uppercase">Меньше</span>
               {#each [0, 1, 2, 3, 4] as level}
                 <div
                   class="w-3 h-3 rounded-[3px] border border-surface-600/20
@@ -280,7 +281,7 @@
                     {level === 4 ? 'bg-primary-500' : ''}"
                 ></div>
               {/each}
-              <span class="mono text-[9px] text-surface-500 uppercase">More</span>
+              <span class="mono text-[9px] text-surface-500 uppercase">Больше</span>
             </div>
           </div>
         </div>
