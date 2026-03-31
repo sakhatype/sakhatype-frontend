@@ -15,7 +15,7 @@
   function selVal(v) { modeValue = v; load(); }
 </script>
 
-<svelte:head><title>SAKHATYPE // LEADERBOARD</title></svelte:head>
+<svelte:head><title>Sakhatype - Либерборд</title></svelte:head>
 
 <div class="flex-1 flex flex-col">
   <main class="container mx-auto px-4 sm:px-6 md:px-10 flex-1 relative z-10 py-8">
@@ -101,7 +101,7 @@
                           {entry.username}
                         </a>
                         <span class="badge-sakha bg-primary-500/10 border border-primary-500/20 text-primary-400">
-                          LVL {String(entry.level ?? 0).padStart(2, '0')}
+                          Ур. {String(entry.level ?? 0).padStart(2, '0')}
                         </span>
                       </div>
                     </td>

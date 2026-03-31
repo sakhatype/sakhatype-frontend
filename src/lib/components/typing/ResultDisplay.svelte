@@ -156,7 +156,7 @@
       <div class="s-card p-4 sm:p-5 flex flex-wrap items-center justify-center gap-4 glow-primary">
         <span class="text-lg sm:text-xl font-heading font-extrabold text-primary-400">+{xpEarned} XP</span>
         {#if levelUp}
-          <span class="badge-sakha bg-primary-500 text-white animate-scale-in">LVL {result?.new_level}</span>
+          <span class="badge-sakha bg-primary-500 text-white animate-scale-in">Ур. {result?.new_level}</span>
         {/if}
         {#each newAchievements as ach}
           <span class="badge-sakha border border-warning-500/30 bg-warning-500/10 text-warning-400">

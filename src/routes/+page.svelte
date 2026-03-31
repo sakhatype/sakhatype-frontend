@@ -27,7 +27,7 @@
   }
 </script>
 
-<svelte:head><title>SAKHATYPE</title></svelte:head>
+<svelte:head><title>Sakhatype</title></svelte:head>
 
 <div class="flex-1 flex flex-col">
   <main class="flex-1 flex flex-col justify-center px-4 sm:px-6 md:px-10 relative z-10">

@@ -14,7 +14,7 @@
   }
 </script>
 
-<svelte:head><title>SAKHATYPE // AUTH</title></svelte:head>
+<svelte:head><title>Sakhatype - Авторизация</title></svelte:head>
 
 <div class="flex-1 flex flex-col">
   <div class="flex-1 flex items-center justify-center px-4 sm:px-6">

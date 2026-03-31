@@ -68,7 +68,7 @@
           <p class="text-xs font-bold"
              class:text-surface-100={theme === 'dark'}
              class:text-surface-800={theme === 'light'}>{user.username}</p>
-          <p class="text-primary-400 text-[9px] mono">LVL {user.level}</p>
+          <p class="text-primary-400 text-[9px] mono">Ур. {user.level}</p>
         </div>
         <div class="w-8 h-8 rounded-xl flex items-center justify-center font-bold text-xs border transition-all group-hover:border-primary-500/40"
              class:bg-surface-700={theme === 'dark'}

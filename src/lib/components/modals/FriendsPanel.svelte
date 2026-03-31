@@ -170,7 +170,7 @@
                     <p class="font-bold  text-sm uppercase tracking-tight"
                        class:text-surface-50={theme === 'dark'}
                        class:text-surface-900={theme === 'light'}>{friend.username}</p>
-                    <p class="text-[9px] mono text-primary-400">LVL {friend.level} • {friend.best_wpm} WPM</p>
+                    <p class="text-[9px] mono text-primary-400">Ур. {friend.level} • {friend.best_wpm} WPM</p>
                   </div>
                 </a>
                 <button on:click={() => removeFriend(friend.username)}
@@ -202,7 +202,7 @@
                     <p class="font-bold  text-sm"
                        class:text-surface-50={theme === 'dark'}
                        class:text-surface-900={theme === 'light'}>{req.username}</p>
-                    <p class="text-[9px] mono text-surface-400">LVL {req.level}</p>
+                    <p class="text-[9px] mono text-surface-400">Ур. {req.level}</p>
                   </div>
                 </div>
                 <div class="flex gap-2">
@@ -283,7 +283,7 @@
                 <p class="font-bold  text-xl uppercase tracking-tight"
                    class:text-surface-50={theme === 'dark'}
                    class:text-surface-900={theme === 'light'}>{searchResult.username}</p>
-                <p class="text-[9px] mono text-primary-400">LVL {searchResult.level} • {searchResult.best_wpm} WPM</p>
+                <p class="text-[9px] mono text-primary-400">Ур. {searchResult.level} • {searchResult.best_wpm} WPM</p>
               </div>
             </div>
 

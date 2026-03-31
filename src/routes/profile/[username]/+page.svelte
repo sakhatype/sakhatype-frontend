@@ -144,21 +144,21 @@
   }
 </script>
 
-<svelte:head><title>{username} // SAKHATYPE</title></svelte:head>
+<svelte:head><title>Sakhatype - Профиль {username}</title></svelte:head>
 
 <ProfileEditModal isOpen={showEditModal} onClose={() => showEditModal = false} />
 
 <div class="flex-1 flex flex-col">
 {#if loading}
   <div class="flex items-center justify-center flex-1">
-    <p class="mono text-xs uppercase tracking-[0.3em] text-surface-400 animate-pulse">Loading_Profile...</p>
+    <p class="mono text-xs uppercase tracking-[0.3em] text-surface-400 animate-pulse">Загрузка профиля...</p>
   </div>
 {:else if !profile}
   <div class="flex items-center justify-center flex-1">
     <div class="text-center">
       <p class="text-2xl font-heading font-extrabold uppercase mb-4"
-         class:text-surface-50={theme === 'dark'} class:text-surface-900={theme === 'light'}>Error Backend</p>
-      <a href="/" class="px-10 py-4 bg-primary-500 text-white rounded-2xl font-heading font-bold uppercase text-xs tracking-wider hover:bg-primary-400 transition-all inline-block">Terminal</a>
+         class:text-surface-50={theme === 'dark'} class:text-surface-900={theme === 'light'}>Error Backend кароч хз</p>
+      <a href="/" class="px-10 py-4 bg-primary-500 text-white rounded-2xl font-heading font-bold uppercase text-xs tracking-wider hover:bg-primary-400 transition-all inline-block">Пахай</a>
     </div>
   </div>
 {:else}
@@ -174,11 +174,11 @@
           </div>
           <h2 class="text-3xl font-heading font-extrabold tracking-tight uppercase mb-1"
               class:text-surface-50={theme === 'dark'} class:text-surface-900={theme === 'light'}>{user.username}</h2>
-          <p class="text-primary-400 mono text-xs font-bold tracking-wider uppercase mb-4">Level {user.level}</p>
+          <p class="text-primary-400 mono text-xs font-bold tracking-wider mb-4">Ур. {user.level}</p>
 
           <div class="mt-6 space-y-2">
             <div class="flex justify-between mono text-[9px] text-surface-400 uppercase">
-              <span>XP Progress</span>
+              <span>XP прогресс</span>
               <span>{user.xp} / {user.xp_to_next}</span>
             </div>
             <div class="w-full h-2 bg-surface-700/50 rounded-full overflow-hidden">
