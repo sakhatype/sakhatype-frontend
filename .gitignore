@@ -9,4 +9,5 @@ node_modules
 .env.production
 .svelte-kit
 .git
+build/
 package-lock.json
