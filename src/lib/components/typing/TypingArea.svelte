@@ -57,7 +57,7 @@
 
   $: soundManager.setEnabled(settings.soundEnabled);
 
-  // Sakha hint for current char
+  // Sakha hint for next relevant char in current word
   $: currentHint = (() => {
     if (!settings.showHints || settings.language !== 'sakha') return null;
     if (state.status === 'finished') return null;
@@ -66,7 +66,13 @@
 
     for (let charIdx = state.currentInput.length; charIdx < word.length; charIdx++) {
       const hint = getSakhaHint(word[charIdx], settings.customBindings);
-      if (hint) return hint;
+      if (hint) {
+        return {
+          text: hint,
+          wordIdx: state.currentWordIndex,
+          charIdx
+        };
+      }
     }
 
     return null;
@@ -107,7 +113,7 @@
       typingStore.init(data.words, settings.mode, settings.modeValue, settings.language);
     } catch {
       typingStore.init(
-        ['сахалыы', 'суруйуу', 'тургэнник', 'сурук', 'тыл'],
+        ['сахалыы', 'суруйҕу', 'тургэнник', 'сурук', 'тыл'],
         settings.mode, settings.modeValue, settings.language
       );
     }
@@ -459,66 +465,70 @@
 
     // ─── HINT BUBBLE above current char ───────────────────────────
     if (currentHint && state.status !== 'finished') {
-      const hintFontSize = Math.round(fontSize * 0.55);
-      ctx.font = `700 ${hintFontSize}px 'JetBrains Mono', monospace`;
-      const hintText = currentHint;
-      const hintMetrics = ctx.measureText(hintText);
-      const hintW = hintMetrics.width + hintFontSize * 1.8;
-      const hintH = hintFontSize * 2.4;
-      const hintR = hintFontSize * 0.6;
+      const hintWordLayout = layout.find(l => l.wordIdx === currentHint.wordIdx);
+      const hintCharLayout = hintWordLayout?.chars?.[currentHint.charIdx];
+      if (hintCharLayout) {
+        const hintFontSize = Math.round(fontSize * 0.55);
+        ctx.font = `700 ${hintFontSize}px 'JetBrains Mono', monospace`;
+        const hintText = currentHint.text;
+        const hintMetrics = ctx.measureText(hintText);
+        const hintW = hintMetrics.width + hintFontSize * 1.8;
+        const hintH = hintFontSize * 2.4;
+        const hintR = hintFontSize * 0.6;
 
-      // Position: centered above the caret
-      const hintCenterX = Math.round(caretX);
-      let hintX = hintCenterX - hintW / 2;
-      if (hintX < 4) hintX = 4;
-      if (hintX + hintW > canvasW - 4) hintX = canvasW - 4 - hintW;
+        // Position: centered above hinted letter (not caret)
+        const hintCenterX = Math.round(hintCharLayout.x + hintCharLayout.w / 2);
+        let hintX = hintCenterX - hintW / 2;
+        if (hintX < 4) hintX = 4;
+        if (hintX + hintW > canvasW - 4) hintX = canvasW - 4 - hintW;
 
-      let hintTopY = PAD_TOP + caretY - scrollY - hintH - 6;
-      // Keep hint visible (don't let it go above canvas)
-      if (hintTopY < 2) hintTopY = 2;
+        let hintTopY = PAD_TOP + hintCharLayout.y - scrollY - hintH - 6;
+        // Keep hint visible (don't let it go above canvas)
+        if (hintTopY < 2) hintTopY = 2;
 
-      // Background pill
-      ctx.save();
-      ctx.globalAlpha = 0.9;
-      ctx.fillStyle = isDark ? 'rgba(161,161,170,0.16)' : 'rgba(82,82,91,0.12)';
-      ctx.beginPath();
-      if (ctx.roundRect) {
-        ctx.roundRect(hintX, hintTopY, hintW, hintH, hintR);
-      } else {
-        // Fallback for older browsers
-        ctx.moveTo(hintX + hintR, hintTopY);
-        ctx.arcTo(hintX + hintW, hintTopY, hintX + hintW, hintTopY + hintH, hintR);
-        ctx.arcTo(hintX + hintW, hintTopY + hintH, hintX, hintTopY + hintH, hintR);
-        ctx.arcTo(hintX, hintTopY + hintH, hintX, hintTopY, hintR);
-        ctx.arcTo(hintX, hintTopY, hintX + hintW, hintTopY, hintR);
-        ctx.closePath();
+        // Background pill
+        ctx.save();
+        ctx.globalAlpha = 0.9;
+        ctx.fillStyle = isDark ? 'rgba(161,161,170,0.16)' : 'rgba(82,82,91,0.12)';
+        ctx.beginPath();
+        if (ctx.roundRect) {
+          ctx.roundRect(hintX, hintTopY, hintW, hintH, hintR);
+        } else {
+          // Fallback for older browsers
+          ctx.moveTo(hintX + hintR, hintTopY);
+          ctx.arcTo(hintX + hintW, hintTopY, hintX + hintW, hintTopY + hintH, hintR);
+          ctx.arcTo(hintX + hintW, hintTopY + hintH, hintX, hintTopY + hintH, hintR);
+          ctx.arcTo(hintX, hintTopY + hintH, hintX, hintTopY, hintR);
+          ctx.arcTo(hintX, hintTopY, hintX + hintW, hintTopY, hintR);
+          ctx.closePath();
+        }
+        ctx.fill();
+
+        // Border
+        ctx.strokeStyle = isDark ? 'rgba(161,161,170,0.36)' : 'rgba(82,82,91,0.3)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        if (ctx.roundRect) {
+          ctx.roundRect(hintX, hintTopY, hintW, hintH, hintR);
+        } else {
+          ctx.moveTo(hintX + hintR, hintTopY);
+          ctx.arcTo(hintX + hintW, hintTopY, hintX + hintW, hintTopY + hintH, hintR);
+          ctx.arcTo(hintX + hintW, hintTopY + hintH, hintX, hintTopY + hintH, hintR);
+          ctx.arcTo(hintX, hintTopY + hintH, hintX, hintTopY, hintR);
+          ctx.arcTo(hintX, hintTopY, hintX + hintW, hintTopY, hintR);
+          ctx.closePath();
+        }
+        ctx.stroke();
+        ctx.globalAlpha = 1.0;
+
+        // Hint text
+        ctx.fillStyle = isDark ? '#d4d4d8' : '#3f3f46';
+        ctx.textBaseline = 'middle';
+        ctx.font = `700 ${hintFontSize}px 'JetBrains Mono', monospace`;
+        ctx.fillText(hintText, hintX + hintFontSize * 0.8, hintTopY + hintH / 2);
+        ctx.textBaseline = 'alphabetic';
+        ctx.restore();
       }
-      ctx.fill();
-
-      // Border
-      ctx.strokeStyle = isDark ? 'rgba(161,161,170,0.36)' : 'rgba(82,82,91,0.3)';
-      ctx.lineWidth = 1;
-      ctx.beginPath();
-      if (ctx.roundRect) {
-        ctx.roundRect(hintX, hintTopY, hintW, hintH, hintR);
-      } else {
-        ctx.moveTo(hintX + hintR, hintTopY);
-        ctx.arcTo(hintX + hintW, hintTopY, hintX + hintW, hintTopY + hintH, hintR);
-        ctx.arcTo(hintX + hintW, hintTopY + hintH, hintX, hintTopY + hintH, hintR);
-        ctx.arcTo(hintX, hintTopY + hintH, hintX, hintTopY, hintR);
-        ctx.arcTo(hintX, hintTopY, hintX + hintW, hintTopY, hintR);
-        ctx.closePath();
-      }
-      ctx.stroke();
-      ctx.globalAlpha = 1.0;
-
-      // Hint text
-      ctx.fillStyle = isDark ? '#d4d4d8' : '#3f3f46';
-      ctx.textBaseline = 'middle';
-      ctx.font = `700 ${hintFontSize}px 'JetBrains Mono', monospace`;
-      ctx.fillText(hintText, hintX + hintFontSize * 0.8, hintTopY + hintH / 2);
-      ctx.textBaseline = 'alphabetic';
-      ctx.restore();
     }
 
     // Bottom gradient fade
@@ -755,7 +765,8 @@
            spellcheck="false" inputmode="text" enterkeyhint="next" />
 
     {#if !isFocused && state.status !== 'finished'}
-      <div class="absolute inset-0 flex items-center justify-center z-20 rounded-none backdrop-blur-lg {theme === 'dark' ? 'bg-surface-900/80' : 'bg-surface-50/80'}">
+      <div class="absolute inset-0 flex items-center justify-center z-20 rounded-none {theme === 'dark' ? 'bg-surface-900' : 'bg-surface-50'}"
+           style="-webkit-backdrop-filter: blur(22px) saturate(110%); backdrop-filter: blur(22px) saturate(110%);">
         <span class="mono text-xs uppercase tracking-[0.25em] text-surface-400 animate-pulse">
           {isMobile ? 'Нажмите для начала...' : ' Нажмите и начните печатать '}
         </span>
