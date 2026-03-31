@@ -20,6 +20,8 @@
   $: user = profile?.user;
   $: history = profile?.history || [];
   $: xpPercent = user ? (user.xp / user.xp_to_next) * 100 : 0;
+  $: contributionDays = buildContributionDays(history, 140);
+  $: contributionWeeks = chunkByWeek(contributionDays);
 
   function formatYakutskTime(timestamp) {
     if (!timestamp) return 'N/A';
@@ -43,6 +45,78 @@
     if (mode === 'time') return `${modeValue}с`;
     if (mode === 'words') return `${modeValue} тыл`;
     return mode;
+  }
+
+  function toDateKey(timestamp) {
+    if (!timestamp) return null;
+    const date = new Date(timestamp);
+    if (isNaN(date.getTime())) return null;
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+  }
+
+  function startOfDay(date) {
+    const copy = new Date(date);
+    copy.setHours(0, 0, 0, 0);
+    return copy;
+  }
+
+  function getContributionLevel(avgWpm, maxWpm) {
+    if (!avgWpm || !maxWpm) return 0;
+    const ratio = avgWpm / maxWpm;
+    if (ratio >= 0.75) return 4;
+    if (ratio >= 0.5) return 3;
+    if (ratio >= 0.25) return 2;
+    return 1;
+  }
+
+  function buildContributionDays(tests, daysCount = 140) {
+    const statsByDay = new Map();
+
+    for (const test of tests || []) {
+      const key = toDateKey(test.timestamp || test.created_at);
+      if (!key) continue;
+      const wpm = Number(test.wpm) || 0;
+      if (!statsByDay.has(key)) statsByDay.set(key, { totalWpm: 0, tests: 0 });
+      const dayStats = statsByDay.get(key);
+      dayStats.totalWpm += wpm;
+      dayStats.tests += 1;
+    }
+
+    const today = startOfDay(new Date());
+    const start = new Date(today);
+    start.setDate(today.getDate() - (daysCount - 1));
+    start.setDate(start.getDate() - start.getDay());
+
+    const days = [];
+    const cursor = new Date(start);
+    while (cursor <= today) {
+      const key = `${cursor.getFullYear()}-${String(cursor.getMonth() + 1).padStart(2, '0')}-${String(cursor.getDate()).padStart(2, '0')}`;
+      const stat = statsByDay.get(key);
+      const count = stat?.tests || 0;
+      const avgWpm = count ? Math.round(stat.totalWpm / count) : 0;
+
+      days.push({
+        date: new Date(cursor),
+        key,
+        count,
+        avgWpm
+      });
+
+      cursor.setDate(cursor.getDate() + 1);
+    }
+
+    const maxWpm = Math.max(...days.map((d) => d.avgWpm), 0);
+    return days.map((day) => ({ ...day, level: getContributionLevel(day.avgWpm, maxWpm) }));
+  }
+
+  function chunkByWeek(days) {
+    const weeks = [];
+    for (let i = 0; i < days.length; i += 7) weeks.push(days.slice(i, i + 7));
+    return weeks;
+  }
+
+  function formatContributionDate(date) {
+    return date.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' });
   }
 </script>
 
@@ -121,20 +195,50 @@
       </div>
 
       {#if history.length > 0}
-        <!-- WPM bar chart -->
+        <!-- WPM contributions -->
         <div class="s-card p-6">
           <div class="flex justify-between items-center mb-6">
             <h3 class="font-heading font-bold text-xs uppercase tracking-[0.2em]"
                 class:text-surface-100={theme === 'dark'} class:text-surface-800={theme === 'light'}>WPM История</h3>
             <span class="mono text-[9px] text-surface-400 uppercase tracking-wider">{history.length} тестов</span>
           </div>
-          <div class="flex items-end gap-[3px] h-32">
-            {#each history.slice(0, 50).reverse() as entry}
-              {@const maxW = Math.max(...history.map(h => h.wpm), 1)}
-              {@const pct = (entry.wpm / maxW) * 100}
-              <div class="w-full rounded-t transition-all {pct > 70 ? 'bg-primary-500' : pct > 40 ? 'bg-primary-500/40' : 'bg-primary-500/15'}"
-                   style="height: {pct}%" title="{entry.wpm} WPM"></div>
-            {/each}
+          <div class="overflow-x-auto">
+            <div class="min-w-max flex gap-1.5">
+              {#each contributionWeeks as week}
+                <div class="flex flex-col gap-1.5">
+                  {#each week as day}
+                    <div
+                      class="w-3.5 h-3.5 rounded-[3px] border border-surface-600/20 transition-all hover:scale-110 cursor-default
+                        {day.level === 0 ? 'bg-surface-700/30' : ''}
+                        {day.level === 1 ? 'bg-primary-500/25' : ''}
+                        {day.level === 2 ? 'bg-primary-500/45' : ''}
+                        {day.level === 3 ? 'bg-primary-500/70' : ''}
+                        {day.level === 4 ? 'bg-primary-500' : ''}"
+                      title="{formatContributionDate(day.date)} • {day.count} тест(ов) • {day.avgWpm} WPM"
+                    ></div>
+                  {/each}
+                </div>
+              {/each}
+            </div>
+          </div>
+          <div class="mt-4 flex items-center justify-between gap-3">
+            <span class="mono text-[9px] text-surface-500 uppercase tracking-wider">
+              Последние {contributionDays.length} дней
+            </span>
+            <div class="flex items-center gap-2">
+              <span class="mono text-[9px] text-surface-500 uppercase">Less</span>
+              {#each [0, 1, 2, 3, 4] as level}
+                <div
+                  class="w-3 h-3 rounded-[3px] border border-surface-600/20
+                    {level === 0 ? 'bg-surface-700/30' : ''}
+                    {level === 1 ? 'bg-primary-500/25' : ''}
+                    {level === 2 ? 'bg-primary-500/45' : ''}
+                    {level === 3 ? 'bg-primary-500/70' : ''}
+                    {level === 4 ? 'bg-primary-500' : ''}"
+                ></div>
+              {/each}
+              <span class="mono text-[9px] text-surface-500 uppercase">More</span>
+            </div>
           </div>
         </div>
 
