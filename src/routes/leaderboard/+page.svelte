@@ -79,7 +79,6 @@
                   <th class="px-4 sm:px-6 py-5 mono text-[10px] font-bold uppercase tracking-wider text-surface-400">User</th>
                   <th class="px-4 sm:px-6 py-5 mono text-[10px] font-bold uppercase tracking-wider text-surface-400 text-right">WPM</th>
                   <th class="hidden sm:table-cell px-6 py-5 mono text-[10px] font-bold uppercase tracking-wider text-surface-400 text-right">Accuracy</th>
-                  <th class="hidden sm:table-cell px-6 py-5 mono text-[10px] font-bold uppercase tracking-wider text-surface-400 text-center">Level</th>
                 </tr>
               </thead>
               <tbody>
@@ -96,21 +95,21 @@
                       {/if}
                     </td>
                     <td class="px-4 sm:px-6 py-5">
-                      <a href="/profile/{entry.username}" class="font-heading font-bold uppercase tracking-tight hover:text-primary-400 transition-colors text-sm sm:text-base"
-                         class:text-surface-100={theme === 'dark'} class:text-surface-800={theme === 'light'}>
-                        {entry.username}
-                      </a>
+                      <div class="flex items-center gap-2">
+                        <a href="/profile/{entry.username}" class="font-heading font-bold uppercase tracking-tight hover:text-primary-400 transition-colors text-sm sm:text-base"
+                           class:text-surface-100={theme === 'dark'} class:text-surface-800={theme === 'light'}>
+                          {entry.username}
+                        </a>
+                        <span class="badge-sakha bg-primary-500/10 border border-primary-500/20 text-primary-400">
+                          LVL {String(entry.level ?? 0).padStart(2, '0')}
+                        </span>
+                      </div>
                     </td>
                     <td class="px-4 sm:px-6 py-5 text-right">
                       <span class="text-2xl sm:text-3xl font-heading font-extrabold text-primary-400">{entry.wpm}</span>
                     </td>
                     <td class="hidden sm:table-cell px-6 py-5 text-right">
                       <span class="text-lg font-bold mono text-surface-300">{entry.accuracy}%</span>
-                    </td>
-                    <td class="hidden sm:table-cell px-6 py-5 text-center">
-                      <span class="badge-sakha bg-primary-500/10 border border-primary-500/20 text-primary-400">
-                        LVL {entry.level}
-                      </span>
                     </td>
                   </tr>
                 {/each}
