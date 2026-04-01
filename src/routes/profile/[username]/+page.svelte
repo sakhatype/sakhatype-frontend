@@ -268,7 +268,7 @@
 
     <!-- Stats + History -->
     <div class="col-span-12 lg:col-span-8 flex flex-col gap-3">
-      <div class="grid grid-cols-3 gap-4">
+      <div class="grid grid-cols-3 gap-3">
         <div class="s-card p-6">
           <span class="mono text-[9px] font-bold text-primary-400 uppercase tracking-wider mb-3 block">Средний WPM</span>
           <span class="text-4xl font-heading font-extrabold"
@@ -291,7 +291,7 @@
           <div class="flex justify-between items-center mb-6">
             <h3 class="font-heading font-bold text-xs uppercase tracking-[0.2em]"
                 class:text-surface-100={theme === 'dark'} class:text-surface-800={theme === 'light'}>История</h3>
-            <span class="mono text-[9px] text-surface-400 uppercase tracking-wider">{history.length}Взносы</span>
+            <span class="mono text-[9px] text-surface-400 uppercase tracking-wider">Взносы</span>
             <!-- <span class="mono text-[9px] text-surface-400 uppercase tracking-wider">{history.length} тестов</span> -->
           </div>
           <div class="overflow-x-auto">
