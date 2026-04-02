@@ -49,7 +49,7 @@
       </span>
     </a>
 
-    <a href="/arena"
+    <!-- <a href="/arena"
        class="chip-sakha {currentPath === '/arena' ? 'active' : ''}"
        class:text-surface-300={currentPath !== '/arena' && theme === 'dark'}
        class:text-surface-500={currentPath !== '/arena' && theme === 'light'}
@@ -58,7 +58,7 @@
       <span class="flex items-center gap-2">
         Соревнования
       </span>
-    </a>
+    </a> -->
 
     <div class="w-px h-6 bg-surface-600/40 mx-1"></div>
 
