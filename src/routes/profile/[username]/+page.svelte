@@ -5,11 +5,10 @@
   import { userStore } from '$stores/user.js';
   import { settingsStore } from '$stores/settings.js';
   import Footer from '$components/layout/Footer.svelte';
-  import ProfileEditModal from '$components/modals/ProfileEditModal.svelte';
 
   $: theme = $settingsStore.theme;
 
-  let profile = null; let loading = true; let showEditModal = false;
+  let profile = null; let loading = true;
 
   $: username = $page.params.username;
   $: currentUser = $userStore.user;
@@ -154,8 +153,6 @@
 
 <svelte:head><title>Sakhatype - Профиль {username}</title></svelte:head>
 
-<ProfileEditModal isOpen={showEditModal} onClose={() => showEditModal = false} />
-
 <div class="flex-1 flex flex-col">
 {#if loading}
 <main class="container mx-auto px-6 md:px-10 flex-1 relative z-20 py-8">
@@ -258,13 +255,13 @@
           </div>
 
           {#if isOwnProfile}
-            <button on:click={() => showEditModal = true}
+            <a href="/profile/account"
               class="w-full mt-6 px-6 py-3 s-card !rounded-xl hover:!border-primary-500/40 font-heading font-bold uppercase text-xs tracking-wider text-surface-400 hover:text-surface-100 transition-all flex items-center justify-center gap-2">
               <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
               </svg>
               Управление аккаунтом
-            </button>
+            </a>
           {/if}
         </div>
       </div>
