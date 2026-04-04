@@ -141,7 +141,7 @@
       <!-- Single table -->
       <div class="lg:col-span-8">
         {#if loading}
-          <div class="s-card overflow-hidden !rounded-2xl">
+          <div class="s-card overflow-hidden">
             <table class="w-full text-left border-collapse">
               <thead>
                 <tr class="border-b border-surface-600/30">
@@ -155,7 +155,7 @@
                 {#each Array.from({ length: leaderboardSkeletonRows }) as _, i (i)}
                   <tr class="border-b border-surface-700/30">
                     <td class="px-6 sm:px-8 py-5 align-middle">
-                      <div class="skeleton w-8 h-8 rounded-xl"></div>
+                      <div class="skeleton w-8 h-8"></div>
                     </td>
                     <td class="px-4 sm:px-6 py-5 align-middle">
                       <div class="flex items-center gap-2">
@@ -199,7 +199,7 @@
                   <tr class="border-b border-surface-700/30 hover:bg-surface-700/20 transition-all">
                     <td class="px-6 sm:px-8 py-5">
                       {#if entry.rank <= 3}
-                        <div class="w-8 h-8 rounded-xl flex items-center justify-center font-heading font-extrabold text-sm
+                        <div class="w-8 h-8 flex items-center justify-center font-heading font-extrabold text-sm
                              {entry.rank === 1 ? 'bg-warning-500/15 text-warning-400' : entry.rank === 2 ? 'bg-surface-300/15 text-surface-300' : 'bg-tertiary-600/15 text-tertiary-500'}">
                           {entry.rank}
                         </div>
