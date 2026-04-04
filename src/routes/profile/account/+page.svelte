@@ -18,6 +18,8 @@
   let error = '';
   let success = '';
   let loading = false;
+  /** @type {'profile' | 'security'} */
+  let activeTab = 'profile';
 
   $: xpPercent = currentUser ? (currentUser.xp / currentUser.xp_to_next) * 100 : 0;
 
@@ -31,44 +33,74 @@
     email = state.user.email || '';
   });
 
-  async function handleSave() {
+  /** @param {'profile' | 'security'} tab */
+  function setTab(tab) {
+    activeTab = tab;
+    error = '';
+    success = '';
+  }
+
+  async function handleSaveProfile() {
     error = '';
     success = '';
     if (!username.trim()) {
       error = 'Имя пользователя не может быть пустым';
       return;
     }
-    if (newPassword && newPassword !== confirmPassword) {
+    const updates = {};
+    if (username !== currentUser.username) updates.username = username;
+    const prevEmail = currentUser.email ?? '';
+    const nextEmail = email.trim();
+    if (nextEmail !== prevEmail) updates.email = nextEmail || null;
+    if (Object.keys(updates).length === 0) return;
+
+    loading = true;
+    try {
+      const response = await api.updateProfile(updates, $userStore.token);
+      userStore.updateUser(response.user);
+      success = 'Профиль успешно обновлён';
+      const nextName = response.user.username;
+      setTimeout(() => goto(`/profile/${nextName}`), 1500);
+    } catch (err) {
+      error = err.message || 'Ошибка при обновлении профиля';
+    } finally {
+      loading = false;
+    }
+  }
+
+  async function handleSaveSecurity() {
+    error = '';
+    success = '';
+    if (!newPassword.trim()) {
+      error = 'Введите новый пароль';
+      return;
+    }
+    if (newPassword !== confirmPassword) {
       error = 'Пароли не совпадают';
       return;
     }
-    if (newPassword && newPassword.length < 6) {
+    if (newPassword.length < 6) {
       error = 'Пароль должен быть минимум 6 символов';
       return;
     }
+    if (!currentPassword) {
+      error = 'Укажите текущий пароль';
+      return;
+    }
+
     loading = true;
     try {
-      const updates = {};
-      if (username !== currentUser.username) updates.username = username;
-      const prevEmail = currentUser.email ?? '';
-      const nextEmail = email.trim();
-      if (nextEmail !== prevEmail) updates.email = nextEmail || null;
-      if (newPassword) {
-        updates.current_password = currentPassword;
-        updates.new_password = newPassword;
-      }
-      if (Object.keys(updates).length > 0) {
-        const response = await api.updateProfile(updates, $userStore.token);
-        userStore.updateUser(response.user);
-        currentPassword = '';
-        newPassword = '';
-        confirmPassword = '';
-        success = 'Профиль успешно обновлен';
-        const nextName = response.user.username;
-        setTimeout(() => goto(`/profile/${nextName}`), 1500);
-      }
+      const response = await api.updateProfile(
+        { current_password: currentPassword, new_password: newPassword },
+        $userStore.token
+      );
+      userStore.updateUser(response.user);
+      currentPassword = '';
+      newPassword = '';
+      confirmPassword = '';
+      success = 'Пароль успешно обновлён';
     } catch (err) {
-      error = err.message || 'Ошибка при обновлении профиля';
+      error = err.message || 'Ошибка при смене пароля';
     } finally {
       loading = false;
     }
@@ -169,54 +201,95 @@
               </div>
             {/if}
 
-            <div class="space-y-5 mb-6">
-              <div>
-                <label class="mono text-[9px] uppercase tracking-[0.2em] text-surface-400 block mb-2"
-                  >Имя пользователя</label
-                >
-                <input type="text" bind:value={username} class="input-sakha w-full" placeholder="username" />
-              </div>
-              <div>
-                <label class="mono text-[9px] uppercase tracking-[0.2em] text-surface-400 block mb-2"
-                  >Email <span class="text-surface-500 font-normal normal-case tracking-normal">(необязательно)</span
-                  ></label
-                >
-                <input type="email" bind:value={email} class="input-sakha w-full" placeholder="email@example.com" />
-              </div>
-              <div class="border-t border-surface-600/30 pt-5 mt-6">
-                <p class="mono text-[9px] uppercase tracking-widest text-surface-400 mb-4">Изменить пароль</p>
-                <div class="space-y-4">
-                  <div>
-                    <label class="mono text-[9px] uppercase tracking-[0.2em] text-surface-400 block mb-2"
-                      >Текущий пароль</label
-                    >
-                    <input type="password" bind:value={currentPassword} class="input-sakha w-full" placeholder="••••••" />
-                  </div>
-                  <div>
-                    <label class="mono text-[9px] uppercase tracking-[0.2em] text-surface-400 block mb-2"
-                      >Новый пароль</label
-                    >
-                    <input type="password" bind:value={newPassword} class="input-sakha w-full" placeholder="••••••" />
-                  </div>
-                  <div>
-                    <label class="mono text-[9px] uppercase tracking-[0.2em] text-surface-400 block mb-2"
-                      >Подтвердите пароль</label
-                    >
-                    <input type="password" bind:value={confirmPassword} class="input-sakha w-full" placeholder="••••••" />
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div class="flex flex-col gap-3">
+            <div class="flex gap-2 mb-6" role="tablist" aria-label="Разделы настроек">
               <button
-                on:click={handleSave}
-                disabled={loading}
-                class="w-full bg-primary-500 hover:bg-primary-400 text-white py-4 rounded-2xl font-heading font-bold uppercase text-xs tracking-wider transition-all disabled:opacity-50 glow-primary"
+                type="button"
+                role="tab"
+                aria-selected={activeTab === 'profile'}
+                on:click={() => setTab('profile')}
+                class="flex-1 px-4 py-3 rounded-2xl text-[10px] font-heading font-bold uppercase tracking-widest transition-all
+                  {activeTab === 'profile'
+                  ? 'bg-primary-500/10 text-primary-400'
+                  : 'text-surface-400 hover:text-surface-50'}"
               >
-                {loading ? 'Сохранение...' : 'Сохранить изменения'}
+                Профиль
               </button>
               <button
+                type="button"
+                role="tab"
+                aria-selected={activeTab === 'security'}
+                on:click={() => setTab('security')}
+                class="flex-1 px-4 py-3 rounded-2xl text-[10px] font-heading font-bold uppercase tracking-widest transition-all
+                  {activeTab === 'security'
+                  ? 'bg-primary-500/10 text-primary-400'
+                  : 'text-surface-400 hover:text-surface-50'}"
+              >
+                Безопасность
+              </button>
+            </div>
+
+            {#if activeTab === 'profile'}
+              <div class="space-y-5 mb-6" role="tabpanel">
+                <div>
+                  <label class="mono text-[9px] uppercase tracking-[0.2em] text-surface-400 block mb-2"
+                    >Имя пользователя</label
+                  >
+                  <input type="text" bind:value={username} class="input-sakha w-full" placeholder="username" />
+                </div>
+                <div>
+                  <label class="mono text-[9px] uppercase tracking-[0.2em] text-surface-400 block mb-2"
+                    >Email <span class="text-surface-500 font-normal normal-case tracking-normal">(необязательно)</span
+                    ></label
+                  >
+                  <input type="email" bind:value={email} class="input-sakha w-full" placeholder="email@example.com" />
+                </div>
+              </div>
+            {:else}
+              <div class="space-y-4 mb-6" role="tabpanel">
+                <p class="mono text-[9px] uppercase tracking-widest text-surface-400 mb-1">Смена пароля</p>
+                <div>
+                  <label class="mono text-[9px] uppercase tracking-[0.2em] text-surface-400 block mb-2"
+                    >Текущий пароль</label
+                  >
+                  <input type="password" bind:value={currentPassword} class="input-sakha w-full" placeholder="••••••" />
+                </div>
+                <div>
+                  <label class="mono text-[9px] uppercase tracking-[0.2em] text-surface-400 block mb-2"
+                    >Новый пароль</label
+                  >
+                  <input type="password" bind:value={newPassword} class="input-sakha w-full" placeholder="••••••" />
+                </div>
+                <div>
+                  <label class="mono text-[9px] uppercase tracking-[0.2em] text-surface-400 block mb-2"
+                    >Подтвердите пароль</label
+                  >
+                  <input type="password" bind:value={confirmPassword} class="input-sakha w-full" placeholder="••••••" />
+                </div>
+              </div>
+            {/if}
+
+            <div class="flex flex-col gap-3">
+              {#if activeTab === 'profile'}
+                <button
+                  type="button"
+                  on:click={handleSaveProfile}
+                  disabled={loading}
+                  class="w-full bg-primary-500 hover:bg-primary-400 text-white py-4 rounded-2xl font-heading font-bold uppercase text-xs tracking-wider transition-all disabled:opacity-50 glow-primary"
+                >
+                  {loading ? 'Сохранение...' : 'Сохранить профиль'}
+                </button>
+              {:else}
+                <button
+                  type="button"
+                  on:click={handleSaveSecurity}
+                  disabled={loading}
+                  class="w-full bg-primary-500 hover:bg-primary-400 text-white py-4 rounded-2xl font-heading font-bold uppercase text-xs tracking-wider transition-all disabled:opacity-50 glow-primary"
+                >
+                  {loading ? 'Сохранение...' : 'Обновить пароль'}
+                </button>
+              {/if}
+              <button
+                type="button"
                 on:click={handleLogout}
                 class="w-full border border-error-500/20 hover:bg-error-500/10 text-error-400 py-4 rounded-2xl font-heading font-bold uppercase text-xs tracking-wider transition-all flex items-center justify-center gap-2"
               >
