@@ -7,12 +7,13 @@
   $: theme = $settingsStore.theme;
 
   /** @type {any[]} */
-  let leaderboardEasy = [];
-  /** @type {any[]} */
-  let leaderboardHard = [];
+  let leaderboard = [];
   let loading = true;
   let mode = 'time';
   let modeValue = 30;
+  /** @type {'normal' | 'expert'} */
+  let difficulty = 'normal';
+
   const timeValues = [15, 30, 60];
   const wordValues = [10, 25, 50];
   $: currentValues = mode === 'time' ? timeValues : wordValues;
@@ -22,15 +23,9 @@
   async function load() {
     loading = true;
     try {
-      const [easy, hard] = await Promise.all([
-        api.getLeaderboard(mode, modeValue, 50, 'normal'),
-        api.getLeaderboard(mode, modeValue, 50, 'expert'),
-      ]);
-      leaderboardEasy = easy;
-      leaderboardHard = hard;
+      leaderboard = await api.getLeaderboard(mode, modeValue, 50, difficulty);
     } catch {
-      leaderboardEasy = [];
-      leaderboardHard = [];
+      leaderboard = [];
     }
     loading = false;
   }
@@ -46,12 +41,18 @@
     load();
   }
 
+  /** @param {'normal' | 'expert'} d */
+  function selDifficulty(d) {
+    difficulty = d;
+    load();
+  }
+
   /** @param {string} d */
   function difficultyLabel(d) {
     return d === 'expert' ? 'Сложный' : 'Легкий';
   }
 
-  const leaderboardSkeletonRows = 6;
+  const leaderboardSkeletonRows = 10;
 </script>
 
 <svelte:head><title>Sakhatype — Лидерборд</title></svelte:head>
@@ -72,12 +73,33 @@
              class:text-surface-900={theme === 'light'}>
             {mode === 'time' ? 'Время' : 'Слова'} {modeValue}{mode === 'time' ? 'с' : ''}
           </p>
+          <p class="text-xs text-surface-500 mt-3">Сложность:</p>
+          <p class="text-lg font-heading font-bold mt-1"
+             class:text-success-400={difficulty === 'normal'}
+             class:text-error-400={difficulty === 'expert'}>
+            {difficultyLabel(difficulty)}
+          </p>
           <p class="text-xs text-surface-500 mt-4 leading-relaxed">
-            Два отдельных топа: лучший WPM на <span class="text-success-400">легкой</span> и на <span class="text-error-400">сложной</span> сложности для выбранного режима.
+            Фильтр ниже: лучший WPM игроков на выбранной сложности для этого режима.
           </p>
         </div>
 
         <div class="s-card p-5 flex flex-col gap-2">
+          <p class="mono text-[10px] font-bold uppercase tracking-wider text-surface-500 px-1">Сложность</p>
+          <div class="flex gap-2">
+            <button class="flex-1 px-4 py-3 rounded-lg text-xs font-bold uppercase tracking-wider transition-all
+                           {difficulty === 'normal' ? 'bg-success-500/10 text-success-400 border border-success-500/25' : 'text-surface-400 hover:text-surface-100 border border-transparent'}"
+                    type="button"
+                    on:click={() => selDifficulty('normal')}>Легкий</button>
+            <button class="flex-1 px-4 py-3 rounded-lg text-xs font-bold uppercase tracking-wider transition-all
+                           {difficulty === 'expert' ? 'bg-error-500/10 text-error-400 border border-error-500/25' : 'text-surface-400 hover:text-surface-100 border border-transparent'}"
+                    type="button"
+                    on:click={() => selDifficulty('expert')}>Сложный</button>
+          </div>
+        </div>
+
+        <div class="s-card p-5 flex flex-col gap-2">
+          <p class="mono text-[10px] font-bold uppercase tracking-wider text-surface-500 px-1">Тип</p>
           <div class="flex gap-2">
             <button class="flex-1 px-4 py-3 rounded-lg text-xs font-bold uppercase tracking-wider text-left transition-all
                            {mode === 'time' ? 'bg-primary-500/10 text-primary-400' : 'text-surface-400 hover:text-surface-100'}"
@@ -102,176 +124,112 @@
         </div>
       </div>
 
-      <!-- Two leaderboards -->
-      <div class="lg:col-span-8 flex flex-col gap-6">
+      <!-- Single table -->
+      <div class="lg:col-span-8">
         {#if loading}
-          <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
-            {#each [1, 2] as _}
-              <div class="s-card overflow-hidden !rounded-2xl">
-                <div class="px-6 py-4 border-b border-surface-600/30">
-                  <div class="skeleton h-5 w-32 rounded-md"></div>
-                </div>
-                <table class="w-full text-left border-collapse">
-                  <thead>
-                    <tr class="border-b border-surface-600/30">
-                      <th class="px-4 sm:px-6 py-4 mono text-[10px] font-bold uppercase tracking-wider text-surface-400">#</th>
-                      <th class="px-3 py-4 mono text-[10px] font-bold uppercase tracking-wider text-surface-400">User</th>
-                      <th class="px-3 py-4 mono text-[10px] font-bold uppercase tracking-wider text-surface-400">Сложн.</th>
-                      <th class="px-3 py-4 mono text-[10px] font-bold uppercase tracking-wider text-surface-400 text-right">WPM</th>
-                      <th class="hidden sm:table-cell px-4 py-4 mono text-[10px] font-bold uppercase tracking-wider text-surface-400 text-right">Точн.</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {#each Array.from({ length: leaderboardSkeletonRows }) as _, i (i)}
-                      <tr class="border-b border-surface-700/30">
-                        <td class="px-4 sm:px-6 py-4"><div class="skeleton w-8 h-8 rounded-xl"></div></td>
-                        <td class="px-3 py-4">
-                          <div class="skeleton h-5 w-[min(10rem,35vw)] rounded-md"></div>
-                        </td>
-                        <td class="px-3 py-4"><div class="skeleton h-6 w-16 rounded-lg"></div></td>
-                        <td class="px-3 py-4 text-right"><div class="skeleton h-8 w-12 ml-auto rounded-lg"></div></td>
-                        <td class="hidden sm:table-cell px-4 py-4 text-right"><div class="skeleton h-6 w-10 ml-auto rounded-md"></div></td>
-                      </tr>
-                    {/each}
-                  </tbody>
-                </table>
-              </div>
-            {/each}
+          <div class="s-card overflow-hidden !rounded-2xl">
+            <table class="w-full text-left border-collapse">
+              <thead>
+                <tr class="border-b border-surface-600/30">
+                  <th class="px-6 sm:px-8 py-5 mono text-[10px] font-bold uppercase tracking-wider text-surface-400">Rank</th>
+                  <th class="px-4 sm:px-6 py-5 mono text-[10px] font-bold uppercase tracking-wider text-surface-400">User</th>
+                  <th class="px-4 sm:px-6 py-5 mono text-[10px] font-bold uppercase tracking-wider text-surface-400">Сложность</th>
+                  <th class="px-4 sm:px-6 py-5 mono text-[10px] font-bold uppercase tracking-wider text-surface-400 text-right">WPM</th>
+                  <th class="hidden sm:table-cell px-6 py-5 mono text-[10px] font-bold uppercase tracking-wider text-surface-400 text-right">Точн.</th>
+                </tr>
+              </thead>
+              <tbody>
+                {#each Array.from({ length: leaderboardSkeletonRows }) as _, i (i)}
+                  <tr class="border-b border-surface-700/30">
+                    <td class="px-6 sm:px-8 py-5 align-middle">
+                      <div class="skeleton w-8 h-8 rounded-xl"></div>
+                    </td>
+                    <td class="px-4 sm:px-6 py-5 align-middle">
+                      <div class="flex items-center gap-2">
+                        <div class="skeleton h-5 w-[min(12rem,40vw)] rounded-md"></div>
+                        <div class="skeleton h-6 w-14 rounded-lg shrink-0"></div>
+                      </div>
+                    </td>
+                    <td class="px-4 sm:px-6 py-5 align-middle">
+                      <div class="skeleton h-6 w-16 rounded-lg"></div>
+                    </td>
+                    <td class="px-4 sm:px-6 py-5 align-middle text-right">
+                      <div class="skeleton h-8 w-12 ml-auto rounded-lg"></div>
+                    </td>
+                    <td class="hidden sm:table-cell px-6 py-5 align-middle text-right">
+                      <div class="skeleton h-6 w-10 ml-auto rounded-md"></div>
+                    </td>
+                  </tr>
+                {/each}
+              </tbody>
+            </table>
           </div>
-        {:else if leaderboardEasy.length === 0 && leaderboardHard.length === 0}
+        {:else if leaderboard.length === 0}
           <div class="s-card p-20 text-center">
             <p class="text-xl font-heading font-extrabold uppercase mb-2"
                class:text-surface-100={theme === 'dark'} class:text-surface-800={theme === 'light'}>Лидерборд</p>
-            <p class="text-xs text-surface-400 uppercase tracking-wider">Пока нет результатов для этого режима.</p>
+            <p class="text-xs text-surface-400 uppercase tracking-wider">
+              Нет результатов для «{difficultyLabel(difficulty)}» в этом режиме.
+            </p>
             <a href="/" class="inline-block mt-8 px-10 py-4 bg-primary-500 text-white rounded-2xl font-heading font-bold uppercase text-xs tracking-wider hover:bg-primary-400 transition-all glow-primary">Начать печатать</a>
           </div>
         {:else}
-          <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
-            <!-- Легкий -->
-            <div class="s-card overflow-hidden flex flex-col min-h-[200px]">
-              <div class="px-5 py-4 border-b border-surface-600/30 flex items-center justify-between gap-2">
-                <h4 class="font-heading font-extrabold uppercase text-sm tracking-wide text-success-400">Легкий</h4>
-                <span class="mono text-[10px] text-surface-500 uppercase">лучший WPM</span>
-              </div>
-              {#if leaderboardEasy.length === 0}
-                <p class="p-8 text-center text-sm text-surface-500">Нет записей на легкой сложности.</p>
-              {:else}
-                <div class="overflow-x-auto">
-                  <table class="w-full text-left border-collapse min-w-[320px]">
-                    <thead>
-                      <tr class="border-b border-surface-600/30">
-                        <th class="px-4 sm:px-5 py-4 mono text-[10px] font-bold uppercase tracking-wider text-surface-400">Rank</th>
-                        <th class="px-3 py-4 mono text-[10px] font-bold uppercase tracking-wider text-surface-400">User</th>
-                        <th class="px-3 py-4 mono text-[10px] font-bold uppercase tracking-wider text-surface-400">Сложность</th>
-                        <th class="px-3 py-4 mono text-[10px] font-bold uppercase tracking-wider text-surface-400 text-right">WPM</th>
-                        <th class="hidden sm:table-cell px-4 py-4 mono text-[10px] font-bold uppercase tracking-wider text-surface-400 text-right">Точн.</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {#each leaderboardEasy as entry}
-                        <tr class="border-b border-surface-700/30 hover:bg-surface-700/20 transition-all">
-                          <td class="px-4 sm:px-5 py-4">
-                            {#if entry.rank <= 3}
-                              <div class="w-8 h-8 rounded-xl flex items-center justify-center font-heading font-extrabold text-sm
-                                   {entry.rank === 1 ? 'bg-warning-500/15 text-warning-400' : entry.rank === 2 ? 'bg-surface-300/15 text-surface-300' : 'bg-tertiary-600/15 text-tertiary-500'}">
-                                {entry.rank}
-                              </div>
-                            {:else}
-                              <span class="mono text-sm font-bold text-surface-400 w-8 text-center block">{entry.rank}</span>
-                            {/if}
-                          </td>
-                          <td class="px-3 py-4">
-                            <div class="flex flex-wrap items-center gap-2">
-                              <a href="/profile/{entry.username}" class="font-heading font-bold uppercase tracking-tight hover:text-primary-400 transition-colors text-sm"
-                                 class:text-surface-100={theme === 'dark'} class:text-surface-800={theme === 'light'}>
-                                {entry.username}
-                              </a>
-                              <span class="badge-sakha bg-primary-500/10 border border-primary-500/20 text-primary-400 text-[10px]">
-                                Ур. {String(entry.level ?? 0).padStart(2, '0')}
-                              </span>
-                            </div>
-                          </td>
-                          <td class="px-3 py-4">
-                            <span class="inline-flex px-2 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wide bg-success-500/15 text-success-400 border border-success-500/25">
-                              {difficultyLabel(entry.difficulty ?? 'normal')}
-                            </span>
-                          </td>
-                          <td class="px-3 py-4 text-right">
-                            <span class="text-xl font-heading font-extrabold text-primary-400">{entry.wpm}</span>
-                          </td>
-                          <td class="hidden sm:table-cell px-4 py-4 text-right">
-                            <span class="text-base font-bold mono text-surface-300">{entry.accuracy}%</span>
-                          </td>
-                        </tr>
-                      {/each}
-                    </tbody>
-                  </table>
-                </div>
-              {/if}
-            </div>
-
-            <!-- Сложный -->
-            <div class="s-card overflow-hidden flex flex-col min-h-[200px]">
-              <div class="px-5 py-4 border-b border-surface-600/30 flex items-center justify-between gap-2">
-                <h4 class="font-heading font-extrabold uppercase text-sm tracking-wide text-error-400">Сложный</h4>
-                <span class="mono text-[10px] text-surface-500 uppercase">лучший WPM</span>
-              </div>
-              {#if leaderboardHard.length === 0}
-                <p class="p-8 text-center text-sm text-surface-500">Нет записей на сложной сложности.</p>
-              {:else}
-                <div class="overflow-x-auto">
-                  <table class="w-full text-left border-collapse min-w-[320px]">
-                    <thead>
-                      <tr class="border-b border-surface-600/30">
-                        <th class="px-4 sm:px-5 py-4 mono text-[10px] font-bold uppercase tracking-wider text-surface-400">Rank</th>
-                        <th class="px-3 py-4 mono text-[10px] font-bold uppercase tracking-wider text-surface-400">User</th>
-                        <th class="px-3 py-4 mono text-[10px] font-bold uppercase tracking-wider text-surface-400">Сложность</th>
-                        <th class="px-3 py-4 mono text-[10px] font-bold uppercase tracking-wider text-surface-400 text-right">WPM</th>
-                        <th class="hidden sm:table-cell px-4 py-4 mono text-[10px] font-bold uppercase tracking-wider text-surface-400 text-right">Точн.</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {#each leaderboardHard as entry}
-                        <tr class="border-b border-surface-700/30 hover:bg-surface-700/20 transition-all">
-                          <td class="px-4 sm:px-5 py-4">
-                            {#if entry.rank <= 3}
-                              <div class="w-8 h-8 rounded-xl flex items-center justify-center font-heading font-extrabold text-sm
-                                   {entry.rank === 1 ? 'bg-warning-500/15 text-warning-400' : entry.rank === 2 ? 'bg-surface-300/15 text-surface-300' : 'bg-tertiary-600/15 text-tertiary-500'}">
-                                {entry.rank}
-                              </div>
-                            {:else}
-                              <span class="mono text-sm font-bold text-surface-400 w-8 text-center block">{entry.rank}</span>
-                            {/if}
-                          </td>
-                          <td class="px-3 py-4">
-                            <div class="flex flex-wrap items-center gap-2">
-                              <a href="/profile/{entry.username}" class="font-heading font-bold uppercase tracking-tight hover:text-primary-400 transition-colors text-sm"
-                                 class:text-surface-100={theme === 'dark'} class:text-surface-800={theme === 'light'}>
-                                {entry.username}
-                              </a>
-                              <span class="badge-sakha bg-primary-500/10 border border-primary-500/20 text-primary-400 text-[10px]">
-                                Ур. {String(entry.level ?? 0).padStart(2, '0')}
-                              </span>
-                            </div>
-                          </td>
-                          <td class="px-3 py-4">
-                            <span class="inline-flex px-2 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wide bg-error-500/15 text-error-400 border border-error-500/25">
-                              {difficultyLabel(entry.difficulty ?? 'expert')}
-                            </span>
-                          </td>
-                          <td class="px-3 py-4 text-right">
-                            <span class="text-xl font-heading font-extrabold text-primary-400">{entry.wpm}</span>
-                          </td>
-                          <td class="hidden sm:table-cell px-4 py-4 text-right">
-                            <span class="text-base font-bold mono text-surface-300">{entry.accuracy}%</span>
-                          </td>
-                        </tr>
-                      {/each}
-                    </tbody>
-                  </table>
-                </div>
-              {/if}
-            </div>
+          <div class="s-card overflow-hidden">
+            <table class="w-full text-left border-collapse">
+              <thead>
+                <tr class="border-b border-surface-600/30">
+                  <th class="px-6 sm:px-8 py-5 mono text-[10px] font-bold uppercase tracking-wider text-surface-400">Rank</th>
+                  <th class="px-4 sm:px-6 py-5 mono text-[10px] font-bold uppercase tracking-wider text-surface-400">User</th>
+                  <th class="px-4 sm:px-6 py-5 mono text-[10px] font-bold uppercase tracking-wider text-surface-400">Сложность</th>
+                  <th class="px-4 sm:px-6 py-5 mono text-[10px] font-bold uppercase tracking-wider text-surface-400 text-right">WPM</th>
+                  <th class="hidden sm:table-cell px-6 py-5 mono text-[10px] font-bold uppercase tracking-wider text-surface-400 text-right">Точн.</th>
+                </tr>
+              </thead>
+              <tbody>
+                {#each leaderboard as entry}
+                  <tr class="border-b border-surface-700/30 hover:bg-surface-700/20 transition-all">
+                    <td class="px-6 sm:px-8 py-5">
+                      {#if entry.rank <= 3}
+                        <div class="w-8 h-8 rounded-xl flex items-center justify-center font-heading font-extrabold text-sm
+                             {entry.rank === 1 ? 'bg-warning-500/15 text-warning-400' : entry.rank === 2 ? 'bg-surface-300/15 text-surface-300' : 'bg-tertiary-600/15 text-tertiary-500'}">
+                          {entry.rank}
+                        </div>
+                      {:else}
+                        <span class="mono text-sm font-bold text-surface-400 w-8 text-center block">{entry.rank}</span>
+                      {/if}
+                    </td>
+                    <td class="px-4 sm:px-6 py-5">
+                      <div class="flex items-center gap-2">
+                        <a href="/profile/{entry.username}" class="font-heading font-bold uppercase tracking-tight hover:text-primary-400 transition-colors text-sm sm:text-base"
+                           class:text-surface-100={theme === 'dark'} class:text-surface-800={theme === 'light'}>
+                          {entry.username}
+                        </a>
+                        <span class="badge-sakha bg-primary-500/10 border border-primary-500/20 text-primary-400">
+                          Ур. {String(entry.level ?? 0).padStart(2, '0')}
+                        </span>
+                      </div>
+                    </td>
+                    <td class="px-4 sm:px-6 py-5">
+                      {#if (entry.difficulty ?? difficulty) === 'expert'}
+                        <span class="inline-flex px-2 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wide bg-error-500/15 text-error-400 border border-error-500/25">
+                          {difficultyLabel(entry.difficulty ?? 'expert')}
+                        </span>
+                      {:else}
+                        <span class="inline-flex px-2 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wide bg-success-500/15 text-success-400 border border-success-500/25">
+                          {difficultyLabel(entry.difficulty ?? 'normal')}
+                        </span>
+                      {/if}
+                    </td>
+                    <td class="px-4 sm:px-6 py-5 text-right">
+                      <span class="text-2xl sm:text-3xl font-heading font-extrabold text-primary-400">{entry.wpm}</span>
+                    </td>
+                    <td class="hidden sm:table-cell px-6 py-5 text-right">
+                      <span class="text-lg font-bold mono text-surface-300">{entry.accuracy}%</span>
+                    </td>
+                  </tr>
+                {/each}
+              </tbody>
+            </table>
           </div>
         {/if}
       </div>
