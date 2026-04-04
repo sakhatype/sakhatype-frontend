@@ -73,54 +73,68 @@
              class:text-surface-900={theme === 'light'}>
             {mode === 'time' ? 'Время' : 'Слова'} {modeValue}{mode === 'time' ? 'с' : ''}
           </p>
-          <p class="text-xs text-surface-500 mt-3">Сложность:</p>
-          <p class="text-lg font-heading font-bold mt-1"
+          <p class="text-xs text-surface-500 mt-4">Сложность:</p>
+          <p class="text-2xl font-heading font-extrabold tracking-tight mt-2"
              class:text-success-400={difficulty === 'normal'}
              class:text-error-400={difficulty === 'expert'}>
             {difficultyLabel(difficulty)}
           </p>
-          <p class="text-xs text-surface-500 mt-4 leading-relaxed">
-            Фильтр ниже: лучший WPM игроков на выбранной сложности для этого режима.
-          </p>
         </div>
 
-        <div class="s-card p-5 flex flex-col gap-2">
-          <p class="mono text-[10px] font-bold uppercase tracking-wider text-surface-500 px-1">Сложность</p>
-          <div class="flex gap-2">
-            <button class="flex-1 px-4 py-3 rounded-lg text-xs font-bold uppercase tracking-wider transition-all
-                           {difficulty === 'normal' ? 'bg-success-500/10 text-success-400 border border-success-500/25' : 'text-surface-400 hover:text-surface-100 border border-transparent'}"
-                    type="button"
-                    on:click={() => selDifficulty('normal')}>Легкий</button>
-            <button class="flex-1 px-4 py-3 rounded-lg text-xs font-bold uppercase tracking-wider transition-all
-                           {difficulty === 'expert' ? 'bg-error-500/10 text-error-400 border border-error-500/25' : 'text-surface-400 hover:text-surface-100 border border-transparent'}"
-                    type="button"
-                    on:click={() => selDifficulty('expert')}>Сложный</button>
+        <div class="s-card p-5 flex flex-col gap-4">
+          <div class="flex flex-col gap-2">
+            <p class="mono text-[10px] font-bold uppercase tracking-wider text-surface-500 px-1">Сложность</p>
+            <div class="flex gap-2">
+              <button class="flex-1 px-4 py-3 rounded-lg text-xs font-bold uppercase tracking-wider text-left transition-all border
+                             {difficulty === 'normal'
+                               ? 'bg-primary-500/10 text-primary-400 border-primary-500/25'
+                               : 'text-surface-400 hover:text-surface-100 border-surface-600/35'}"
+                      class:border-surface-300={theme === 'light' && difficulty !== 'normal'}
+                      type="button"
+                      on:click={() => selDifficulty('normal')}>Легкий</button>
+              <button class="flex-1 px-4 py-3 rounded-lg text-xs font-bold uppercase tracking-wider text-left transition-all border
+                             {difficulty === 'expert'
+                               ? 'bg-primary-500/10 text-primary-400 border-primary-500/25'
+                               : 'text-surface-400 hover:text-surface-100 border-surface-600/35'}"
+                      class:border-surface-300={theme === 'light' && difficulty !== 'expert'}
+                      type="button"
+                      on:click={() => selDifficulty('expert')}>Сложный</button>
+            </div>
           </div>
-        </div>
 
-        <div class="s-card p-5 flex flex-col gap-2">
-          <p class="mono text-[10px] font-bold uppercase tracking-wider text-surface-500 px-1">Тип</p>
-          <div class="flex gap-2">
-            <button class="flex-1 px-4 py-3 rounded-lg text-xs font-bold uppercase tracking-wider text-left transition-all
-                           {mode === 'time' ? 'bg-primary-500/10 text-primary-400' : 'text-surface-400 hover:text-surface-100'}"
-                    type="button"
-                    on:click={() => selMode('time')}>Время</button>
-            <button class="flex-1 px-4 py-3 rounded-lg text-xs font-bold uppercase tracking-wider text-left transition-all
-                           {mode === 'words' ? 'bg-primary-500/10 text-primary-400' : 'text-surface-400 hover:text-surface-100'}"
-                    type="button"
-                    on:click={() => selMode('words')}>Слова</button>
+          <div class="flex flex-col gap-2">
+            <p class="mono text-[10px] font-bold uppercase tracking-wider text-surface-500 px-1">Тип</p>
+            <div class="flex gap-2">
+              <button class="flex-1 px-4 py-3 rounded-lg text-xs font-bold uppercase tracking-wider text-left transition-all border
+                             {mode === 'time'
+                               ? 'bg-primary-500/10 text-primary-400 border-primary-500/25'
+                               : 'text-surface-400 hover:text-surface-100 border-surface-600/35'}"
+                      class:border-surface-300={theme === 'light' && mode !== 'time'}
+                      type="button"
+                      on:click={() => selMode('time')}>Время</button>
+              <button class="flex-1 px-4 py-3 rounded-lg text-xs font-bold uppercase tracking-wider text-left transition-all border
+                             {mode === 'words'
+                               ? 'bg-primary-500/10 text-primary-400 border-primary-500/25'
+                               : 'text-surface-400 hover:text-surface-100 border-surface-600/35'}"
+                      class:border-surface-300={theme === 'light' && mode !== 'words'}
+                      type="button"
+                      on:click={() => selMode('words')}>Слова</button>
+            </div>
+            {#each currentValues as val}
+              <button class="px-6 py-4 rounded-lg text-xs font-bold uppercase tracking-wider text-left transition-all flex justify-between items-center border
+                             {modeValue === val
+                               ? 'bg-primary-500/10 text-primary-400 border-primary-500/25'
+                               : 'text-surface-400 hover:text-surface-100 border-surface-600/35'}"
+                      class:border-surface-300={theme === 'light' && modeValue !== val}
+                      type="button"
+                      on:click={() => selVal(val)}>
+                {val}{mode === 'time' ? ' сек' : ' слов'}
+                {#if modeValue === val}
+                  <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg>
+                {/if}
+              </button>
+            {/each}
           </div>
-          {#each currentValues as val}
-            <button class="px-6 py-4 rounded-lg text-xs font-bold uppercase tracking-wider text-left transition-all flex justify-between items-center
-                           {modeValue === val ? 'bg-primary-500/10 text-primary-400' : 'text-surface-400 hover:text-surface-100'}"
-                    type="button"
-                    on:click={() => selVal(val)}>
-              {val}{mode === 'time' ? ' сек' : ' слов'}
-              {#if modeValue === val}
-                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg>
-              {/if}
-            </button>
-          {/each}
         </div>
       </div>
 
@@ -133,7 +147,6 @@
                 <tr class="border-b border-surface-600/30">
                   <th class="px-6 sm:px-8 py-5 mono text-[10px] font-bold uppercase tracking-wider text-surface-400">Rank</th>
                   <th class="px-4 sm:px-6 py-5 mono text-[10px] font-bold uppercase tracking-wider text-surface-400">User</th>
-                  <th class="px-4 sm:px-6 py-5 mono text-[10px] font-bold uppercase tracking-wider text-surface-400">Сложность</th>
                   <th class="px-4 sm:px-6 py-5 mono text-[10px] font-bold uppercase tracking-wider text-surface-400 text-right">WPM</th>
                   <th class="hidden sm:table-cell px-6 py-5 mono text-[10px] font-bold uppercase tracking-wider text-surface-400 text-right">Точн.</th>
                 </tr>
@@ -149,9 +162,6 @@
                         <div class="skeleton h-5 w-[min(12rem,40vw)] rounded-md"></div>
                         <div class="skeleton h-6 w-14 rounded-lg shrink-0"></div>
                       </div>
-                    </td>
-                    <td class="px-4 sm:px-6 py-5 align-middle">
-                      <div class="skeleton h-6 w-16 rounded-lg"></div>
                     </td>
                     <td class="px-4 sm:px-6 py-5 align-middle text-right">
                       <div class="skeleton h-8 w-12 ml-auto rounded-lg"></div>
@@ -180,7 +190,6 @@
                 <tr class="border-b border-surface-600/30">
                   <th class="px-6 sm:px-8 py-5 mono text-[10px] font-bold uppercase tracking-wider text-surface-400">Rank</th>
                   <th class="px-4 sm:px-6 py-5 mono text-[10px] font-bold uppercase tracking-wider text-surface-400">User</th>
-                  <th class="px-4 sm:px-6 py-5 mono text-[10px] font-bold uppercase tracking-wider text-surface-400">Сложность</th>
                   <th class="px-4 sm:px-6 py-5 mono text-[10px] font-bold uppercase tracking-wider text-surface-400 text-right">WPM</th>
                   <th class="hidden sm:table-cell px-6 py-5 mono text-[10px] font-bold uppercase tracking-wider text-surface-400 text-right">Точн.</th>
                 </tr>
@@ -208,17 +217,6 @@
                           Ур. {String(entry.level ?? 0).padStart(2, '0')}
                         </span>
                       </div>
-                    </td>
-                    <td class="px-4 sm:px-6 py-5">
-                      {#if (entry.difficulty ?? difficulty) === 'expert'}
-                        <span class="inline-flex px-2 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wide bg-error-500/15 text-error-400 border border-error-500/25">
-                          {difficultyLabel(entry.difficulty ?? 'expert')}
-                        </span>
-                      {:else}
-                        <span class="inline-flex px-2 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wide bg-success-500/15 text-success-400 border border-success-500/25">
-                          {difficultyLabel(entry.difficulty ?? 'normal')}
-                        </span>
-                      {/if}
                     </td>
                     <td class="px-4 sm:px-6 py-5 text-right">
                       <span class="text-2xl sm:text-3xl font-heading font-extrabold text-primary-400">{entry.wpm}</span>

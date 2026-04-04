@@ -48,6 +48,11 @@
     return mode;
   }
 
+  /** @param {string} [d] */
+  function difficultyLabel(d) {
+    return d === 'expert' ? 'Сложный' : 'Легкий';
+  }
+
   function toDateKey(timestamp) {
     if (!timestamp) return null;
     const date = new Date(timestamp);
@@ -207,11 +212,10 @@
                 <div class="skeleton h-3 w-40 rounded"></div>
                 <div class="skeleton h-6 w-14 rounded-lg"></div>
               </div>
-              <div class="grid grid-cols-4 gap-4">
-                <div class="skeleton h-8 w-full rounded-md"></div>
-                <div class="skeleton h-8 w-full rounded-md"></div>
-                <div class="skeleton h-8 w-full rounded-md"></div>
-                <div class="skeleton h-8 w-full rounded-md"></div>
+              <div class="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-5 gap-4">
+                {#each [1, 2, 3, 4, 5] as _}
+                  <div class="skeleton h-8 w-full rounded-md"></div>
+                {/each}
               </div>
             </div>
           {/each}
@@ -378,7 +382,7 @@
                     {getModeLabel(test.mode, test.mode_value)}
                   </span>
                 </div>
-                <div class="grid grid-cols-4 gap-4">
+                <div class="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-5 gap-4">
                   <div class="flex flex-col">
                     <span class="mono text-[8px] uppercase text-surface-400 mb-1">WPM</span>
                     <span class="text-xl font-heading font-extrabold"
@@ -393,6 +397,14 @@
                     <span class="text-lg font-bold mono text-primary-400">{test.accuracy}%</span>
                   </div>
                   <div class="flex flex-col">
+                    <span class="mono text-[8px] uppercase text-surface-400 mb-1">Сложность</span>
+                    <span class="text-lg font-heading font-bold"
+                          class:text-success-400={(test.difficulty ?? 'normal') === 'normal'}
+                          class:text-error-400={(test.difficulty ?? 'normal') === 'expert'}>
+                      {difficultyLabel(test.difficulty)}
+                    </span>
+                  </div>
+                  <div class="flex flex-col col-span-2 sm:col-span-2 xl:col-span-1">
                     <span class="mono text-[8px] uppercase text-surface-400 mb-1">Дата</span>
                     <span class="text-[10px] font-bold mono text-surface-300">{formatYakutskTime(test.timestamp || test.created_at)}</span>
                   </div>
