@@ -572,7 +572,10 @@
         typingStore.recordChar();
         pushCharPop(caretX, caretY, mapped, isError ? 'i' : 'c');
         typingStore.setInput(state.currentInput + mapped);
-        syncHiddenInput(); resetCaretBlink(); return;
+        syncHiddenInput();
+        resetCaretBlink();
+        if (settings.soundEnabled) soundManager.playKeystroke();
+        return;
       }
     }
 
@@ -581,20 +584,15 @@
     if (e.key === 'Tab' || e.key === 'Escape') { e.preventDefault(); restart(); return; }
     if (e.key.length > 1) return;
 
-    if (settings.difficulty === 'expert') {
-      const word = state.words[state.currentWordIndex];
-      const pos = state.currentInput.length;
-      if (pos < word.length && e.key !== word[pos]) return;
-    }
-
-    typingStore.setInput(state.currentInput + e.key);
     const word = state.words[state.currentWordIndex];
     const pos = state.currentInput.length;
+    if (settings.difficulty === 'expert' && pos < word.length && e.key !== word[pos]) return;
+
     const isError = pos < word.length && e.key !== word[pos];
     if (isError) typingStore.recordError();
     typingStore.recordChar();
-    // Pop at current caret pos
     pushCharPop(caretX, caretY, e.key, isError ? 'i' : 'c');
+    typingStore.setInput(state.currentInput + e.key);
     syncHiddenInput();
     resetCaretBlink();
     if (settings.soundEnabled) soundManager.playKeystroke();
