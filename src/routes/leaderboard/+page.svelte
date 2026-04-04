@@ -103,7 +103,7 @@
             <a href="/" class="inline-block mt-8 px-10 py-4 bg-primary-500 text-white rounded-2xl font-heading font-bold uppercase text-xs tracking-wider hover:bg-primary-400 transition-all glow-primary">Начать печатать</a>
           </div>
         {:else}
-          <div class="s-card overflow-hidden !rounded-2xl">
+          <div class="s-card overflow-hidden">
             <table class="w-full text-left border-collapse">
               <thead>
                 <tr class="border-b border-surface-600/30">

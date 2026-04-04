@@ -6,6 +6,7 @@
   import { typingStore } from '$stores/typing.js';
   import { settingsStore } from '$stores/settings.js';
   import { api } from '$utils/api.js';
+  import { getOfflineWords } from '$utils/wordDifficulty.js';
 
   let testResult = null;
   $: state = $typingStore;
@@ -22,7 +23,7 @@
       const data = await api.getWords('sakha', count, s.difficulty);
       typingStore.init(data.words, s.mode, s.modeValue, 'sakha');
     } catch {
-      typingStore.reset();
+      typingStore.init(getOfflineWords(s.difficulty, count), s.mode, s.modeValue, 'sakha');
     }
   }
 </script>

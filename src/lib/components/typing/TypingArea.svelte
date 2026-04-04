@@ -4,6 +4,7 @@
   import { settingsStore } from '$stores/settings.js';
   import { mapToSakha, getSakhaHint } from '$utils/sakha.js';
   import { api } from '$utils/api.js';
+  import { getOfflineWords } from '$utils/wordDifficulty.js';
   import { userStore } from '$stores/user.js';
   import { soundManager } from '$utils/sound.js';
 
@@ -48,6 +49,7 @@
   let prevMode = '';
   let prevModeValue = 0;
   let prevLanguage = '';
+  let prevDifficulty = '';
 
   export let onTestComplete = () => {};
 
@@ -78,15 +80,17 @@
     return null;
   })();
 
-  // Reload words when mode/value/language change
+  // Reload words when mode/value/language/difficulty change
   $: {
     const m = settings.mode;
     const mv = settings.modeValue;
     const l = settings.language;
-    if (m !== prevMode || mv !== prevModeValue || l !== prevLanguage) {
+    const d = settings.difficulty;
+    if (m !== prevMode || mv !== prevModeValue || l !== prevLanguage || d !== prevDifficulty) {
       prevMode = m;
       prevModeValue = mv;
       prevLanguage = l;
+      prevDifficulty = d;
       loadWords();
     }
   }
@@ -113,7 +117,7 @@
       typingStore.init(data.words, settings.mode, settings.modeValue, settings.language);
     } catch {
       typingStore.init(
-        ['сахалыы', 'суруйҕу', 'тургэнник', 'сурук', 'тыл'],
+        getOfflineWords(settings.difficulty, count),
         settings.mode, settings.modeValue, settings.language
       );
     }
@@ -486,10 +490,10 @@
         // Keep hint visible (don't let it go above canvas)
         if (hintTopY < 2) hintTopY = 2;
 
-        // Background pill
+        // Background pill (opaque for readability)
         ctx.save();
-        ctx.globalAlpha = 0.9;
-        ctx.fillStyle = isDark ? 'rgba(161,161,170,0.16)' : 'rgba(82,82,91,0.12)';
+        ctx.globalAlpha = 1;
+        ctx.fillStyle = isDark ? '#3f3f46' : '#e4e4e7';
         ctx.beginPath();
         if (ctx.roundRect) {
           ctx.roundRect(hintX, hintTopY, hintW, hintH, hintR);
@@ -505,7 +509,7 @@
         ctx.fill();
 
         // Border
-        ctx.strokeStyle = isDark ? 'rgba(161,161,170,0.36)' : 'rgba(82,82,91,0.3)';
+        ctx.strokeStyle = isDark ? '#71717a' : '#a1a1aa';
         ctx.lineWidth = 1;
         ctx.beginPath();
         if (ctx.roundRect) {
@@ -519,10 +523,9 @@
           ctx.closePath();
         }
         ctx.stroke();
-        ctx.globalAlpha = 1.0;
 
         // Hint text
-        ctx.fillStyle = isDark ? '#d4d4d8' : '#3f3f46';
+        ctx.fillStyle = isDark ? '#fafafa' : '#18181b';
         ctx.textBaseline = 'middle';
         ctx.font = `700 ${hintFontSize}px 'JetBrains Mono', monospace`;
         ctx.fillText(hintText, hintX + hintFontSize * 0.8, hintTopY + hintH / 2);
