@@ -199,7 +199,7 @@
                   <tr class="border-b border-surface-700/30 hover:bg-surface-700/20 transition-all">
                     <td class="px-6 sm:px-8 py-5">
                       {#if entry.rank <= 3}
-                        <div class="w-8 h-8 flex items-center justify-center font-heading font-extrabold text-sm
+                        <div class="w-8 h-8 flex items-center rounded-lg justify-center font-heading font-extrabold text-sm
                              {entry.rank === 1 ? 'bg-warning-500/15 text-warning-400' : entry.rank === 2 ? 'bg-surface-300/15 text-surface-300' : 'bg-tertiary-600/15 text-tertiary-500'}">
                           {entry.rank}
                         </div>
