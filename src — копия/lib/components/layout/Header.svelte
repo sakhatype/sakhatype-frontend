@@ -3,24 +3,10 @@
   import { settingsStore } from '$stores/settings.js';
   import { typingStore } from '$stores/typing.js';
   import { page } from '$app/stores';
-  import { Palette } from 'lucide-svelte';
-  import { browser } from '$app/environment';
 
   $: currentPath = $page.url.pathname;
   $: user = $userStore.user;
   $: theme = $settingsStore.theme;
-
-  /** @type {HTMLDivElement | undefined} */
-  let contextMenuEl;
-
-  let contextMenuOpen = false;
-  let menuX = 0;
-  let menuY = 0;
-
-  const MENU_MIN_W = 200;
-  const MENU_MIN_H = 48;
-  /** отступ контекстного меню от краёв окна */
-  const VIEW_MARGIN = 20;
 
   function handleLogoClick(e) {
     if (currentPath === '/' && $typingStore.status === 'finished') {
@@ -28,46 +14,11 @@
       typingStore.reset();
     }
   }
-
-  /** @param {MouseEvent} e */
-  function handleLogoContextMenu(e) {
-    e.preventDefault();
-    if (!browser) return;
-    menuX = Math.min(e.clientX, window.innerWidth - MENU_MIN_W - VIEW_MARGIN);
-    menuY = Math.min(e.clientY, window.innerHeight - MENU_MIN_H - VIEW_MARGIN);
-    menuX = Math.max(VIEW_MARGIN, menuX);
-    menuY = Math.max(VIEW_MARGIN, menuY);
-    contextMenuOpen = true;
-  }
-
-  function closeContextMenu() {
-    contextMenuOpen = false;
-  }
-
-  /** @param {PointerEvent} e */
-  function handleGlobalPointerDown(e) {
-    if (!contextMenuOpen) return;
-    const t = e.target;
-    if (t instanceof Node && contextMenuEl?.contains(t)) return;
-    closeContextMenu();
-  }
-
-  /** @param {KeyboardEvent} e */
-  function handleGlobalKeydown(e) {
-    if (contextMenuOpen && e.key === 'Escape') closeContextMenu();
-  }
 </script>
-
-<svelte:window on:pointerdown={handleGlobalPointerDown} on:keydown={handleGlobalKeydown} />
 
 <header class="container mx-auto px-6 md:px-10 py-6 flex justify-between items-center relative z-20">
   <!-- Logo -->
-  <a
-    href="/"
-    on:click={handleLogoClick}
-    on:contextmenu={handleLogoContextMenu}
-    class="flex items-center gap-1.5 group cursor-pointer"
-  >
+  <a href="/" on:click={handleLogoClick} class="flex items-center gap-1.5 group cursor-pointer">
     <img
       src={theme === 'dark' ? '/logo-b.svg' : '/logo.svg'}
       alt="SAKHATYPE"
@@ -153,29 +104,4 @@
       <a href="/auth" class="bg-primary-500 px-5 py-2.5 rounded-xl text-xs font-bold uppercase text-white tracking-wider hover:bg-primary-400 transition-all">Войти</a>
     {/if}
   </div>
-
-  {#if contextMenuOpen}
-    <div
-      bind:this={contextMenuEl}
-      class="header-context-menu fixed z-[200] min-w-[200px] rounded-lg border py-2 px-2 shadow-xl shadow-black/25 backdrop-blur-xl backdrop-saturate-150 {theme === 'dark'
-        ? 'border-surface-600/50 bg-surface-800/55'
-        : 'border-surface-300/70 bg-white/55'}"
-      style:left="{menuX}px"
-      style:top="{menuY}px"
-      role="menu"
-      aria-label="Контекстное меню"
-    >
-      <a
-        href="/design"
-        class="flex items-center gap-2.5 rounded-md px-3 py-2.5 text-sm font-medium transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500/50 focus-visible:ring-inset {theme === 'dark'
-          ? 'text-surface-100 hover:bg-surface-600/35'
-          : 'text-surface-800 hover:bg-surface-200/80'}"
-        role="menuitem"
-        on:click={closeContextMenu}
-      >
-        <Palette size={16} strokeWidth={2.25} class="shrink-0 opacity-80 text-primary-400" />
-        Дизайн система
-      </a>
-    </div>
-  {/if}
 </header>

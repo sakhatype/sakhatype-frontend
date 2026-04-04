@@ -11,7 +11,6 @@
  * j = 1, если в строке есть пробел, иначе 0.
  *
  * Лёгкий режим: L ∈ [2..7], слова длиннее 5 букв (6–7) — редко (~12%); ~⅓ со спецбуквой.
- * Сложный режим: слова с L ≤ 4 — очень редко (~≤5% партии), если хватает более длинных.
  */
 
 const MAX_EFFECTIVE_LENGTH = 15;
@@ -25,11 +24,6 @@ const W_J = 0.12;
 const D_EXPERT_MIN = 0.3;
 const D_EXPERT_MIN_RELAX = 0.22;
 const EXPERT_WEIGHT_POWER = 2.4;
-
-/** Короткие слова в expert: эффективная длина L ≤ этого значения */
-const EXPERT_SHORT_EFFECTIVE_LEN_MAX = 4;
-const EXPERT_SHORT_WORD_MAX_FRACTION = 0.05;
-const EXPERT_SHORT_EXTRA_WEIGHT_FACTOR = 0.04;
 
 /** Лёгкий режим: L ∈ [2..7], ~⅓ слов со спецбуквой (синхронно с word_difficulty.py) */
 const NORMAL_EASY_LEN_MIN = 2;
@@ -316,133 +310,6 @@ function weightedSampleWithoutReplacement(items, weights, k) {
   return out;
 }
 
-/** @param {number} score */
-function expertWeight(score) {
-  return Math.max(0.001, score ** EXPERT_WEIGHT_POWER);
-}
-
-/**
- * @param {string[]} words
- * @param {number[]} baseWeights
- */
-function expertWeightsForExtraPick(words, baseWeights) {
-  return words.map((w, i) => {
-    const bw = baseWeights[i];
-    const ln = effectiveLetterCount(w);
-    if (ln <= EXPERT_SHORT_EFFECTIVE_LEN_MAX) {
-      return Math.max(0.001, bw * EXPERT_SHORT_EXTRA_WEIGHT_FACTOR);
-    }
-    return Math.max(0.001, bw);
-  });
-}
-
-/**
- * @param {{ w: string, score: number }[]} pool
- * @param {number} count
- * @returns {string[]}
- */
-function pickExpertWeightedSample(pool, count) {
-  if (!pool.length || count <= 0) return [];
-  const wordsOnly = pool.map((x) => x.w);
-  const weights = pool.map((x) => expertWeight(x.score));
-
-  const maxShort = Math.max(0, Math.round(count * EXPERT_SHORT_WORD_MAX_FRACTION));
-  const longEntries = pool.filter((x) => effectiveLetterCount(x.w) > EXPERT_SHORT_EFFECTIVE_LEN_MAX);
-  const shortEntries = pool.filter((x) => effectiveLetterCount(x.w) <= EXPERT_SHORT_EFFECTIVE_LEN_MAX);
-  const longWords = longEntries.map((x) => x.w);
-  const longWeights = longEntries.map((x) => expertWeight(x.score));
-  const shortWords = shortEntries.map((x) => x.w);
-  const shortWeights = shortEntries.map((x) => expertWeight(x.score));
-
-  if (!longWords.length) {
-    if (wordsOnly.length >= count) {
-      return weightedSampleWithoutReplacement(wordsOnly, weights, count);
-    }
-    const first = weightedSampleWithoutReplacement(wordsOnly, weights, wordsOnly.length);
-    const extraW = expertWeightsForExtraPick(wordsOnly, weights);
-    while (first.length < count) {
-      let total = 0;
-      for (const wt of extraW) total += wt;
-      let r = Math.random() * total;
-      let idx = 0;
-      for (let i = 0; i < wordsOnly.length; i++) {
-        r -= extraW[i];
-        if (r <= 0) {
-          idx = i;
-          break;
-        }
-      }
-      first.push(wordsOnly[idx]);
-    }
-    return first;
-  }
-
-  if (longWords.length >= count) {
-    return weightedSampleWithoutReplacement(longWords, longWeights, count);
-  }
-
-  const longFirstCap = Math.max(0, count - maxShort);
-
-  if (longWords.length >= longFirstCap) {
-    const pickedLong = weightedSampleWithoutReplacement(longWords, longWeights, longFirstCap);
-    let need = count - pickedLong.length;
-    /** @type {string[]} */
-    const pickedShort = [];
-    if (shortWords.length && need > 0) {
-      const takeShort = Math.min(need, shortWords.length);
-      pickedShort.push(...weightedSampleWithoutReplacement(shortWords, shortWeights, takeShort));
-    }
-    const out = pickedLong.concat(pickedShort);
-    let still = count - out.length;
-    const extraWLong = expertWeightsForExtraPick(longWords, longWeights);
-    while (still > 0) {
-      let total = 0;
-      for (const wt of extraWLong) total += wt;
-      let r = Math.random() * total;
-      let idx = 0;
-      for (let i = 0; i < longWords.length; i++) {
-        r -= extraWLong[i];
-        if (r <= 0) {
-          idx = i;
-          break;
-        }
-      }
-      out.push(longWords[idx]);
-      still -= 1;
-    }
-    return out;
-  }
-
-  const pickedLong = weightedSampleWithoutReplacement(longWords, longWeights, longWords.length);
-  let need = count - pickedLong.length;
-  /** @type {string[]} */
-  const pickedShort = [];
-  if (shortWords.length && need > 0) {
-    pickedShort.push(
-      ...weightedSampleWithoutReplacement(shortWords, shortWeights, Math.min(need, shortWords.length)),
-    );
-  }
-  const out = pickedLong.concat(pickedShort);
-  let still = count - out.length;
-  const extraWAll = expertWeightsForExtraPick(wordsOnly, weights);
-  while (still > 0) {
-    let total = 0;
-    for (const wt of extraWAll) total += wt;
-    let r = Math.random() * total;
-    let idx = 0;
-    for (let i = 0; i < wordsOnly.length; i++) {
-      r -= extraWAll[i];
-      if (r <= 0) {
-        idx = i;
-        break;
-      }
-    }
-    out.push(wordsOnly[idx]);
-    still -= 1;
-  }
-  return out;
-}
-
 /**
  * Отбор: normal — пул с низким D; expert — взвешенный bias к высокому D (вес ∝ D^γ).
  * @param {string[]} words
@@ -462,8 +329,29 @@ export function pickWordsForGameDifficulty(words, gameDifficulty, count) {
     let pool = scored.filter((x) => x.score >= D_EXPERT_MIN);
     if (pool.length < count) pool = scored.filter((x) => x.score >= D_EXPERT_MIN_RELAX);
     if (pool.length < count) pool = [...scored];
-    if (!pool.length) return [];
-    return pickExpertWeightedSample(pool, count);
+    const wordsOnly = pool.map((x) => x.w);
+    const weights = pool.map((x) => Math.max(0.001, x.score ** EXPERT_WEIGHT_POWER));
+    if (!wordsOnly.length) return [];
+    if (wordsOnly.length >= count) {
+      return weightedSampleWithoutReplacement(wordsOnly, weights, count);
+    }
+    const first = weightedSampleWithoutReplacement(wordsOnly, weights, wordsOnly.length);
+    const extra = [];
+    while (extra.length < count - first.length) {
+      let total = 0;
+      for (const wt of weights) total += wt;
+      let r = Math.random() * total;
+      let idx = 0;
+      for (let i = 0; i < wordsOnly.length; i++) {
+        r -= weights[i];
+        if (r <= 0) {
+          idx = i;
+          break;
+        }
+      }
+      extra.push(wordsOnly[idx]);
+    }
+    return first.concat(extra);
   }
 
   const rawTrimmed = list.map((w) => w.trim());
