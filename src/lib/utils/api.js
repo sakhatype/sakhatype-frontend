@@ -17,7 +17,11 @@ export const api = {
     const res = await fetch(`${API_BASE}/auth/register`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, email, password }),
+      body: JSON.stringify({
+        username,
+        email: (email && String(email).trim()) || null,
+        password,
+      }),
     });
     if (!res.ok) {
       const err = await res.json();
@@ -86,8 +90,10 @@ export const api = {
   },
 
   // Leaderboard
-  async getLeaderboard(mode = 'time', modeValue = 30, limit = 50) {
-    const res = await fetch(`${API_BASE}/leaderboard/?mode=${mode}&mode_value=${modeValue}&limit=${limit}`);
+  async getLeaderboard(mode = 'time', modeValue = 30, limit = 50, difficulty = 'normal') {
+    const res = await fetch(
+      `${API_BASE}/leaderboard/?mode=${mode}&mode_value=${modeValue}&limit=${limit}&difficulty=${difficulty}`,
+    );
     if (!res.ok) return [];
     const contentType = res.headers.get('content-type') || '';
     if (!contentType.includes('application/json')) return [];

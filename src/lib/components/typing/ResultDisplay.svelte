@@ -131,7 +131,7 @@
   </div>
 
   <!-- ═══ DETAIL STATS ═══ -->
-  <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-5 animate-fade-in" style="animation-delay: 0.4s">
+  <!-- <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-5 animate-fade-in" style="animation-delay: 0.4s">
     <div class="s-card p-3 sm:p-4 text-center">
       <p class="mono text-[7px] uppercase tracking-widest text-surface-400 mb-1">Верные</p>
       <p class="text-lg font-heading font-extrabold text-success-400">{state.charsCorrect}</p>
@@ -148,7 +148,7 @@
       <p class="mono text-[7px] uppercase tracking-widest text-surface-400 mb-1">Пропущенные</p>
       <p class="text-lg font-heading font-extrabold text-surface-400">{state.charsMissed}</p>
     </div>
-  </div>
+  </div> -->
 
   <!-- ═══ XP / ACHIEVEMENTS ═══ -->
   {#if xpEarned > 0}

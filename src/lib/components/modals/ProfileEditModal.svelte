@@ -28,7 +28,9 @@
     try {
       const updates = {};
       if (username !== currentUser.username) updates.username = username;
-      if (email !== currentUser.email) updates.email = email;
+      const prevEmail = currentUser.email ?? '';
+      const nextEmail = email.trim();
+      if (nextEmail !== prevEmail) updates.email = nextEmail || null;
       if (newPassword) { updates.current_password = currentPassword; updates.new_password = newPassword; }
       if (Object.keys(updates).length > 0) {
         const response = await api.updateProfile(updates, $userStore.token);
@@ -68,7 +70,7 @@
           <input type="text" bind:value={username} class="input-sakha w-full" placeholder="username" />
         </div>
         <div>
-          <label class="mono text-[9px] uppercase tracking-[0.2em] text-surface-400 block mb-2">Email</label>
+          <label class="mono text-[9px] uppercase tracking-[0.2em] text-surface-400 block mb-2">Email <span class="text-surface-500 font-normal normal-case tracking-normal">(необязательно)</span></label>
           <input type="email" bind:value={email} class="input-sakha w-full" placeholder="email@example.com" />
         </div>
         <div class="border-t border-surface-600/30 pt-5 mt-6">

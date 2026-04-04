@@ -50,8 +50,8 @@
           </div>
           {#if mode === 'register'}
           <div>
-            <label class="mono text-[9px] uppercase tracking-[0.2em] text-surface-400 block mb-2">Email</label>
-            <input bind:value={email} type="email" class="input-sakha w-full" placeholder="email@example.com" />
+            <label class="mono text-[9px] uppercase tracking-[0.2em] text-surface-400 block mb-2">Email <span class="text-surface-500 font-normal normal-case tracking-normal">(необязательно)</span></label>
+            <input bind:value={email} type="email" class="input-sakha w-full" placeholder="можно указать позже в профиле" />
           </div>
           {/if}
           <div>

@@ -793,13 +793,15 @@
     </div>
 
     <div class="mt-[75px] sm:mt-[75px] h-[72px] flex flex-wrap items-center justify-center gap-3 sm:gap-5 select-none {theme === 'dark' ? 'opacity-50' : 'opacity-100'}">
-      {#each Object.entries(settings.customBindings || {}) as [key, char]}
-        <div class="flex items-center gap-1.5">
-          <span class="mono text-[10px] px-2 py-0 rounded-md border text-surface-400 {theme === 'dark' ? 'bg-surface-800/50 border-surface-600/50' : 'bg-white border-surface-300'}">{key}</span>
-          <span class="text-[14px] mono text-surface-500">→</span>
-          <span class="text-[14px] font-normal text-primary-400/70">{char}</span>
-        </div>
-      {/each}
+      {#if settings.sakhaBinds}
+        {#each Object.entries(settings.customBindings || {}) as [key, char]}
+          <div class="flex items-center gap-1.5">
+            <span class="mono text-[10px] px-2 py-0 rounded-md border text-surface-400 {theme === 'dark' ? 'bg-surface-800/50 border-surface-600/50' : 'bg-white border-surface-300'}">{key}</span>
+            <span class="text-[14px] mono text-surface-500">→</span>
+            <span class="text-[14px] font-normal text-primary-400/70">{char}</span>
+          </div>
+        {/each}
+      {/if}
       <div class="w-full flex items-center justify-center gap-3 sm:gap-5 mt-0">
         <div class="flex items-center gap-1.5">
           <span class="mono text-[10px] px-2 py-0 rounded-md border text-surface-400 {theme === 'dark' ? 'bg-surface-800/50 border-surface-600/50' : 'bg-white border-surface-300'}">Tab</span>
