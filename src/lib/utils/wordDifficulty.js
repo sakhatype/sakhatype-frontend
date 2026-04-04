@@ -10,7 +10,7 @@
  * H — доля соседних пар, где ровно один символ — спецбуква.
  * j = 1, если в строке есть пробел, иначе 0.
  *
- * Лёгкий режим при отборе: только L ∈ [2..7], ~⅓ слов с ≥1 спецбуквой; длинные не подмешиваются.
+ * Лёгкий режим: L ∈ [2..7], слова длиннее 5 букв (6–7) — редко (~12%); ~⅓ со спецбуквой.
  */
 
 const MAX_EFFECTIVE_LENGTH = 15;
@@ -28,6 +28,8 @@ const EXPERT_WEIGHT_POWER = 2.4;
 /** Лёгкий режим: L ∈ [2..7], ~⅓ слов со спецбуквой (синхронно с word_difficulty.py) */
 const NORMAL_EASY_LEN_MIN = 2;
 const NORMAL_EASY_LEN_MAX = 7;
+const NORMAL_EASY_SHORT_LEN_MAX = 5;
+const NORMAL_LONG_WORD_MAX_FRACTION = 0.12;
 const NORMAL_SPECIAL_WORD_RATIO = 1 / 3;
 
 /**
@@ -125,39 +127,23 @@ function shuffleInPlace(arr) {
 }
 
 /**
- * @param {string[]} raw
+ * @param {{ w: string, hasSpec: boolean }[]} pairs
  * @param {number} count
- * @param {number} lenMax
- * @param {Set<string>} [exclude]
  * @returns {string[]}
  */
-function pickNormalEasyBounded(raw, count, lenMax, exclude) {
-  const banned = exclude ?? new Set();
-  /** @type {{ w: string, hasSpec: boolean }[]} */
-  const eligible = [];
-  for (const item of raw) {
-    const w = item.trim();
-    if (!w || w.includes(' ') || banned.has(w)) continue;
-    const ln = effectiveLetterCount(w);
-    if (ln < NORMAL_EASY_LEN_MIN || ln > lenMax) continue;
-    eligible.push({ w, hasSpec: countYakutSpecialChars(w) > 0 });
-  }
-  if (!eligible.length) return [];
-
-  const noSp = eligible.filter((e) => !e.hasSpec).map((e) => e.w);
-  const wiSp = eligible.filter((e) => e.hasSpec).map((e) => e.w);
+function pickFromSpecPairs(pairs, count) {
+  if (count <= 0 || !pairs.length) return [];
+  const noSp = pairs.filter((e) => !e.hasSpec).map((e) => e.w);
+  const wiSp = pairs.filter((e) => e.hasSpec).map((e) => e.w);
   shuffleInPlace(noSp);
   shuffleInPlace(wiSp);
-
   const specTarget = Math.min(wiSp.length, Math.max(0, Math.round(count * NORMAL_SPECIAL_WORD_RATIO)));
   const plainTarget = count - specTarget;
-
   const out = [];
   out.push(...wiSp.slice(0, specTarget));
   out.push(...noSp.slice(0, plainTarget));
-
   const used = new Set(out);
-  const rest = eligible.map((e) => e.w).filter((w) => !used.has(w));
+  const rest = pairs.map((e) => e.w).filter((w) => !used.has(w));
   shuffleInPlace(rest);
   for (const w of rest) {
     if (out.length >= count) break;
@@ -168,22 +154,98 @@ function pickNormalEasyBounded(raw, count, lenMax, exclude) {
 
 /**
  * @param {string[]} raw
- * @returns {{ noSp: string[], wiSp: string[] }}
+ * @returns {{ shortPairs: { w: string, hasSpec: boolean }[], longPairs: { w: string, hasSpec: boolean }[] }}
  */
-function easyVocabSplit(raw) {
+function buildShortLongPairs(raw) {
+  /** @type {{ w: string, hasSpec: boolean }[]} */
+  const shortPairs = [];
+  /** @type {{ w: string, hasSpec: boolean }[]} */
+  const longPairs = [];
+  for (const item of raw) {
+    const w = item.trim();
+    if (!w || w.includes(' ')) continue;
+    const ln = effectiveLetterCount(w);
+    if (ln < NORMAL_EASY_LEN_MIN || ln > NORMAL_EASY_LEN_MAX) continue;
+    const hasSpec = countYakutSpecialChars(w) > 0;
+    if (ln <= NORMAL_EASY_SHORT_LEN_MAX) shortPairs.push({ w, hasSpec });
+    else longPairs.push({ w, hasSpec });
+  }
+  return { shortPairs, longPairs };
+}
+
+/**
+ * @param {string[]} raw
+ * @param {number} count
+ * @returns {string[]}
+ */
+function pickNormalEasyRareLong(raw, count) {
+  const { shortPairs, longPairs } = buildShortLongPairs(raw);
+  const longTarget = Math.min(count, Math.max(0, Math.round(count * NORMAL_LONG_WORD_MAX_FRACTION)));
+  const shortTarget = count - longTarget;
+  const shortWords = shortPairs.map((e) => e.w);
+  const longWords = longPairs.map((e) => e.w);
+
+  const partS = pickFromSpecPairs(shortPairs, shortTarget);
+  while (partS.length < shortTarget && (shortWords.length || longWords.length)) {
+    partS.push(
+      shortWords.length
+        ? shortWords[Math.floor(Math.random() * shortWords.length)]
+        : longWords[Math.floor(Math.random() * longWords.length)],
+    );
+  }
+
+  const partL = pickFromSpecPairs(longPairs, longTarget);
+  while (partL.length < longTarget && (longWords.length || shortWords.length)) {
+    partL.push(
+      longWords.length
+        ? longWords[Math.floor(Math.random() * longWords.length)]
+        : shortWords[Math.floor(Math.random() * shortWords.length)],
+    );
+  }
+
+  return partS.concat(partL).slice(0, count);
+}
+
+/**
+ * @param {string[]} raw
+ * @returns {{ sNo: string[], sYes: string[], lNo: string[], lYes: string[] }}
+ */
+function easyVocabSplitShortLong(raw) {
   const seen = new Set();
-  const noSp = [];
-  const wiSp = [];
+  const sNo = [];
+  const sYes = [];
+  const lNo = [];
+  const lYes = [];
   for (const item of raw) {
     const w = item.trim();
     if (!w || w.includes(' ') || seen.has(w)) continue;
     const ln = effectiveLetterCount(w);
     if (ln < NORMAL_EASY_LEN_MIN || ln > NORMAL_EASY_LEN_MAX) continue;
     seen.add(w);
-    if (countYakutSpecialChars(w) > 0) wiSp.push(w);
-    else noSp.push(w);
+    const spec = countYakutSpecialChars(w) > 0;
+    if (ln <= NORMAL_EASY_SHORT_LEN_MAX) {
+      if (spec) sYes.push(w);
+      else sNo.push(w);
+    } else if (spec) lYes.push(w);
+    else lNo.push(w);
   }
-  return { noSp, wiSp };
+  return { sNo, sYes, lNo, lYes };
+}
+
+/**
+ * @param {string[]} noSp
+ * @param {string[]} yesSp
+ * @returns {string | null}
+ */
+function pickSpecFromVocab(noSp, yesSp) {
+  if (yesSp.length && noSp.length) {
+    return Math.random() < NORMAL_SPECIAL_WORD_RATIO
+      ? yesSp[Math.floor(Math.random() * yesSp.length)]
+      : noSp[Math.floor(Math.random() * noSp.length)];
+  }
+  if (noSp.length) return noSp[Math.floor(Math.random() * noSp.length)];
+  if (yesSp.length) return yesSp[Math.floor(Math.random() * yesSp.length)];
+  return null;
 }
 
 /**
@@ -194,20 +256,26 @@ function easyVocabSplit(raw) {
 function padNormalEasyToCount(picked, raw, count) {
   const need = count - picked.length;
   if (need <= 0) return;
-  const { noSp, wiSp } = easyVocabSplit(raw);
-  if (!noSp.length && !wiSp.length) return;
+  const { sNo, sYes, lNo, lYes } = easyVocabSplitShortLong(raw);
+  if (!sNo.length && !sYes.length && !lNo.length && !lYes.length) return;
+
+  const longCap = Math.max(0, Math.round(count * NORMAL_LONG_WORD_MAX_FRACTION));
+  let longInPicked = picked.reduce((n, w) => {
+    const ln = effectiveLetterCount(w);
+    return n + (ln > NORMAL_EASY_SHORT_LEN_MAX && ln <= NORMAL_EASY_LEN_MAX ? 1 : 0);
+  }, 0);
+
   for (let i = 0; i < need; i++) {
-    if (wiSp.length && noSp.length) {
-      if (Math.random() < NORMAL_SPECIAL_WORD_RATIO) {
-        picked.push(wiSp[Math.floor(Math.random() * wiSp.length)]);
-      } else {
-        picked.push(noSp[Math.floor(Math.random() * noSp.length)]);
-      }
-    } else if (noSp.length) {
-      picked.push(noSp[Math.floor(Math.random() * noSp.length)]);
-    } else {
-      picked.push(wiSp[Math.floor(Math.random() * wiSp.length)]);
-    }
+    const allowLong = longInPicked < longCap && (lNo.length || lYes.length);
+    const wantLong = allowLong && Math.random() < NORMAL_LONG_WORD_MAX_FRACTION;
+    /** @type {string | null} */
+    let w = wantLong
+      ? pickSpecFromVocab(lNo, lYes) || pickSpecFromVocab(sNo, sYes)
+      : pickSpecFromVocab(sNo, sYes) || pickSpecFromVocab(lNo, lYes);
+    if (!w) break;
+    picked.push(w);
+    const ln = effectiveLetterCount(w);
+    if (ln > NORMAL_EASY_SHORT_LEN_MAX && ln <= NORMAL_EASY_LEN_MAX) longInPicked += 1;
   }
 }
 
@@ -288,7 +356,7 @@ export function pickWordsForGameDifficulty(words, gameDifficulty, count) {
 
   const rawTrimmed = list.map((w) => w.trim());
   /** @type {string[]} */
-  const picked = pickNormalEasyBounded(rawTrimmed, count, NORMAL_EASY_LEN_MAX);
+  const picked = pickNormalEasyRareLong(rawTrimmed, count);
   padNormalEasyToCount(picked, rawTrimmed, count);
   if (picked.length < count && picked.length > 0) {
     while (picked.length < count) {
