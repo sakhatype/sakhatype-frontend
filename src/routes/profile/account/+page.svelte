@@ -176,16 +176,33 @@
         </div>
 
         <div class="col-span-12 lg:col-span-8 flex flex-col gap-3">
-          <div class="s-card p-8 relative overflow-hidden !rounded-3xl">
-            <div class="mb-6">
-              <h2
-                class="text-2xl font-heading font-extrabold tracking-tight"
-                class:text-surface-50={theme === 'dark'}
-                class:text-surface-900={theme === 'light'}
+          <div class="s-card p-8 relative overflow-hidden">
+            <div class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
+              <div class="min-w-0">
+                <h2
+                  class="text-2xl font-heading font-extrabold tracking-tight"
+                  class:text-surface-50={theme === 'dark'}
+                  class:text-surface-900={theme === 'light'}
+                >
+                  Управление аккаунтом
+                </h2>
+                <p class="mono text-[9px] text-surface-400 uppercase tracking-widest mt-1">Настройки аккаунта</p>
+              </div>
+              <button
+                type="button"
+                on:click={handleLogout}
+                class="shrink-0 self-end sm:self-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all border border-error-500/25 text-error-400 hover:bg-error-500/10 hover:text-error-300"
               >
-                Управление аккаунтом
-              </h2>
-              <p class="mono text-[9px] text-surface-400 uppercase tracking-widest mt-1">Настройки аккаунта</p>
+                <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  ><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line
+                    x1="21"
+                    y1="12"
+                    x2="9"
+                    y2="12"
+                  /></svg
+                >
+                Выйти из аккаунта
+              </button>
             </div>
 
             {#if error}
@@ -201,31 +218,36 @@
               </div>
             {/if}
 
-            <div class="flex gap-2 mb-6" role="tablist" aria-label="Разделы настроек">
-              <button
-                type="button"
-                role="tab"
-                aria-selected={activeTab === 'profile'}
-                on:click={() => setTab('profile')}
-                class="flex-1 px-4 py-3 rounded-2xl text-[10px] font-heading font-bold uppercase tracking-widest transition-all
-                  {activeTab === 'profile'
-                  ? 'bg-primary-500/10 text-primary-400'
-                  : 'text-surface-400 hover:text-surface-50'}"
-              >
-                Профиль
-              </button>
-              <button
-                type="button"
-                role="tab"
-                aria-selected={activeTab === 'security'}
-                on:click={() => setTab('security')}
-                class="flex-1 px-4 py-3 rounded-2xl text-[10px] font-heading font-bold uppercase tracking-widest transition-all
-                  {activeTab === 'security'
-                  ? 'bg-primary-500/10 text-primary-400'
-                  : 'text-surface-400 hover:text-surface-50'}"
-              >
-                Безопасность
-              </button>
+            <div class="flex flex-col gap-2 mb-6">
+              <p class="mono text-[10px] font-bold uppercase tracking-wider text-surface-500 px-1">Раздел</p>
+              <div class="flex gap-2" role="tablist" aria-label="Разделы настроек">
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={activeTab === 'profile'}
+                  on:click={() => setTab('profile')}
+                  class="flex-1 px-4 py-3 rounded-lg text-xs font-bold uppercase tracking-wider text-left transition-all border
+                    {activeTab === 'profile'
+                    ? 'bg-primary-500/10 text-primary-400 border-primary-500/25'
+                    : 'text-surface-400 hover:text-surface-100 border-surface-600/35'}"
+                  class:border-surface-300={theme === 'light' && activeTab !== 'profile'}
+                >
+                  Профиль
+                </button>
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={activeTab === 'security'}
+                  on:click={() => setTab('security')}
+                  class="flex-1 px-4 py-3 rounded-lg text-xs font-bold uppercase tracking-wider text-left transition-all border
+                    {activeTab === 'security'
+                    ? 'bg-primary-500/10 text-primary-400 border-primary-500/25'
+                    : 'text-surface-400 hover:text-surface-100 border-surface-600/35'}"
+                  class:border-surface-300={theme === 'light' && activeTab !== 'security'}
+                >
+                  Безопасность
+                </button>
+              </div>
             </div>
 
             {#if activeTab === 'profile'}
@@ -288,21 +310,6 @@
                   {loading ? 'Сохранение...' : 'Обновить пароль'}
                 </button>
               {/if}
-              <button
-                type="button"
-                on:click={handleLogout}
-                class="w-full border border-error-500/20 hover:bg-error-500/10 text-error-400 py-4 rounded-2xl font-heading font-bold uppercase text-xs tracking-wider transition-all flex items-center justify-center gap-2"
-              >
-                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                  ><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line
-                    x1="21"
-                    y1="12"
-                    x2="9"
-                    y2="12"
-                  /></svg
-                >
-                Выйти из аккаунта
-              </button>
             </div>
           </div>
         </div>
