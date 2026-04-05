@@ -1,6 +1,6 @@
 <script>
   import { onMount, onDestroy } from 'svelte';
-  import { api } from '$utils/api.js';
+  import { api, API_BASE } from '$utils/api.js';
   import { userStore } from '$stores/user.js';
   import { settingsStore } from '$stores/settings.js';
   import { mapToSakha } from '$utils/sakha.js';
@@ -21,10 +21,9 @@
   async function createRoom() { if (!user) return; try { const d = await api.createRoom(settings.mode, settings.modeValue, 'sakha'); joinRoom(d.room_id); } catch {} }
   function joinRoom(rid) {
     if (!user) return; currentRoom = rid; gameState = 'waiting';
-    const apiUrl = import.meta.env.VITE_API_URL || '';
     let wsBase;
-    if (apiUrl && apiUrl.startsWith('http')) { wsBase = apiUrl.replace(/^http/, 'ws'); }
-    else { wsBase = `${location.protocol==='https:'?'wss':'ws'}://${location.host}/api`; }
+    if (API_BASE.startsWith('http')) wsBase = API_BASE.replace(/^http/, 'ws');
+    else wsBase = `${location.protocol === 'https:' ? 'wss' : 'ws'}://${location.host}${API_BASE.startsWith('/') ? API_BASE : '/api'}`;
     ws = new WebSocket(`${wsBase}/arena/ws/${rid}/${user.username}`);
     ws.onmessage = (e) => { const m = JSON.parse(e.data);
       if (m.type==='player_joined'||m.type==='player_left') players = m.players||{};

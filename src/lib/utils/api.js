@@ -1,4 +1,19 @@
-const API_BASE = import.meta.env.VITE_API_URL || '/api';
+/**
+ * Базовый URL API для fetch.
+ * Если задан только origin без `/api` (например `https://api.sakhatype.ru`), дописываем `/api`:
+ * роуты FastAPI висят под префиксом `/api`, иначе запросы на `/profile/...` дают 404 за прокси.
+ */
+function resolveApiBase(raw) {
+  const s = String(raw ?? '').trim();
+  const base = (s || '/api').replace(/\/+$/, '');
+  if (!/^https?:\/\//i.test(base)) {
+    return base || '/api';
+  }
+  if (/\/api$/i.test(base)) return base;
+  return `${base}/api`;
+}
+
+export const API_BASE = resolveApiBase(import.meta.env.VITE_API_URL);
 
 /**
  * FastAPI 422: detail — строка, объект или массив { loc, msg, type }.

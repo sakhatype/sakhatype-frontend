@@ -7,6 +7,7 @@
   import { api } from '$utils/api.js';
   import Footer from '$components/layout/Footer.svelte';
   import AvatarUpload from '$components/modals/AvatarUpload.svelte';
+  import { mediaUrl } from '$utils/mediaUrl.js';
 
   $: theme = $settingsStore.theme;
   $: currentUser = $userStore.user;
@@ -126,13 +127,25 @@
               style="background: rgb(113 113 122);"
             ></div>
             <div class="relative z-10">
-              <div class="mb-6 flex justify-center lg:justify-start">
-                <AvatarUpload
-                  currentAvatarUrl={currentUser.avatar_url}
-                  username={currentUser.username}
-                  onUploaded={() => userStore.refresh()}
-                />
+              <div
+                class="w-28 h-28 rounded-2xl border-2 border-primary-500/30 overflow-hidden mb-6 mx-auto lg:mx-0 flex items-center justify-center bg-gradient-to-br from-primary-500/15 to-transparent"
+              >
+                {#if currentUser.avatar_url}
+                  <img
+                    src={mediaUrl(currentUser.avatar_url)}
+                    alt=""
+                    class="w-full h-full object-cover"
+                  />
+                {:else}
+                  <span
+                    class="text-5xl font-heading font-black text-primary-400"
+                    class:text-surface-900={theme === 'light'}
+                    >{currentUser.username.charAt(0).toUpperCase()}</span>
+                {/if}
               </div>
+              <p class="mono text-[9px] text-surface-500 uppercase tracking-wider mb-6 text-center lg:text-left">
+                Аватар — во вкладке «Профиль»
+              </p>
               <h2
                 class="text-3xl font-heading font-extrabold tracking-tight uppercase mb-1"
                 class:text-surface-50={theme === 'dark'}
@@ -253,6 +266,24 @@
 
             {#if activeTab === 'profile'}
               <div class="space-y-5 mb-6" role="tabpanel">
+                <div class="pb-2 border-b border-surface-600/25 mb-6">
+                  <p
+                    class="mono text-[9px] uppercase tracking-[0.2em] text-surface-400 block mb-1"
+                    class:text-surface-500={theme === 'light'}
+                  >
+                    Аватар
+                  </p>
+                  <p class="text-[11px] text-surface-500 mb-4 max-w-md">
+                    Нажмите на изображение — загрузите фото, квадратная обрезка, сохранение 128×128 WebP.
+                  </p>
+                  <div class="flex justify-start">
+                    <AvatarUpload
+                      currentAvatarUrl={currentUser.avatar_url}
+                      username={currentUser.username}
+                      onUploaded={() => userStore.refresh()}
+                    />
+                  </div>
+                </div>
                 <div>
                   <label class="mono text-[9px] uppercase tracking-[0.2em] text-surface-400 block mb-2"
                     >Имя пользователя</label
