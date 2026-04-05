@@ -1,10 +1,13 @@
 <script>
   import { onMount } from 'svelte';
+  import { browser } from '$app/environment';
   import { api } from '$utils/api.js';
   import { settingsStore } from '$stores/settings.js';
   import Footer from '$components/layout/Footer.svelte';
 
   $: theme = $settingsStore.theme;
+
+  const LB_STORAGE_KEY = 'sakhatype_leaderboard';
 
   /** @type {any[]} */
   let leaderboard = [];
@@ -18,7 +21,33 @@
   const wordValues = [10, 25, 50];
   $: currentValues = mode === 'time' ? timeValues : wordValues;
 
-  onMount(() => load());
+  function persistLeaderboardPrefs() {
+    if (!browser) return;
+    try {
+      localStorage.setItem(LB_STORAGE_KEY, JSON.stringify({ mode, modeValue, difficulty }));
+    } catch {
+      /* ignore */
+    }
+  }
+
+  onMount(() => {
+    if (browser) {
+      try {
+        const raw = localStorage.getItem(LB_STORAGE_KEY);
+        if (raw) {
+          const p = JSON.parse(raw);
+          if (p.mode === 'time' || p.mode === 'words') mode = p.mode;
+          const allowed = mode === 'words' ? wordValues : timeValues;
+          if (Number.isFinite(p.modeValue) && allowed.includes(p.modeValue)) modeValue = p.modeValue;
+          else modeValue = mode === 'words' ? 25 : 30;
+          if (p.difficulty === 'expert' || p.difficulty === 'normal') difficulty = p.difficulty;
+        }
+      } catch {
+        /* ignore */
+      }
+    }
+    load();
+  });
 
   async function load() {
     loading = true;
@@ -33,17 +62,20 @@
   function selMode(m) {
     mode = m;
     modeValue = m === 'time' ? 30 : 25;
+    persistLeaderboardPrefs();
     load();
   }
 
   function selVal(v) {
     modeValue = v;
+    persistLeaderboardPrefs();
     load();
   }
 
   /** @param {'normal' | 'expert'} d */
   function selDifficulty(d) {
     difficulty = d;
+    persistLeaderboardPrefs();
     load();
   }
 
