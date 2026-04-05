@@ -1,6 +1,32 @@
 const API_BASE = import.meta.env.VITE_API_URL || '/api';
 
 /**
+ * FastAPI 422: detail — строка, объект или массив { loc, msg, type }.
+ * @param {unknown} detail
+ * @param {string} fallback
+ */
+function formatApiDetail(detail, fallback) {
+  if (detail == null) return fallback;
+  if (typeof detail === 'string') return detail;
+  if (Array.isArray(detail)) {
+    return (
+      detail
+        .map((e) => (e && typeof e === 'object' && 'msg' in e ? String(e.msg) : JSON.stringify(e)))
+        .filter(Boolean)
+        .join(' ') || fallback
+    );
+  }
+  if (typeof detail === 'object' && detail !== null && 'msg' in detail) {
+    return String(detail.msg);
+  }
+  try {
+    return JSON.stringify(detail);
+  } catch {
+    return fallback;
+  }
+}
+
+/**
  * @param {string} token
  * @returns {Record<string, string>}
  */
@@ -17,11 +43,15 @@ export const api = {
     const res = await fetch(`${API_BASE}/auth/register`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, password }),
+      body: JSON.stringify({
+        username: String(username ?? '').trim(),
+        password: password ?? '',
+        email: null,
+      }),
     });
     if (!res.ok) {
-      const err = await res.json();
-      throw new Error(err.detail || 'Registration failed');
+      const err = await res.json().catch(() => ({}));
+      throw new Error(formatApiDetail(err.detail, 'Registration failed'));
     }
     return res.json();
   },
@@ -33,8 +63,8 @@ export const api = {
       body: JSON.stringify({ username, password }),
     });
     if (!res.ok) {
-      const err = await res.json();
-      throw new Error(err.detail || 'Login failed');
+      const err = await res.json().catch(() => ({}));
+      throw new Error(formatApiDetail(err.detail, 'Login failed'));
     }
     return res.json();
   },
@@ -110,8 +140,8 @@ export const api = {
       body: JSON.stringify(updates),
     });
     if (!res.ok) {
-      const err = await res.json();
-      throw new Error(err.detail || 'Failed to update profile');
+      const err = await res.json().catch(() => ({}));
+      throw new Error(formatApiDetail(err.detail, 'Failed to update profile'));
     }
     return res.json();
   },
