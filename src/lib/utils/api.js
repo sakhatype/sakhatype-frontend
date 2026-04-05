@@ -13,15 +13,11 @@ function authHeaders(token) {
 
 export const api = {
   // Auth
-  async register(username, email, password) {
+  async register(username, password) {
     const res = await fetch(`${API_BASE}/auth/register`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        username,
-        email: (email && String(email).trim()) || null,
-        password,
-      }),
+      body: JSON.stringify({ username, password }),
     });
     if (!res.ok) {
       const err = await res.json();

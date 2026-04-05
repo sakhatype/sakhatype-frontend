@@ -5,10 +5,10 @@
 
   $: theme = $settingsStore.theme;
 
-  let mode = 'login'; let username = ''; let email = ''; let password = ''; let error = ''; let loading = false;
+  let mode = 'login'; let username = ''; let password = ''; let error = ''; let loading = false;
   async function handleSubmit() {
     error = ''; loading = true;
-    let r = mode === 'login' ? await userStore.login(username, password) : await userStore.register(username, email, password);
+    let r = mode === 'login' ? await userStore.login(username, password) : await userStore.register(username, password);
     loading = false;
     if (r.success) goto('/'); else error = r.error;
   }
@@ -48,12 +48,6 @@
             <label class="mono text-[9px] uppercase tracking-[0.2em] text-surface-400 block mb-2">Имя пользователя</label>
             <input bind:value={username} class="input-sakha w-full" placeholder="юзернейм" />
           </div>
-          {#if mode === 'register'}
-          <div>
-            <label class="mono text-[9px] uppercase tracking-[0.2em] text-surface-400 block mb-2">Email <span class="text-surface-500 font-normal normal-case tracking-normal">(необязательно)</span></label>
-            <input bind:value={email} type="email" class="input-sakha w-full" placeholder="можно указать позже в профиле" />
-          </div>
-          {/if}
           <div>
             <label class="mono text-[9px] uppercase tracking-[0.2em] text-surface-400 block mb-2">Пароль</label>
             <input bind:value={password} type="password" class="input-sakha w-full" placeholder="••••••" />

@@ -15,10 +15,10 @@ function createUserStore() {
   return {
     subscribe,
 
-    async register(username, email, password) {
+    async register(username, password) {
       update((s) => ({ ...s, loading: true }));
       try {
-        const data = await api.register(username, email, password);
+        const data = await api.register(username, password);
         const state = { user: data.user, token: data.access_token, loading: false };
         set(state);
         if (browser) {
