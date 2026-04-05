@@ -29,19 +29,24 @@ export default defineConfig(({ mode }) => {
   const fileEnv = loadEnv(mode, process.cwd(), '');
   const siteUrl = (process.env.VITE_SITE_URL || fileEnv.VITE_SITE_URL || '').trim();
 
+  const apiProxy = {
+    '/api': {
+      target: 'http://localhost:8000',
+      changeOrigin: true
+    },
+    '/api/arena/ws': {
+      target: 'ws://localhost:8000',
+      ws: true
+    }
+  };
+
   return {
     plugins: [sveltekit(), seoSiteOriginOverride(siteUrl)],
     server: {
-      proxy: {
-        '/api': {
-          target: 'http://localhost:8000',
-          changeOrigin: true
-        },
-        '/api/arena/ws': {
-          target: 'ws://localhost:8000',
-          ws: true
-        }
-      }
+      proxy: { ...apiProxy }
+    },
+    preview: {
+      proxy: { ...apiProxy }
     }
   };
 });

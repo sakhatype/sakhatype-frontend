@@ -105,8 +105,10 @@
 
   /** @param {{ username?: string, avatar_url?: string | null, avatarUrl?: string | null }} entry */
   function leaderboardAvatarRaw(entry) {
-    const raw = entry.avatar_url ?? entry.avatarUrl;
-    return typeof raw === 'string' ? raw.trim() : '';
+    const raw = entry?.avatar_url ?? entry?.avatarUrl;
+    if (raw == null) return '';
+    const s = String(raw).trim();
+    return s;
   }
 
   /** @param {{ username?: string, avatar_url?: string | null, avatarUrl?: string | null }} entry */
