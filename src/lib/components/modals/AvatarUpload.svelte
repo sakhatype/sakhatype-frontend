@@ -2,6 +2,7 @@
   import { userStore } from '$stores/user.js';
   import { settingsStore } from '$stores/settings.js';
   import { api } from '$utils/api.js';
+  import { mediaUrl } from '$utils/mediaUrl.js';
 
   export let currentAvatarUrl = null;
   export let username = '';
@@ -19,7 +20,7 @@
   // Crop state
   let imgEl;
   let canvasEl;
-  let cropX = 0, cropY = 0, cropSize = 160;
+  let cropX = 0, cropY = 0, cropSize = 128;
   let imgNaturalW = 0, imgNaturalH = 0;
   let dragging = false;
   let dragStartX = 0, dragStartY = 0;
@@ -43,10 +44,22 @@
     showCropModal = true;
   }
 
+  const MIN_SIDE = 128;
+
   function onImgLoad() {
     if (!imgEl) return;
     imgNaturalW = imgEl.naturalWidth;
     imgNaturalH = imgEl.naturalHeight;
+
+    if (Math.min(imgNaturalW, imgNaturalH) < MIN_SIDE) {
+      error = `Изображение слишком маленькое: нужно минимум ${MIN_SIDE}×${MIN_SIDE} px`;
+      showCropModal = false;
+      URL.revokeObjectURL(previewUrl);
+      previewUrl = null;
+      selectedFile = null;
+      if (fileInput) fileInput.value = '';
+      return;
+    }
 
     // Display in a max 400px box
     const maxDisplay = 400;
@@ -83,7 +96,7 @@
   function handleWheel(e) {
     e.preventDefault();
     const delta = e.deltaY > 0 ? 20 : -20;
-    const newSize = Math.max(80, Math.min(Math.min(imgNaturalW, imgNaturalH), cropSize + delta));
+    const newSize = Math.max(MIN_SIDE, Math.min(Math.min(imgNaturalW, imgNaturalH), cropSize + delta));
     // Keep centered
     const cx = cropX + cropSize / 2;
     const cy = cropY + cropSize / 2;
@@ -98,25 +111,29 @@
     error = '';
 
     try {
-      // Create a cropped canvas
+      // Create a cropped canvas (128×128 — итоговый размер на сервере)
       const canvas = document.createElement('canvas');
-      canvas.width = 160;
-      canvas.height = 160;
+      canvas.width = MIN_SIDE;
+      canvas.height = MIN_SIDE;
       const ctx = canvas.getContext('2d');
 
       const img = new window.Image();
       img.src = previewUrl;
       await new Promise((resolve) => { img.onload = resolve; });
 
-      ctx.drawImage(img, cropX, cropY, cropSize, cropSize, 0, 0, 160, 160);
+      ctx.drawImage(img, cropX, cropY, cropSize, cropSize, 0, 0, MIN_SIDE, MIN_SIDE);
 
       // Convert to blob
       const blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/webp', 0.85));
       const file = new File([blob], 'avatar.webp', { type: 'image/webp' });
 
       const result = await api.uploadAvatar(file, $userStore.token);
-      userStore.updateUser({ avatar_url: result.avatar_url });
-      onUploaded(result.avatar_url);
+      if (result.user) {
+        userStore.updateUser(result.user);
+      } else if (result.avatar_url) {
+        userStore.updateUser({ avatar_url: result.avatar_url });
+      }
+      onUploaded(result.avatar_url || result.user?.avatar_url);
       showCropModal = false;
       previewUrl = null;
       selectedFile = null;
@@ -145,7 +162,7 @@
   >
     <div class="w-28 h-28 rounded-2xl border-2 border-primary-500/30 overflow-hidden bg-gradient-to-br from-primary-500/20 to-transparent flex items-center justify-center">
       {#if currentAvatarUrl}
-        <img src={currentAvatarUrl} alt="Avatar" class="w-full h-full object-cover" />
+        <img src={mediaUrl(currentAvatarUrl)} alt="Avatar" class="w-full h-full object-cover" />
       {:else}
         <span class="text-5xl font-bold "
               class:text-surface-50={theme === 'dark'}
@@ -238,7 +255,7 @@
                         margin-left: {-(cropX / cropSize) * 48}px; margin-top: {-(cropY / cropSize) * 48}px;" />
           {/if}
         </div>
-        <span class="text-[9px] mono text-surface-500">160 × 160 WebP</span>
+        <span class="text-[9px] mono text-surface-500">128 × 128 WebP</span>
       </div>
 
       <!-- Actions -->

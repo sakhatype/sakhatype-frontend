@@ -128,8 +128,33 @@ export const api = {
 
   // Profile
   async getProfile(username) {
-    const res = await fetch(`${API_BASE}/profile/${username}`);
+    const res = await fetch(`${API_BASE}/profile/${encodeURIComponent(username)}`);
     if (!res.ok) return null;
+    return res.json();
+  },
+
+  /**
+   * Пагинированная история тестов профиля.
+   * @param {string} username
+   * @param {{ period?: string, mode?: string, page?: number, page_size?: number }} [opts]
+   */
+  async getProfileTests(username, opts = {}) {
+    const {
+      period = 'all',
+      mode = 'all',
+      page = 1,
+      page_size = 40,
+    } = opts;
+    const q = new URLSearchParams({
+      period,
+      mode,
+      page: String(page),
+      page_size: String(page_size),
+    });
+    const res = await fetch(
+      `${API_BASE}/profile/${encodeURIComponent(username)}/tests?${q}`,
+    );
+    if (!res.ok) return { tests: [], total: 0, page: 1, page_size };
     return res.json();
   },
 
@@ -142,6 +167,29 @@ export const api = {
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
       throw new Error(formatApiDetail(err.detail, 'Не удалось сохранить профиль'));
+    }
+    return res.json();
+  },
+
+  /**
+   * Загрузка аватара (WebP 128×128, обработка на сервере).
+   * @param {File} file
+   * @param {string} token
+   */
+  async uploadAvatar(file, token) {
+    const fd = new FormData();
+    fd.append('file', file);
+    /** @type {Record<string, string>} */
+    const headers = {};
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+    const res = await fetch(`${API_BASE}/profile/avatar`, {
+      method: 'POST',
+      headers,
+      body: fd,
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(formatApiDetail(err.detail, 'Не удалось загрузить аватар'));
     }
     return res.json();
   },

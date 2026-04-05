@@ -2,6 +2,7 @@
   import { userStore } from '$stores/user.js';
   import { settingsStore } from '$stores/settings.js';
   import { api } from '$utils/api.js';
+  import { mediaUrl } from '$utils/mediaUrl.js';
   import { onMount } from 'svelte';
 
   export let isOpen = false;
@@ -159,7 +160,7 @@
                 <a href="/profile/{friend.username}" class="flex items-center gap-3" on:click={onClose}>
                   <div class="w-10 h-10 rounded-xl border border-surface-600/50 overflow-hidden flex items-center justify-center bg-gradient-to-br from-primary-500/20 to-transparent flex-shrink-0">
                     {#if friend.avatar_url}
-                      <img src={friend.avatar_url} alt="" class="w-full h-full object-cover" />
+                      <img src={mediaUrl(friend.avatar_url)} alt="" class="w-full h-full object-cover" />
                     {:else}
                       <span class="text-lg font-bold "
                             class:text-surface-50={theme === 'dark'}
@@ -191,7 +192,7 @@
                 <div class="flex items-center gap-3">
                   <div class="w-10 h-10 rounded-xl border border-surface-600/50 overflow-hidden flex items-center justify-center bg-gradient-to-br from-primary-500/20 to-transparent flex-shrink-0">
                     {#if req.avatar_url}
-                      <img src={req.avatar_url} alt="" class="w-full h-full object-cover" />
+                      <img src={mediaUrl(req.avatar_url)} alt="" class="w-full h-full object-cover" />
                     {:else}
                       <span class="text-lg font-bold "
                             class:text-surface-50={theme === 'dark'}
@@ -228,7 +229,7 @@
                 <div class="flex items-center gap-3">
                   <div class="w-10 h-10 rounded-xl border border-surface-600/50 overflow-hidden flex items-center justify-center bg-gradient-to-br from-primary-500/20 to-transparent flex-shrink-0">
                     {#if req.avatar_url}
-                      <img src={req.avatar_url} alt="" class="w-full h-full object-cover" />
+                      <img src={mediaUrl(req.avatar_url)} alt="" class="w-full h-full object-cover" />
                     {:else}
                       <span class="text-lg font-bold  text-surface-50">{req.username.charAt(0).toUpperCase()}</span>
                     {/if}
@@ -272,7 +273,7 @@
             <div class="flex items-center gap-4 mb-4">
               <div class="w-14 h-14 rounded-2xl border border-surface-600/50 overflow-hidden flex items-center justify-center bg-gradient-to-br from-primary-500/20 to-transparent flex-shrink-0">
                 {#if searchResult.avatar_url}
-                  <img src={searchResult.avatar_url} alt="" class="w-full h-full object-cover" />
+                  <img src={mediaUrl(searchResult.avatar_url)} alt="" class="w-full h-full object-cover" />
                 {:else}
                   <span class="text-2xl font-bold "
                         class:text-surface-50={theme === 'dark'}

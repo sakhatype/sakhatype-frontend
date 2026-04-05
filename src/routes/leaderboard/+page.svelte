@@ -3,6 +3,7 @@
   import { browser } from '$app/environment';
   import { api } from '$utils/api.js';
   import { settingsStore } from '$stores/settings.js';
+  import { mediaUrl } from '$utils/mediaUrl.js';
   import Footer from '$components/layout/Footer.svelte';
 
   $: theme = $settingsStore.theme;
@@ -240,7 +241,24 @@
                       {/if}
                     </td>
                     <td class="px-4 sm:px-6 py-5">
-                      <div class="flex items-center gap-2">
+                      <div class="flex items-center gap-3">
+                        {#if entry.avatar_url}
+                          <a href="/profile/{entry.username}" class="w-9 h-9 rounded-lg border overflow-hidden shrink-0 transition-opacity hover:opacity-90"
+                             class:border-surface-600={theme === 'dark'}
+                             class:border-surface-200={theme === 'light'}>
+                            <img src={mediaUrl(entry.avatar_url)} alt="" class="w-full h-full object-cover" />
+                          </a>
+                        {:else}
+                          <a href="/profile/{entry.username}" class="w-9 h-9 rounded-lg border flex items-center justify-center font-heading font-bold text-xs shrink-0"
+                             class:border-surface-600={theme === 'dark'}
+                             class:bg-surface-800={theme === 'dark'}
+                             class:text-primary-400={theme === 'dark'}
+                             class:border-surface-200={theme === 'light'}
+                             class:bg-surface-100={theme === 'light'}
+                             class:text-primary-500={theme === 'light'}>
+                            {entry.username.charAt(0).toUpperCase()}
+                          </a>
+                        {/if}
                         <a href="/profile/{entry.username}" class="font-heading font-bold uppercase tracking-tight hover:text-primary-400 transition-colors text-sm sm:text-base"
                            class:text-surface-100={theme === 'dark'} class:text-surface-800={theme === 'light'}>
                           {entry.username}

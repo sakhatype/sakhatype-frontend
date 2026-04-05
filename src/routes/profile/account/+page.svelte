@@ -6,6 +6,7 @@
   import { settingsStore } from '$stores/settings.js';
   import { api } from '$utils/api.js';
   import Footer from '$components/layout/Footer.svelte';
+  import AvatarUpload from '$components/modals/AvatarUpload.svelte';
 
   $: theme = $settingsStore.theme;
   $: currentUser = $userStore.user;
@@ -125,12 +126,12 @@
               style="background: rgb(113 113 122);"
             ></div>
             <div class="relative z-10">
-              <div
-                class="w-24 h-24 rounded-2xl border-2 border-primary-500/30 flex items-center justify-center mb-6 bg-gradient-to-br from-primary-500/15 to-transparent"
-              >
-                <span class="text-4xl font-heading font-black text-primary-400"
-                  >{currentUser.username.charAt(0).toUpperCase()}</span
-                >
+              <div class="mb-6 flex justify-center lg:justify-start">
+                <AvatarUpload
+                  currentAvatarUrl={currentUser.avatar_url}
+                  username={currentUser.username}
+                  onUploaded={() => userStore.refresh()}
+                />
               </div>
               <h2
                 class="text-3xl font-heading font-extrabold tracking-tight uppercase mb-1"

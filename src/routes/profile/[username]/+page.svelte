@@ -1,25 +1,115 @@
 <script>
-  import { onMount } from 'svelte';
   import { page } from '$app/stores';
   import { api } from '$utils/api.js';
   import { userStore } from '$stores/user.js';
   import { settingsStore } from '$stores/settings.js';
   import Footer from '$components/layout/Footer.svelte';
+  import AvatarUpload from '$components/modals/AvatarUpload.svelte';
+  import { mediaUrl } from '$utils/mediaUrl.js';
 
   $: theme = $settingsStore.theme;
 
-  let profile = null; let loading = true;
+  let profile = null;
+  let loading = true;
+  /** @type {any[]} */
+  let tests = [];
+  let testsTotal = 0;
+  let testsPage = 1;
+  let testsLoading = false;
+  /** @type {'all' | '7d' | '30d' | '365d'} */
+  let datePeriod = 'all';
+  /** @type {'all' | 'time' | 'words'} */
+  let modeFilter = 'all';
+  /** @type {40 | 60 | 120} */
+  let pageSize = 40;
+  let profileReloadSeq = 0;
 
   $: username = $page.params.username;
   $: currentUser = $userStore.user;
   $: isOwnProfile = currentUser && currentUser.username === username;
 
-  onMount(() => loadProfile());
-  async function loadProfile() { loading = true; try { profile = await api.getProfile(username); } catch { profile = null; } loading = false; }
+  async function loadTests() {
+    if (!username || !profile?.user) return;
+    testsLoading = true;
+    try {
+      const res = await api.getProfileTests(username, {
+        period: datePeriod,
+        mode: modeFilter,
+        page: testsPage,
+        page_size: pageSize,
+      });
+      tests = res.tests || [];
+      testsTotal = res.total ?? 0;
+    } catch {
+      tests = [];
+      testsTotal = 0;
+    }
+    testsLoading = false;
+  }
+
+  async function reloadProfileForUser() {
+    if (!username) return;
+    const seq = ++profileReloadSeq;
+    loading = true;
+    try {
+      const next = await api.getProfile(username);
+      if (seq !== profileReloadSeq) return;
+      profile = next;
+    } catch {
+      if (seq !== profileReloadSeq) return;
+      profile = null;
+    }
+    if (seq !== profileReloadSeq) return;
+    loading = false;
+    datePeriod = 'all';
+    modeFilter = 'all';
+    pageSize = 40;
+    testsPage = 1;
+    await loadTests();
+  }
+
+  $: if (username) reloadProfileForUser();
+
+  /** @param {'all' | '7d' | '30d' | '365d'} p */
+  function pickPeriod(p) {
+    datePeriod = p;
+    testsPage = 1;
+    loadTests();
+  }
+
+  /** @param {'all' | 'time' | 'words'} m */
+  function pickMode(m) {
+    modeFilter = m;
+    testsPage = 1;
+    loadTests();
+  }
+
+  /** @param {40 | 60 | 120} n */
+  function pickPageSize(n) {
+    pageSize = n;
+    testsPage = 1;
+    loadTests();
+  }
+
+  function goPrevPage() {
+    if (testsPage <= 1) return;
+    testsPage -= 1;
+    loadTests();
+  }
+
+  function goNextPage() {
+    if (testsPage >= totalPages) return;
+    testsPage += 1;
+    loadTests();
+  }
+
   $: user = profile?.user;
-  $: history = profile?.history || [];
+  $: contributionHistory = profile?.history || [];
   $: xpPercent = user ? (user.xp / user.xp_to_next) * 100 : 0;
-  $: contributionDays = buildContributionDays(history, 288);
+  $: contributionDays = buildContributionDays(contributionHistory, 288);
+  $: totalPages = Math.max(1, Math.ceil(testsTotal / pageSize));
+  $: rangeFrom = testsTotal === 0 ? 0 : (testsPage - 1) * pageSize + 1;
+  $: rangeTo = testsTotal === 0 ? 0 : Math.min(testsPage * pageSize, testsTotal);
   $: contributionWeeks = chunkByWeek(contributionDays);
   $: contributionMonthLabels = getContributionMonthLabels(contributionWeeks);
 
@@ -43,7 +133,7 @@
 
   function getModeLabel(mode, modeValue) {
     if (mode === 'time') return `${modeValue}с`;
-    if (mode === 'words') return `${modeValue} тыл`;
+    if (mode === 'words') return `${modeValue} слов`;
     return mode;
   }
 
@@ -237,9 +327,23 @@
       <div class="s-card p-8 relative overflow-hidden">
         <div class="absolute -top-10 -right-10 w-32 h-32 rounded-full blur-[50px] opacity-10 pointer-events-none" style="background: rgb(113 113 122);"></div>
         <div class="relative z-10">
-          <div class="w-24 h-24 rounded-2xl border-2 border-primary-500/30 flex items-center justify-center mb-6 bg-gradient-to-br from-primary-500/15 to-transparent">
-            <span class="text-4xl font-heading font-black text-primary-400">{user.username.charAt(0).toUpperCase()}</span>
-          </div>
+          {#if isOwnProfile}
+            <div class="mb-6 flex justify-center lg:justify-start">
+              <AvatarUpload
+                currentAvatarUrl={user.avatar_url}
+                username={user.username}
+                onUploaded={() => reloadProfileForUser()}
+              />
+            </div>
+          {:else}
+            <div class="w-24 h-24 rounded-2xl border-2 border-primary-500/30 flex items-center justify-center mb-6 bg-gradient-to-br from-primary-500/15 to-transparent overflow-hidden">
+              {#if user.avatar_url}
+                <img src={mediaUrl(user.avatar_url)} alt="" class="w-full h-full object-cover" />
+              {:else}
+                <span class="text-4xl font-heading font-black text-primary-400">{user.username.charAt(0).toUpperCase()}</span>
+              {/if}
+            </div>
+          {/if}
           <h2 class="text-3xl font-heading font-extrabold tracking-tight uppercase mb-1"
               class:text-surface-50={theme === 'dark'} class:text-surface-900={theme === 'light'}>{user.username}</h2>
           <p class="text-primary-400 mono text-xs font-bold tracking-wider mb-4">Ур. {user.level}</p>
@@ -286,7 +390,7 @@
         </div>
       </div>
 
-      {#if history.length > 0}
+      {#if contributionHistory.length > 0}
         <!-- WPM contributions -->
         <div class="s-card p-6">
           <div class="flex justify-between items-center mb-6">
@@ -353,21 +457,82 @@
             </div>
           </div>
         </div>
+      {/if}
 
+      {#if user.total_tests > 0}
         <!-- Test history -->
         <div class="s-card p-6">
-          <div class="flex justify-between items-center mb-5">
-            <h3 class="font-heading font-bold text-xs uppercase tracking-[0.2em]"
-                class:text-surface-100={theme === 'dark'} class:text-surface-800={theme === 'light'}>Пройденные тесты</h3>
-            <span class="mono text-[9px] text-surface-400 uppercase tracking-wider">Всего: {history.length}</span>
+          <div class="flex flex-col gap-4 mb-5">
+            <div class="flex flex-wrap justify-between items-start gap-3">
+              <h3 class="font-heading font-bold text-xs uppercase tracking-[0.2em]"
+                  class:text-surface-100={theme === 'dark'} class:text-surface-800={theme === 'light'}>Пройденные тесты</h3>
+              <span class="mono text-[9px] text-surface-400 uppercase tracking-wider">По фильтру: {testsTotal}</span>
+            </div>
+            <div class="flex flex-col gap-3">
+              <div class="flex flex-col gap-2">
+                <span class="mono text-[9px] font-bold uppercase tracking-wider text-surface-500 px-0.5">Период</span>
+                <div class="flex flex-wrap gap-2">
+                  <button type="button"
+                    class="px-3 py-2 rounded-lg text-[10px] font-bold uppercase tracking-wider border transition-all
+                      {datePeriod === 'all' ? 'bg-primary-500/15 border-primary-500/40 text-primary-400' : 'border-surface-600/40 text-surface-400 hover:border-surface-500'}"
+                    class:text-surface-100={theme === 'dark' && datePeriod !== 'all'}
+                    class:text-surface-800={theme === 'light' && datePeriod !== 'all'}
+                    on:click={() => pickPeriod('all')}>Все время</button>
+                  <button type="button"
+                    class="px-3 py-2 rounded-lg text-[10px] font-bold uppercase tracking-wider border transition-all
+                      {datePeriod === '7d' ? 'bg-primary-500/15 border-primary-500/40 text-primary-400' : 'border-surface-600/40 text-surface-400 hover:border-surface-500'}"
+                    class:text-surface-100={theme === 'dark' && datePeriod !== '7d'}
+                    class:text-surface-800={theme === 'light' && datePeriod !== '7d'}
+                    on:click={() => pickPeriod('7d')}>7 дней</button>
+                  <button type="button"
+                    class="px-3 py-2 rounded-lg text-[10px] font-bold uppercase tracking-wider border transition-all
+                      {datePeriod === '30d' ? 'bg-primary-500/15 border-primary-500/40 text-primary-400' : 'border-surface-600/40 text-surface-400 hover:border-surface-500'}"
+                    class:text-surface-100={theme === 'dark' && datePeriod !== '30d'}
+                    class:text-surface-800={theme === 'light' && datePeriod !== '30d'}
+                    on:click={() => pickPeriod('30d')}>Месяц</button>
+                  <button type="button"
+                    class="px-3 py-2 rounded-lg text-[10px] font-bold uppercase tracking-wider border transition-all
+                      {datePeriod === '365d' ? 'bg-primary-500/15 border-primary-500/40 text-primary-400' : 'border-surface-600/40 text-surface-400 hover:border-surface-500'}"
+                    class:text-surface-100={theme === 'dark' && datePeriod !== '365d'}
+                    class:text-surface-800={theme === 'light' && datePeriod !== '365d'}
+                    on:click={() => pickPeriod('365d')}>Год</button>
+                </div>
+              </div>
+              <div class="flex flex-col gap-2">
+                <span class="mono text-[9px] font-bold uppercase tracking-wider text-surface-500 px-0.5">Режим</span>
+                <div class="flex flex-wrap gap-2">
+                  <button type="button"
+                    class="px-3 py-2 rounded-lg text-[10px] font-bold uppercase tracking-wider border transition-all
+                      {modeFilter === 'all' ? 'bg-primary-500/15 border-primary-500/40 text-primary-400' : 'border-surface-600/40 text-surface-400 hover:border-surface-500'}"
+                    class:text-surface-100={theme === 'dark' && modeFilter !== 'all'}
+                    class:text-surface-800={theme === 'light' && modeFilter !== 'all'}
+                    on:click={() => pickMode('all')}>Все</button>
+                  <button type="button"
+                    class="px-3 py-2 rounded-lg text-[10px] font-bold uppercase tracking-wider border transition-all
+                      {modeFilter === 'time' ? 'bg-primary-500/15 border-primary-500/40 text-primary-400' : 'border-surface-600/40 text-surface-400 hover:border-surface-500'}"
+                    class:text-surface-100={theme === 'dark' && modeFilter !== 'time'}
+                    class:text-surface-800={theme === 'light' && modeFilter !== 'time'}
+                    on:click={() => pickMode('time')}>Время</button>
+                  <button type="button"
+                    class="px-3 py-2 rounded-lg text-[10px] font-bold uppercase tracking-wider border transition-all
+                      {modeFilter === 'words' ? 'bg-primary-500/15 border-primary-500/40 text-primary-400' : 'border-surface-600/40 text-surface-400 hover:border-surface-500'}"
+                    class:text-surface-100={theme === 'dark' && modeFilter !== 'words'}
+                    class:text-surface-800={theme === 'light' && modeFilter !== 'words'}
+                    on:click={() => pickMode('words')}>Слова</button>
+                </div>
+              </div>
+            </div>
           </div>
 
-          <div class="space-y-2.5 max-h-[600px] overflow-y-auto pr-2">
-            {#each history as test, idx}
+          <div class="space-y-2.5 max-h-[600px] overflow-y-auto pr-2 relative" class:opacity-60={testsLoading}>
+            {#if tests.length === 0 && !testsLoading}
+              <p class="mono text-[10px] text-surface-500 text-center py-8 uppercase tracking-wider">Нет тестов по выбранным фильтрам</p>
+            {/if}
+            {#each tests as test, idx (testsPage + '-' + idx + '-' + (test.created_at || test.timestamp || ''))}
               <div class="s-card p-4 !rounded-xl group">
                 <div class="flex items-center justify-between mb-3">
                   <div class="flex items-center gap-3">
-                    <span class="mono text-[9px] text-surface-500">#{history.length - idx}</span>
+                    <span class="mono text-[9px] text-surface-500">#{testsTotal - ((testsPage - 1) * pageSize + idx)}</span>
                     <div class="flex gap-3 mono text-[9px]">
                       <span class="text-success-400">✓ {test.chars_correct}</span>
                       <span class="text-error-400">✗ {test.chars_incorrect || 0}</span>
@@ -408,6 +573,38 @@
                 </div>
               </div>
             {/each}
+          </div>
+
+          <div class="mt-5 pt-5 border-t border-surface-600/20 flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center justify-between gap-4">
+            <div class="flex flex-col gap-2">
+              <span class="mono text-[9px] font-bold uppercase tracking-wider text-surface-500">На странице</span>
+              <div class="flex flex-wrap gap-2">
+                {#each [40, 60, 120] as n}
+                  <button type="button"
+                    class="px-3 py-2 rounded-lg text-[10px] font-bold uppercase tracking-wider border transition-all
+                      {pageSize === n ? 'bg-primary-500/15 border-primary-500/40 text-primary-400' : 'border-surface-600/40 text-surface-400 hover:border-surface-500'}"
+                    class:text-surface-100={theme === 'dark' && pageSize !== n}
+                    class:text-surface-800={theme === 'light' && pageSize !== n}
+                    on:click={() => pickPageSize(n)}>{n}</button>
+                {/each}
+              </div>
+            </div>
+            <div class="flex flex-col gap-2 items-start sm:items-end">
+              <span class="mono text-[9px] text-surface-500 uppercase tracking-wider">
+                {#if testsTotal > 0}{rangeFrom}–{rangeTo} из {testsTotal}{/if}
+              </span>
+              <div class="flex items-center gap-2">
+                <button type="button"
+                  class="px-4 py-2 rounded-lg text-[10px] font-bold uppercase tracking-wider border border-surface-600/40 text-surface-400 hover:border-primary-500/40 disabled:opacity-40 disabled:pointer-events-none transition-all"
+                  disabled={testsPage <= 1 || testsLoading}
+                  on:click={goPrevPage}>Назад</button>
+                <span class="mono text-[10px] text-surface-400 tabular-nums">{testsPage} / {totalPages}</span>
+                <button type="button"
+                  class="px-4 py-2 rounded-lg text-[10px] font-bold uppercase tracking-wider border border-surface-600/40 text-surface-400 hover:border-primary-500/40 disabled:opacity-40 disabled:pointer-events-none transition-all"
+                  disabled={testsPage >= totalPages || testsLoading}
+                  on:click={goNextPage}>Вперёд</button>
+              </div>
+            </div>
           </div>
         </div>
       {/if}

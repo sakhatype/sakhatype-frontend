@@ -5,6 +5,7 @@
   import { page } from '$app/stores';
   import { Palette } from 'lucide-svelte';
   import { browser } from '$app/environment';
+  import { mediaUrl } from '$utils/mediaUrl.js';
 
   $: currentPath = $page.url.pathname;
   $: user = $userStore.user;
@@ -119,14 +120,18 @@
              class:text-surface-800={theme === 'light'}>{user.username}</p>
           <p class="text-primary-400 text-[9px] mono">Ур. {user.level}</p>
         </div>
-        <div class="w-8 h-8 rounded-xl flex items-center justify-center font-bold text-xs border transition-all group-hover:border-primary-500/40"
+        <div class="w-8 h-8 rounded-xl flex items-center justify-center font-bold text-xs border transition-all group-hover:border-primary-500/40 overflow-hidden shrink-0"
              class:bg-surface-700={theme === 'dark'}
              class:border-surface-600={theme === 'dark'}
              class:text-surface-100={theme === 'dark'}
              class:bg-white={theme === 'light'}
              class:border-surface-200={theme === 'light'}
              class:text-surface-800={theme === 'light'}>
-          {user.username.charAt(0).toUpperCase()}
+          {#if user.avatar_url}
+            <img src={mediaUrl(user.avatar_url)} alt="" class="w-full h-full object-cover" />
+          {:else}
+            {user.username.charAt(0).toUpperCase()}
+          {/if}
         </div>
       </a>
     {:else}
@@ -140,14 +145,18 @@
   <!-- Mobile -->
   <div class="md:hidden flex items-center gap-3">
     {#if user}
-      <a href="/profile/{user.username}" class="w-9 h-9 rounded-xl border flex items-center justify-center font-bold text-xs transition-all"
+      <a href="/profile/{user.username}" class="w-9 h-9 rounded-xl border flex items-center justify-center font-bold text-xs transition-all overflow-hidden"
          class:bg-surface-700={theme === 'dark'}
          class:border-surface-600={theme === 'dark'}
          class:text-surface-100={theme === 'dark'}
          class:bg-white={theme === 'light'}
          class:border-surface-200={theme === 'light'}
          class:text-surface-800={theme === 'light'}>
-        {user.username.charAt(0).toUpperCase()}
+        {#if user.avatar_url}
+          <img src={mediaUrl(user.avatar_url)} alt="" class="w-full h-full object-cover" />
+        {:else}
+          {user.username.charAt(0).toUpperCase()}
+        {/if}
       </a>
     {:else}
       <a href="/auth" class="bg-primary-500 px-5 py-2.5 rounded-xl text-xs font-bold uppercase text-white tracking-wider hover:bg-primary-400 transition-all">Войти</a>
