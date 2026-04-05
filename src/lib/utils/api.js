@@ -51,7 +51,7 @@ export const api = {
     });
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
-      throw new Error(formatApiDetail(err.detail, 'Registration failed'));
+      throw new Error(formatApiDetail(err.detail, 'Не удалось зарегистрироваться'));
     }
     return res.json();
   },
@@ -64,7 +64,7 @@ export const api = {
     });
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
-      throw new Error(formatApiDetail(err.detail, 'Login failed'));
+      throw new Error(formatApiDetail(err.detail, 'Не удалось войти'));
     }
     return res.json();
   },
@@ -86,7 +86,7 @@ export const api = {
     });
     const contentType = res.headers.get('content-type') || '';
     if (!res.ok || !contentType.includes('application/json')) {
-      throw new Error('Backend not available');
+      throw new Error('Сервер недоступен');
     }
     return res.json();
   },
@@ -100,7 +100,7 @@ export const api = {
     });
     const contentType = res.headers.get('content-type') || '';
     if (!res.ok || !contentType.includes('application/json')) {
-      throw new Error('Failed to submit result');
+      throw new Error('Не удалось отправить результат');
     }
     return res.json();
   },
@@ -141,7 +141,7 @@ export const api = {
     });
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
-      throw new Error(formatApiDetail(err.detail, 'Failed to update profile'));
+      throw new Error(formatApiDetail(err.detail, 'Не удалось сохранить профиль'));
     }
     return res.json();
   },
