@@ -5,8 +5,9 @@ services:
     build:
       context: .
       args:
-        VITE_API_URL: https://api.sakhatype.ru/api
-        VITE_SITE_URL: https://sakhatype.ru
+        # API (FastAPI) на sakhatype.ru; фронт часто на api.sakhatype.ru — не путать с URL API.
+        VITE_API_URL: https://sakhatype.ru
+        VITE_SITE_URL: https://api.sakhatype.ru
     container_name: sakhatype-front
     restart: always
     ports:

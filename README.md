@@ -91,7 +91,7 @@ npm run dev
 
 Бэкенд на порту **8000** можно не указывать отдельно во фронтенд-конфиге.
 
-**Продакшен:** задайте `VITE_API_URL` полным URL API (например `https://api.example.com`) либо настройте reverse proxy так, чтобы путь `/api` проксировался на бэкенд. URL WebSocket для арены выводится из `VITE_API_URL` (см. `src/routes/arena/+page.svelte`) или из `location.host` при относительном API
+**Продакшен:** `VITE_API_URL` — полный URL **бэкенда** (хост, где отвечает FastAPI), с суффиксом `/api` или без (в `api.js` он нормализуется). Если фронт на поддомене (например `https://api.sakhatype.ru`), а API на основном домене (`https://sakhatype.ru`), укажите `VITE_API_URL=https://sakhatype.ru` — не URL фронта. `VITE_SITE_URL` — публичный URL сайта (часто тот же, что у фронта в браузере). Аватары: при необходимости задайте `VITE_API_ORIGIN` равным origin бэкенда; иначе он выводится из `VITE_API_URL`. WebSocket арены строится из `VITE_API_URL` (см. `src/routes/arena/+page.svelte`).
 
 ---
 

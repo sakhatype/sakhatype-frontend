@@ -1,6 +1,6 @@
 /**
  * Базовый URL API для fetch.
- * Если задан только origin без `/api` (например `https://api.sakhatype.ru`), дописываем `/api`:
+ * Если задан только origin без `/api` (например `https://sakhatype.ru`), дописываем `/api`:
  * роуты FastAPI висят под префиксом `/api`, иначе запросы на `/profile/...` дают 404 за прокси.
  */
 function resolveApiBase(raw) {
