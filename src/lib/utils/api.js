@@ -179,9 +179,19 @@ export const api = {
       page: String(tl.page ?? 1),
       page_size: String(tl.page_size ?? 40),
     });
-    const res = await fetch(
+    let res = await fetch(
       `${API_BASE}/profile/${encodeURIComponent(username)}/tests?${q}`,
     );
+    if (res.status === 404) {
+      const qFlat = new URLSearchParams({
+        username,
+        period: tl.period ?? 'all',
+        mode: tl.mode ?? 'all',
+        page: String(tl.page ?? 1),
+        page_size: String(tl.page_size ?? 40),
+      });
+      res = await fetch(`${API_BASE}/typing/user-tests?${qFlat}`);
+    }
     if (!res.ok) {
       return {
         ...data,
@@ -241,21 +251,26 @@ export const api = {
    * @param {string} token
    */
   async uploadAvatar(file, token) {
-    const fd = new FormData();
-    fd.append('file', file);
     /** @type {Record<string, string>} */
     const headers = {};
     if (token) headers['Authorization'] = `Bearer ${token}`;
-    const res = await fetch(`${API_BASE}/profile/me/avatar`, {
-      method: 'POST',
-      headers,
-      body: fd,
-    });
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
-      throw new Error(formatApiDetail(err.detail, 'Не удалось загрузить аватар'));
+
+    const urls = [
+      `${API_BASE}/profile/me/avatar`,
+      `${API_BASE}/profile/avatar`,
+      `${API_BASE}/auth/avatar`,
+    ];
+    for (const url of urls) {
+      const fd = new FormData();
+      fd.append('file', file);
+      const res = await fetch(url, { method: 'POST', headers, body: fd });
+      if (res.ok) return res.json();
+      if (res.status !== 404) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(formatApiDetail(err.detail, 'Не удалось загрузить аватар'));
+      }
     }
-    return res.json();
+    throw new Error('Не удалось загрузить аватар');
   },
 
   async getAchievements() {
