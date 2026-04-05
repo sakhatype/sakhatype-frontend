@@ -32,14 +32,17 @@
     if (!username || !profile?.user) return;
     testsLoading = true;
     try {
-      const res = await api.getProfileTests(username, {
-        period: datePeriod,
-        mode: modeFilter,
+      const data = await api.getProfile(username, {
         page: testsPage,
         page_size: pageSize,
+        period: datePeriod,
+        mode: modeFilter,
       });
-      tests = res.tests || [];
-      testsTotal = res.total ?? 0;
+      if (data) {
+        profile = data;
+        tests = data.tests ?? [];
+        testsTotal = data.total ?? 0;
+      }
     } catch {
       tests = [];
       testsTotal = 0;
@@ -51,21 +54,29 @@
     if (!username) return;
     const seq = ++profileReloadSeq;
     loading = true;
-    try {
-      const next = await api.getProfile(username);
-      if (seq !== profileReloadSeq) return;
-      profile = next;
-    } catch {
-      if (seq !== profileReloadSeq) return;
-      profile = null;
-    }
-    if (seq !== profileReloadSeq) return;
-    loading = false;
     datePeriod = 'all';
     modeFilter = 'all';
     pageSize = 40;
     testsPage = 1;
-    await loadTests();
+    try {
+      const next = await api.getProfile(username, {
+        page: 1,
+        page_size: 40,
+        period: 'all',
+        mode: 'all',
+      });
+      if (seq !== profileReloadSeq) return;
+      profile = next;
+      tests = next?.tests ?? [];
+      testsTotal = next?.total ?? 0;
+    } catch {
+      if (seq !== profileReloadSeq) return;
+      profile = null;
+      tests = [];
+      testsTotal = 0;
+    }
+    if (seq !== profileReloadSeq) return;
+    loading = false;
   }
 
   $: if (username) reloadProfileForUser();

@@ -73,6 +73,7 @@
   const nav = [
     { href: '#about', label: 'О системе' },
     { href: '#tokens', label: 'Токены и цвета' },
+    { href: '#logo', label: 'Логотип' },
     { href: '#typography', label: 'Типографика' },
     { href: '#card', label: 'Карточка .s-card' },
     { href: '#buttons', label: 'Кнопки' },
@@ -342,6 +343,81 @@
             {/each}
           </div>
           {@render codeBlock('tokens', code.tokens)}
+        </section>
+
+        <section id="logo" class="scroll-mt-24 s-card p-8">
+          <h2
+            class="text-2xl font-heading font-extrabold tracking-tight mb-2"
+            class:text-surface-50={theme === 'dark'}
+            class:text-surface-900={theme === 'light'}
+          >
+            Логотип
+          </h2>
+          <p class="mono text-[9px] text-surface-400 uppercase tracking-widest mb-4">
+            SVG · светлый и тёмный варианты
+          </p>
+          <div class="space-y-3 text-sm text-surface-400 leading-relaxed mb-6">
+            <p>
+              Знак Sakhatype — единый для всего продукта. На <strong class="text-surface-200">светлом фоне</strong> используйте
+              тёмную заливку (<code class="mono text-primary-400">/logo.svg</code>), на
+              <strong class="text-surface-200">тёмном</strong> — светлую (<code class="mono text-primary-400">/logo-b.svg</code>), как в шапке сайта.
+            </p>
+            <p>
+              Сохраняйте пропорции viewBox, не растягивайте отдельно по осям и не меняйте контур без согласования. Для печати и крупных носителей
+              экспортируйте SVG из репозитория без сжатия.
+            </p>
+          </div>
+          <div class="grid sm:grid-cols-2 gap-4">
+            <div class="rounded-xl border border-surface-600/30 overflow-hidden flex flex-col">
+              <p
+                class="mono text-[9px] uppercase tracking-widest px-4 pt-4 pb-2"
+                class:text-surface-500={theme === 'dark'}
+                class:text-surface-600={theme === 'light'}
+              >
+                Светлый фон
+              </p>
+              <div
+                class="flex items-center justify-center min-h-[140px] px-8 py-10 border-t border-surface-600/20"
+                class:bg-surface-100={theme === 'dark'}
+                class:bg-white={theme === 'light'}
+                class:border-surface-300={theme === 'light'}
+              >
+                <img src="/logo.svg" alt="Sakhatype — вариант для светлого фона" class="h-14 w-auto max-w-full" width="158" height="108" />
+              </div>
+              <div class="p-4 border-t border-surface-600/20 mt-auto" class:border-surface-300={theme === 'light'}>
+                <a
+                  href="/logo.svg"
+                  download="sakhatype-logo-light-bg.svg"
+                  class="inline-flex items-center justify-center w-full mono text-[10px] font-bold uppercase tracking-wider px-4 py-2.5 rounded-lg border transition-all border-primary-500/30 text-primary-400 hover:bg-primary-500/10"
+                >
+                  Скачать SVG
+                </a>
+              </div>
+            </div>
+            <div class="rounded-xl border border-surface-600/30 overflow-hidden flex flex-col">
+              <p
+                class="mono text-[9px] uppercase tracking-widest px-4 pt-4 pb-2"
+                class:text-surface-500={theme === 'dark'}
+                class:text-surface-600={theme === 'light'}
+              >
+                Тёмный фон
+              </p>
+              <div
+                class="flex items-center justify-center min-h-[140px] px-8 py-10 border-t border-surface-600/20 bg-surface-900"
+              >
+                <img src="/logo-b.svg" alt="Sakhatype — вариант для тёмного фона" class="h-14 w-auto max-w-full" width="158" height="108" />
+              </div>
+              <div class="p-4 border-t border-surface-600/20 mt-auto" class:border-surface-300={theme === 'light'}>
+                <a
+                  href="/logo-b.svg"
+                  download="sakhatype-logo-dark-bg.svg"
+                  class="inline-flex items-center justify-center w-full mono text-[10px] font-bold uppercase tracking-wider px-4 py-2.5 rounded-lg border transition-all border-primary-500/30 text-primary-400 hover:bg-primary-500/10"
+                >
+                  Скачать SVG
+                </a>
+              </div>
+            </div>
+          </div>
         </section>
 
         <section id="typography" class="scroll-mt-24 s-card p-8">

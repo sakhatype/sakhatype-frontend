@@ -142,35 +142,48 @@ export const api = {
   },
 
   // Profile
-  async getProfile(username) {
-    const res = await fetch(`${API_BASE}/profile/${encodeURIComponent(username)}`);
+  /**
+   * @param {string} username
+   * @param {{ page?: number, page_size?: number, period?: string, mode?: string } | null} [testsList] если задан — в query уйдёт tests_page и в JSON придут tests, total, page, page_size (тот же путь, что и обычный профиль).
+   */
+  async getProfile(username, testsList = null) {
+    let url = `${API_BASE}/profile/${encodeURIComponent(username)}`;
+    if (testsList) {
+      const q = new URLSearchParams({
+        tests_page: String(testsList.page ?? 1),
+        tests_page_size: String(testsList.page_size ?? 40),
+        period: testsList.period ?? 'all',
+        mode: testsList.mode ?? 'all',
+      });
+      url += `?${q}`;
+    }
+    const res = await fetch(url);
     if (!res.ok) return null;
     return res.json();
   },
 
   /**
-   * Пагинированная история тестов профиля.
+   * Пагинированная история: GET /profile/{user}?tests_page=… (тот же маршрут, что и профиль — без отдельного /tests).
    * @param {string} username
    * @param {{ period?: string, mode?: string, page?: number, page_size?: number }} [opts]
    */
   async getProfileTests(username, opts = {}) {
-    const {
-      period = 'all',
-      mode = 'all',
-      page = 1,
-      page_size = 40,
-    } = opts;
-    const q = new URLSearchParams({
-      period,
-      mode,
-      page: String(page),
-      page_size: String(page_size),
-    });
-    const res = await fetch(
-      `${API_BASE}/profile/${encodeURIComponent(username)}/tests?${q}`,
-    );
-    if (!res.ok) return { tests: [], total: 0, page: 1, page_size };
-    return res.json();
+    const period = opts.period ?? 'all';
+    const mode = opts.mode ?? 'all';
+    const page = opts.page ?? 1;
+    const page_size = opts.page_size ?? 40;
+
+    const data = await api.getProfile(username, { page, page_size, period, mode });
+    if (!data) return { tests: [], total: 0, page: 1, page_size };
+    if (Array.isArray(data.tests)) {
+      return {
+        tests: data.tests,
+        total: data.total ?? 0,
+        page: data.page ?? page,
+        page_size: data.page_size ?? page_size,
+      };
+    }
+    return { tests: [], total: 0, page: 1, page_size };
   },
 
   async updateProfile(updates, token) {
@@ -197,7 +210,7 @@ export const api = {
     /** @type {Record<string, string>} */
     const headers = {};
     if (token) headers['Authorization'] = `Bearer ${token}`;
-    const res = await fetch(`${API_BASE}/profile/avatar`, {
+    const res = await fetch(`${API_BASE}/auth/avatar`, {
       method: 'POST',
       headers,
       body: fd,
