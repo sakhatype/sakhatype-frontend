@@ -16,6 +16,16 @@ function resolveApiBase(raw) {
 export const API_BASE = resolveApiBase(import.meta.env.VITE_API_URL);
 
 /**
+ * Origin API для абсолютных URL медиа (`/api/uploads/avatars/...` → `https://api…/api/uploads/...`).
+ * Если API относительный (`/api`), возвращает пустую строку — браузер грузит с текущего хоста (прокси).
+ */
+export function apiMediaOrigin() {
+  const base = API_BASE;
+  if (!/^https?:\/\//i.test(base)) return '';
+  return base.replace(/\/api\/?$/i, '').replace(/\/+$/, '') || '';
+}
+
+/**
  * FastAPI 422: detail — строка, объект или массив { loc, msg, type }.
  * @param {unknown} detail
  * @param {string} fallback

@@ -1,11 +1,5 @@
-/**
- * URL для медиа с API (аватары и т.д.).
- * При прокси Vite путь `/api/...` остаётся как есть.
- * VITE_API_ORIGIN — явный хост бэкенда; иначе берётся из VITE_API_URL (без суффикса /api).
- *
- * @param {string | null | undefined} url
- * @returns {string}
- */
+import { apiMediaOrigin } from './api.js';
+
 function inferredApiOrigin() {
   const raw = String(import.meta.env.VITE_API_URL ?? '')
     .trim()
@@ -15,10 +9,22 @@ function inferredApiOrigin() {
   return raw;
 }
 
+/**
+ * Медиа с API: при абсолютном VITE_API_URL — полный URL (`https://api…/api/uploads/…`);
+ * при `/api` — относительный путь. Override: VITE_API_ORIGIN.
+ *
+ * @param {string | null | undefined} url
+ * @returns {string}
+ */
 export function mediaUrl(url) {
   if (!url) return '';
   if (url.startsWith('http://') || url.startsWith('https://')) return url;
-  const origin = (import.meta.env.VITE_API_ORIGIN || inferredApiOrigin() || '').replace(/\/$/, '');
+  const origin = (
+    import.meta.env.VITE_API_ORIGIN ||
+    apiMediaOrigin() ||
+    inferredApiOrigin() ||
+    ''
+  ).replace(/\/+$/, '');
   if (origin && url.startsWith('/')) return `${origin}${url}`;
   return url;
 }
