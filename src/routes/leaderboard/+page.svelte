@@ -104,11 +104,21 @@
   }
 
   /** @param {{ username?: string, avatar_url?: string | null, avatarUrl?: string | null }} entry */
-  function leaderboardAvatarSrc(entry) {
+  function leaderboardAvatarRaw(entry) {
     const raw = entry.avatar_url ?? entry.avatarUrl;
-    const u = typeof raw === 'string' ? raw.trim() : '';
+    return typeof raw === 'string' ? raw.trim() : '';
+  }
+
+  /** @param {{ username?: string, avatar_url?: string | null, avatarUrl?: string | null }} entry */
+  function leaderboardAvatarSrc(entry) {
+    const u = leaderboardAvatarRaw(entry);
     if (u) return mediaUrl(u);
-    return leaderboardPlaceholderAvatarUri(entry);
+    return '';
+  }
+
+  /** @param {{ username?: string }} entry */
+  function leaderboardAvatarInitial(entry) {
+    return (entry.username || '?').charAt(0).toUpperCase();
   }
 
   /** @param {Event & { currentTarget: HTMLImageElement }} e @param {any} entry */
@@ -264,7 +274,7 @@
                 </tr>
               </thead>
               <tbody>
-                {#each leaderboard as entry}
+                {#each leaderboard as entry (entry.user_id ?? entry.username ?? entry.rank)}
                   <tr class="border-b border-surface-700/30 hover:bg-surface-700/20 transition-all">
                     <td class="px-6 sm:px-8 py-5">
                       {#if entry.rank <= 3}
@@ -287,15 +297,20 @@
                           class:bg-white={theme === 'light'}
                           class:border-surface-200={theme === 'light'}
                           class:text-surface-800={theme === 'light'}
+                          aria-label="Профиль {entry.username}"
                         >
-                          <img
-                            src={leaderboardAvatarSrc(entry)}
-                            alt=""
-                            class="w-full h-full object-cover"
-                            loading="lazy"
-                            decoding="async"
-                            on:error={(e) => onLeaderboardAvatarError(e, entry)}
-                          />
+                          {#if leaderboardAvatarRaw(entry)}
+                            <img
+                              src={leaderboardAvatarSrc(entry)}
+                              alt=""
+                              class="w-full h-full object-cover"
+                              loading="lazy"
+                              decoding="async"
+                              on:error={(e) => onLeaderboardAvatarError(e, entry)}
+                            />
+                          {:else}
+                            {leaderboardAvatarInitial(entry)}
+                          {/if}
                         </a>
                         <a href="/profile/{entry.username}" class="font-heading font-bold uppercase tracking-tight hover:text-primary-400 transition-colors text-sm sm:text-base"
                            class:text-surface-100={theme === 'dark'} class:text-surface-800={theme === 'light'}>
