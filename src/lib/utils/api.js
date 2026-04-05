@@ -163,7 +163,46 @@ export const api = {
   },
 
   /**
-   * Пагинированная история: GET /profile/{user}?tests_page=… (тот же маршрут, что и профиль — без отдельного /tests).
+   * Профиль + список тестов: сначала ?tests_page=… на том же URL, если в ответе нет tests — второй запрос на /profile/{user}/tests.
+   * @param {string} username
+   * @param {{ page?: number, page_size?: number, period?: string, mode?: string }} [testsList]
+   */
+  async getProfileWithTestList(username, testsList = null) {
+    const tl = testsList ?? { page: 1, page_size: 40, period: 'all', mode: 'all' };
+    const data = await api.getProfile(username, tl);
+    if (!data) return null;
+    if (Array.isArray(data.tests)) return data;
+
+    const q = new URLSearchParams({
+      period: tl.period ?? 'all',
+      mode: tl.mode ?? 'all',
+      page: String(tl.page ?? 1),
+      page_size: String(tl.page_size ?? 40),
+    });
+    const res = await fetch(
+      `${API_BASE}/profile/${encodeURIComponent(username)}/tests?${q}`,
+    );
+    if (!res.ok) {
+      return {
+        ...data,
+        tests: [],
+        total: 0,
+        page: tl.page ?? 1,
+        page_size: tl.page_size ?? 40,
+      };
+    }
+    const extra = await res.json();
+    return {
+      ...data,
+      tests: extra.tests ?? [],
+      total: extra.total ?? 0,
+      page: extra.page ?? tl.page ?? 1,
+      page_size: extra.page_size ?? tl.page_size ?? 40,
+    };
+  },
+
+  /**
+   * Пагинированная история (только блок tests).
    * @param {string} username
    * @param {{ period?: string, mode?: string, page?: number, page_size?: number }} [opts]
    */
@@ -173,17 +212,14 @@ export const api = {
     const page = opts.page ?? 1;
     const page_size = opts.page_size ?? 40;
 
-    const data = await api.getProfile(username, { page, page_size, period, mode });
+    const data = await api.getProfileWithTestList(username, { page, page_size, period, mode });
     if (!data) return { tests: [], total: 0, page: 1, page_size };
-    if (Array.isArray(data.tests)) {
-      return {
-        tests: data.tests,
-        total: data.total ?? 0,
-        page: data.page ?? page,
-        page_size: data.page_size ?? page_size,
-      };
-    }
-    return { tests: [], total: 0, page: 1, page_size };
+    return {
+      tests: data.tests ?? [],
+      total: data.total ?? 0,
+      page: data.page ?? page,
+      page_size: data.page_size ?? page_size,
+    };
   },
 
   async updateProfile(updates, token) {
@@ -210,7 +246,7 @@ export const api = {
     /** @type {Record<string, string>} */
     const headers = {};
     if (token) headers['Authorization'] = `Bearer ${token}`;
-    const res = await fetch(`${API_BASE}/auth/avatar`, {
+    const res = await fetch(`${API_BASE}/profile/me/avatar`, {
       method: 'POST',
       headers,
       body: fd,

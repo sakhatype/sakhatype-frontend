@@ -1,4 +1,5 @@
 <script>
+  import { afterNavigate } from '$app/navigation';
   import { page } from '$app/stores';
   import { api } from '$utils/api.js';
   import { userStore } from '$stores/user.js';
@@ -32,7 +33,7 @@
     if (!username || !profile?.user) return;
     testsLoading = true;
     try {
-      const data = await api.getProfile(username, {
+      const data = await api.getProfileWithTestList(username, {
         page: testsPage,
         page_size: pageSize,
         period: datePeriod,
@@ -59,7 +60,7 @@
     pageSize = 40;
     testsPage = 1;
     try {
-      const next = await api.getProfile(username, {
+      const next = await api.getProfileWithTestList(username, {
         page: 1,
         page_size: 40,
         period: 'all',
@@ -79,7 +80,10 @@
     loading = false;
   }
 
-  $: if (username) reloadProfileForUser();
+  afterNavigate(({ to }) => {
+    const u = to?.params?.username;
+    if (u) reloadProfileForUser();
+  });
 
   /** @param {'all' | '7d' | '30d' | '365d'} p */
   function pickPeriod(p) {
@@ -470,7 +474,7 @@
         </div>
       {/if}
 
-      {#if user.total_tests > 0}
+      {#if (user?.total_tests ?? 0) > 0 || contributionHistory.length > 0 || testsTotal > 0 || tests.length > 0}
         <!-- Test history -->
         <div class="s-card p-6">
           <div class="flex flex-col gap-4 mb-5">
