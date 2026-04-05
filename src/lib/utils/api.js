@@ -192,6 +192,16 @@ export const api = {
       });
       res = await fetch(`${API_BASE}/typing/user-tests?${qFlat}`);
     }
+    if (res.status === 404) {
+      const qLb = new URLSearchParams({
+        username,
+        period: tl.period ?? 'all',
+        mode: tl.mode ?? 'all',
+        page: String(tl.page ?? 1),
+        page_size: String(tl.page_size ?? 40),
+      });
+      res = await fetch(`${API_BASE}/leaderboard/user-tests?${qLb}`);
+    }
     if (!res.ok) {
       return {
         ...data,
@@ -256,16 +266,17 @@ export const api = {
     if (token) headers['Authorization'] = `Bearer ${token}`;
 
     const urls = [
-      `${API_BASE}/profile/me/avatar`,
-      `${API_BASE}/profile/avatar`,
       `${API_BASE}/auth/avatar`,
+      `${API_BASE}/typing/avatar`,
+      `${API_BASE}/profile/me/avatar`,
+      `${API_BASE}/profile/upload-avatar`,
     ];
     for (const url of urls) {
       const fd = new FormData();
       fd.append('file', file);
       const res = await fetch(url, { method: 'POST', headers, body: fd });
       if (res.ok) return res.json();
-      if (res.status !== 404) {
+      if (res.status !== 404 && res.status !== 405) {
         const err = await res.json().catch(() => ({}));
         throw new Error(formatApiDetail(err.detail, 'Не удалось загрузить аватар'));
       }
