@@ -1,5 +1,6 @@
 <script>
   import { onMount, onDestroy, tick } from 'svelte';
+  import { get } from 'svelte/store';
   import { typingStore } from '$stores/typing.js';
   import { settingsStore } from '$stores/settings.js';
   import { mapToSakha, getSakhaHint } from '$utils/sakha.js';
@@ -648,6 +649,8 @@
       lastHiddenValue = '';
       resetCaretBlink();
       if (settings.soundEnabled) { if (isCorrect) soundManager.playCorrect(); else soundManager.playIncorrect(); }
+      const after = get(typingStore);
+      if (after.status === 'finished') void finishTest();
     }
   }
 
