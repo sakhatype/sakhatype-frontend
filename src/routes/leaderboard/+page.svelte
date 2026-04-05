@@ -85,6 +85,41 @@
     return d === 'expert' ? 'Сложный' : 'Легкий';
   }
 
+  /** @param {string} ch */
+  function xmlEscapeForSvg(ch) {
+    return String(ch)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  /** @param {{ username?: string }} entry */
+  function leaderboardPlaceholderAvatarUri(entry) {
+    const ch = (entry.username || '?').charAt(0).toUpperCase();
+    const bg = theme === 'dark' ? '#3f3f46' : '#ffffff';
+    const fg = theme === 'dark' ? '#fafafa' : '#18181b';
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="${bg}"/><text x="32" y="40" text-anchor="middle" font-family="ui-sans-serif,system-ui,sans-serif" font-weight="700" font-size="24" fill="${fg}">${xmlEscapeForSvg(ch)}</text></svg>`;
+    return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
+  }
+
+  /** @param {{ username?: string, avatar_url?: string | null, avatarUrl?: string | null }} entry */
+  function leaderboardAvatarSrc(entry) {
+    const raw = entry.avatar_url ?? entry.avatarUrl;
+    const u = typeof raw === 'string' ? raw.trim() : '';
+    if (u) return mediaUrl(u);
+    return leaderboardPlaceholderAvatarUri(entry);
+  }
+
+  /** @param {Event & { currentTarget: HTMLImageElement }} e @param {any} entry */
+  function onLeaderboardAvatarError(e, entry) {
+    const img = e.currentTarget;
+    if (img.dataset.fallbackDone === '1') return;
+    img.dataset.fallbackDone = '1';
+    img.removeAttribute('srcset');
+    img.src = leaderboardPlaceholderAvatarUri(entry);
+  }
+
   const leaderboardSkeletonRows = 10;
 </script>
 
@@ -245,7 +280,7 @@
                       <div class="flex items-center gap-3">
                         <a
                           href="/profile/{entry.username}"
-                          class="w-8 h-8 rounded-xl flex items-center justify-center font-bold text-xs border transition-all hover:border-primary-500/40 overflow-hidden shrink-0"
+                          class="w-8 h-8 rounded-[8px] flex items-center justify-center font-bold text-xs border transition-all hover:border-primary-500/40 overflow-hidden shrink-0"
                           class:bg-surface-700={theme === 'dark'}
                           class:border-surface-600={theme === 'dark'}
                           class:text-surface-100={theme === 'dark'}
@@ -253,11 +288,14 @@
                           class:border-surface-200={theme === 'light'}
                           class:text-surface-800={theme === 'light'}
                         >
-                          {#if entry.avatar_url}
-                            <img src={mediaUrl(entry.avatar_url)} alt="" class="w-full h-full object-cover" />
-                          {:else}
-                            {entry.username.charAt(0).toUpperCase()}
-                          {/if}
+                          <img
+                            src={leaderboardAvatarSrc(entry)}
+                            alt=""
+                            class="w-full h-full object-cover"
+                            loading="lazy"
+                            decoding="async"
+                            on:error={(e) => onLeaderboardAvatarError(e, entry)}
+                          />
                         </a>
                         <a href="/profile/{entry.username}" class="font-heading font-bold uppercase tracking-tight hover:text-primary-400 transition-colors text-sm sm:text-base"
                            class:text-surface-100={theme === 'dark'} class:text-surface-800={theme === 'light'}>
