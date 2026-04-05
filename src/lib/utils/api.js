@@ -269,7 +269,7 @@ export const api = {
       `${API_BASE}/auth/avatar`,
       `${API_BASE}/typing/avatar`,
       `${API_BASE}/profile/me/avatar`,
-      `${API_BASE}/profile/upload-avatar`,
+      `${API_BASE}/profile/_/avatar`,
     ];
     for (const url of urls) {
       const fd = new FormData();
