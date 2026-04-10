@@ -558,7 +558,12 @@
       e.preventDefault();
     }
 
-    if (state.status === 'idle' && e.key.length === 1) { typingStore.start(); startTimer(); }
+    if (e.key === ' ')         { commitCurrentWord(); return; }
+    if (e.key === 'Backspace') { if (state.currentInput.length > 0) { typingStore.setInput(state.currentInput.slice(0,-1)); syncHiddenInput(); resetCaretBlink(); } return; }
+    if (e.key === 'Tab' || e.key === 'Escape') { e.preventDefault(); restart(); return; }
+    if (e.key.length > 1) return;
+
+    if (state.status === 'idle') { typingStore.start(); startTimer(); }
     if (state.status !== 'running' && state.status !== 'idle') return;
 
     if (state.currentWordIndex >= state.words.length) return;
@@ -579,11 +584,6 @@
         return;
       }
     }
-
-    if (e.key === ' ')         { commitCurrentWord(); return; }
-    if (e.key === 'Backspace') { if (state.currentInput.length > 0) { typingStore.setInput(state.currentInput.slice(0,-1)); syncHiddenInput(); resetCaretBlink(); } return; }
-    if (e.key === 'Tab' || e.key === 'Escape') { e.preventDefault(); restart(); return; }
-    if (e.key.length > 1) return;
 
     const word = state.words[state.currentWordIndex];
     const pos = state.currentInput.length;
@@ -620,7 +620,18 @@
 
     for (const ch of newChars) {
       const cs = $typingStore;
-      if (ch === ' ') { if (cs.currentInput.length > 0) { commitCurrentWord(); if (hiddenInput) hiddenInput.value = ''; lastHiddenValue = ''; } return; }
+      if (ch === ' ') {
+        if (cs.currentInput.length > 0) {
+          commitCurrentWord();
+          if (hiddenInput) hiddenInput.value = '';
+          lastHiddenValue = '';
+        } else {
+          // Ignore leading spaces to avoid growing hidden input value and input lag.
+          if (hiddenInput) hiddenInput.value = '';
+          lastHiddenValue = '';
+        }
+        return;
+      }
       let mc = ch;
       if (settings.sakhaBinds && settings.language === 'sakha') { const m = mapToSakha(ch, settings.customBindings); if (m) mc = m; }
       typingStore.setInput(cs.currentInput + mc);
@@ -755,7 +766,7 @@
        class="relative cursor-text"
        on:click={handleTap}
        on:keydown={(e) => {
-         if (e.key === 'Enter' || e.key === ' ') {
+         if (e.key === 'Enter') {
            e.preventDefault();
            handleTap();
          }
