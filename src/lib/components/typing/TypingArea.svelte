@@ -619,25 +619,21 @@
     if (!newChars) { lastHiddenValue = val; return; }
 
     for (const ch of newChars) {
-      const cs = $typingStore;
       if (ch === ' ') {
-        if (cs.currentInput.length > 0) {
-          commitCurrentWord();
-          if (hiddenInput) hiddenInput.value = '';
-          lastHiddenValue = '';
-        } else {
-          // Ignore leading spaces to avoid growing hidden input value and input lag.
-          if (hiddenInput) hiddenInput.value = '';
-          lastHiddenValue = '';
-        }
-        return;
+        commitCurrentWord();
+        if (hiddenInput) hiddenInput.value = '';
+        lastHiddenValue = '';
+        if (get(typingStore).status === 'finished') break;
+        continue;
       }
+      const cs = get(typingStore);
+      if (cs.status === 'finished' || cs.currentWordIndex >= cs.words.length) break;
       let mc = ch;
       if (settings.sakhaBinds && settings.language === 'sakha') { const m = mapToSakha(ch, settings.customBindings); if (m) mc = m; }
       typingStore.setInput(cs.currentInput + mc);
       const mw = cs.words[cs.currentWordIndex];
-      const mp = cs.currentInput.length;
-      if (mp < mw.length && mc !== mw[mp]) typingStore.recordError();
+      const mp = get(typingStore).currentInput.length - 1;
+      if (mp >= 0 && mp < mw.length && mc !== mw[mp]) typingStore.recordError();
       typingStore.recordChar();
       if (settings.soundEnabled) soundManager.playKeystroke();
     }
@@ -646,24 +642,41 @@
   }
 
   // ─── WORD COMMIT ────────────────────────────────────────────────
+  /** Пробел всегда переходит к следующему слову (в т.ч. пустой ввод = пропуск), удержание пробела — повторные keydown. */
   function commitCurrentWord() {
-    if (state.currentInput.length > 0) {
-      const word = state.words[state.currentWordIndex];
-      const isCorrect = state.currentInput === word;
-      typingStore.commitWord();
-      if (hiddenInput) hiddenInput.value = '';
-      lastHiddenValue = '';
-      resetCaretBlink();
-      if (settings.soundEnabled) { if (isCorrect) soundManager.playCorrect(); else soundManager.playIncorrect(); }
-      const after = get(typingStore);
-      if (after.status === 'finished') void finishTest();
+    let s = get(typingStore);
+    if (s.status === 'finished') return;
+    if (s.currentWordIndex >= s.words.length) return;
+
+    if (s.status === 'idle') {
+      typingStore.start();
+      startTimer();
+      s = get(typingStore);
     }
+
+    if (s.status !== 'running') return;
+
+    const expected = s.words[s.currentWordIndex];
+    const hadInput = s.currentInput.length > 0;
+    const isCorrect = hadInput && s.currentInput === expected;
+
+    typingStore.commitWord();
+    if (hiddenInput) hiddenInput.value = '';
+    lastHiddenValue = '';
+    resetCaretBlink();
+    if (settings.soundEnabled) {
+      if (isCorrect) soundManager.playCorrect();
+      else if (hadInput) soundManager.playIncorrect();
+    }
+    const after = get(typingStore);
+    if (after.status === 'finished') void finishTest();
   }
 
   function syncHiddenInput() { if (hiddenInput) hiddenInput.value = $typingStore.currentInput; }
 
   // ─── TIMER ──────────────────────────────────────────────────────
   function startTimer() {
+    if (timerInterval) return;
     let timeLeft = settings.mode === 'time' ? settings.modeValue : 9999;
     timerInterval = setInterval(() => {
       if (settings.mode === 'time') {
