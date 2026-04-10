@@ -9,22 +9,64 @@
   $: theme = settings.theme;
 
   let editingKey = null;
+  let editingKeyValue = '';
   let editingValue = '';
 
   const sakhaChars = ['ҥ', 'ҕ', 'ө', 'ү', 'һ'];
-  const availableKeys = ['4', '5', '6', '7', '8', '9', '0', 'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p'];
 
-  function startEdit(key) { editingKey = key; editingValue = bindings[key] || ''; }
-  function saveEdit() {
-    if (editingKey && editingValue) {
-      settingsStore.update(s => ({ ...s, customBindings: { ...s.customBindings, [editingKey]: editingValue } }));
-    }
-    editingKey = null; editingValue = '';
+  function startEdit(key) {
+    editingKey = key;
+    editingKeyValue = key;
+    editingValue = bindings[key] || '';
   }
-  function cancelEdit() { editingKey = null; editingValue = ''; }
+  function saveEdit() {
+    const normalizedKey = editingKeyValue?.trim().toLowerCase();
+    if (editingKey && normalizedKey && editingValue) {
+      settingsStore.update(s => {
+        const nextBindings = { ...(s.customBindings || {}) };
+        delete nextBindings[editingKey];
+        nextBindings[normalizedKey] = editingValue;
+        return { ...s, customBindings: nextBindings };
+      });
+    }
+    editingKey = null;
+    editingKeyValue = '';
+    editingValue = '';
+  }
+  function cancelEdit() {
+    editingKey = null;
+    editingKeyValue = '';
+    editingValue = '';
+  }
   function handleKeyInput(e) { if (e.key === 'Enter') saveEdit(); else if (e.key === 'Escape') cancelEdit(); }
   function selectChar(char) { editingValue = char; }
-  function selectKey(key) { if (editingKey) editingValue = key; }
+  function handleBindingKeyCapture(e) {
+    if (e.key === 'Enter') {
+      saveEdit();
+      return;
+    }
+    if (e.key === 'Escape') {
+      cancelEdit();
+      return;
+    }
+
+    e.preventDefault();
+
+    if (e.key.length === 1) {
+      editingKeyValue = e.key.toLowerCase();
+      return;
+    }
+
+    const specialKeyMap = {
+      Spacebar: 'space',
+      ' ': 'space',
+      Tab: 'tab',
+      Backspace: 'backspace',
+      Enter: 'enter'
+    };
+
+    editingKeyValue = specialKeyMap[e.key] || e.key.toLowerCase();
+  }
   function resetToDefaults() {
     settingsStore.update(s => ({ ...s, customBindings: { '4': 'ҥ', '5': 'ҕ', '6': 'ө', '7': 'ү', '8': 'һ' } }));
   }
@@ -59,8 +101,8 @@
               <div class="flex-1 flex items-center gap-4">
                 <div class="flex items-center gap-2">
                   <span class="mono text-[10px] text-surface-400 uppercase">Клавиша:</span>
-                  <input type="text" bind:value={editingKey} on:keydown={handleKeyInput}
-                    class="input-sakha w-16 !px-3 !py-2 text-center" maxlength="1" autofocus />
+                  <input type="text" bind:value={editingKeyValue} on:keydown={handleBindingKeyCapture}
+                    class="input-sakha w-24 !px-3 !py-2 text-center" placeholder="Нажмите" autofocus />
                 </div>
                 <span class="text-surface-500">→</span>
                 <div class="flex items-center gap-2">
@@ -93,7 +135,7 @@
       </div>
 
       {#if editingKey}
-        <div class="grid grid-cols-2 gap-4 mb-6 p-4 bg-surface-800/30 rounded-2xl border border-surface-600/30">
+        <div class="grid grid-cols-1 gap-4 mb-6 p-4 bg-surface-800/30 rounded-2xl border border-surface-600/30">
           <div>
             <p class="mono text-[9px] uppercase tracking-widest text-surface-400 mb-3">Якутские символы:</p>
             <div class="flex flex-wrap gap-2">
@@ -101,15 +143,6 @@
                 <button on:click={() => selectChar(char)}
                   class="w-12 h-12 rounded-xl bg-surface-700/50 hover:bg-primary-500/15 border border-surface-600/50 hover:border-primary-500/40 flex items-center justify-center text-xl font-bold transition-all"
                   class:text-surface-100={theme === 'dark'}>{char}</button>
-              {/each}
-            </div>
-          </div>
-          <div>
-            <p class="mono text-[9px] uppercase tracking-widest text-surface-400 mb-3">Доступные клавиши:</p>
-            <div class="flex flex-wrap gap-2">
-              {#each availableKeys as key}
-                <button on:click={() => selectKey(key)}
-                  class="w-10 h-10 rounded-lg bg-surface-700/50 hover:bg-primary-500/15 border border-surface-600/50 hover:border-primary-500/40 flex items-center justify-center text-sm mono font-bold text-surface-300 hover:text-surface-100 transition-all">{key}</button>
               {/each}
             </div>
           </div>
