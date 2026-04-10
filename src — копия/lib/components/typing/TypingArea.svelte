@@ -740,7 +740,7 @@
   {#if state.status === 'running'}
     <div class="flex justify-center mb-6">
       <div class="s-card px-6 py-3 flex flex-col items-center glow-primary">
-        <span class="mono text-[9px] uppercase tracking-widest text-surface-400">{settings.mode === 'time' ? 'Timer' : 'Progress'}</span>
+        <span class="mono text-[9px] uppercase tracking-widest text-surface-400">{settings.mode === 'time' ? 'Время' : 'Progress'}</span>
         <span class="text-2xl sm:text-3xl font-heading font-extrabold text-primary-400 tracking-tight">
           {#if settings.mode === 'time'}
             {String(Math.floor(state.timeLeft / 60)).padStart(2,'0')}:{String(state.timeLeft % 60).padStart(2,'0')}

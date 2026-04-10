@@ -174,7 +174,7 @@
             class:text-surface-300={theme === 'dark'}
             class:text-surface-600={theme === 'light'}>
       <span class="relative z-10">Ещё раз</span>
-      <span class="relative z-10 ml-3 text-[9px] opacity-40 font-normal tracking-normal">(Tab / Esc)</span>
+      <!-- <span class="relative z-10 ml-3 text-[9px] opacity-40 font-normal tracking-normal">(Tab / Esc)</span> -->
     </button>
   </div>
 </div>

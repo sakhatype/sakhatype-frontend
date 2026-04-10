@@ -99,7 +99,7 @@
         <div>
           <h2 class="text-2xl font-heading font-extrabold tracking-tight"
               class:text-surface-50={theme === 'dark'} class:text-surface-900={theme === 'light'}>Назначение клавиш</h2>
-          <p class="mono text-[9px] text-surface-400 uppercase tracking-widest mt-1">Keyboard Bindings</p>
+          <!-- <p class="mono text-[9px] text-surface-400 uppercase tracking-widest mt-1">Добавление биндаов</p> -->
         </div>
         <button on:click={onClose}
                 class="w-10 h-10 rounded-xl hover:bg-surface-700/50 flex items-center justify-center transition-all group">
