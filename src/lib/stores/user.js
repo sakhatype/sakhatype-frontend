@@ -57,9 +57,11 @@ function createUserStore() {
         if (user) {
           update((s) => ({ ...s, user, token: storedToken }));
           if (browser) localStorage.setItem('dotx_user', JSON.stringify(user));
+          return;
         }
+        this.logout();
       } catch {
-        // Token invalid
+        this.logout();
       }
     },
 
@@ -82,3 +84,7 @@ function createUserStore() {
 }
 
 export const userStore = createUserStore();
+
+api.setUnauthorizedHandler(() => {
+  userStore.logout();
+});

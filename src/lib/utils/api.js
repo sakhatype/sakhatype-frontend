@@ -62,7 +62,24 @@ function authHeaders(token) {
   return headers;
 }
 
+/** @type {null | (() => void)} */
+let unauthorizedHandler = null;
+
+function handleUnauthorized() {
+  unauthorizedHandler?.();
+}
+
+async function authorizedFetch(url, options = {}) {
+  const res = await fetch(url, options);
+  if (res.status === 401) handleUnauthorized();
+  return res;
+}
+
 export const api = {
+  setUnauthorizedHandler(handler) {
+    unauthorizedHandler = typeof handler === 'function' ? handler : null;
+  },
+
   // Auth
   async register(username, password) {
     const res = await fetch(`${API_BASE}/auth/register`, {
@@ -95,7 +112,7 @@ export const api = {
   },
 
   async getMe(token) {
-    const res = await fetch(`${API_BASE}/auth/me`, {
+    const res = await authorizedFetch(`${API_BASE}/auth/me`, {
       headers: authHeaders(token),
     });
     if (!res.ok) return null;
@@ -118,7 +135,7 @@ export const api = {
 
   // Results
   async submitResult(data, token) {
-    const res = await fetch(`${API_BASE}/typing/result`, {
+    const res = await authorizedFetch(`${API_BASE}/typing/result`, {
       method: 'POST',
       headers: authHeaders(token),
       body: JSON.stringify(data),
@@ -131,7 +148,7 @@ export const api = {
   },
 
   async getHistory(token, limit = 50) {
-    const res = await fetch(`${API_BASE}/typing/history?limit=${limit}`, {
+    const res = await authorizedFetch(`${API_BASE}/typing/history?limit=${limit}`, {
       headers: authHeaders(token),
     });
     if (!res.ok) return [];
@@ -253,7 +270,7 @@ export const api = {
   },
 
   async updateProfile(updates, token) {
-    const res = await fetch(`${API_BASE}/profile/update`, {
+    const res = await authorizedFetch(`${API_BASE}/profile/update`, {
       method: 'PUT',
       headers: authHeaders(token),
       body: JSON.stringify(updates),
@@ -284,7 +301,7 @@ export const api = {
     for (const url of urls) {
       const fd = new FormData();
       fd.append('file', file);
-      const res = await fetch(url, { method: 'POST', headers, body: fd });
+      const res = await authorizedFetch(url, { method: 'POST', headers, body: fd });
       if (res.ok) return res.json();
       if (res.status !== 404 && res.status !== 405) {
         const err = await res.json().catch(() => ({}));
