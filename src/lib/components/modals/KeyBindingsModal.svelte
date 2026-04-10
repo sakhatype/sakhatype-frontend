@@ -1,8 +1,11 @@
 <script>
   import { settingsStore } from '$stores/settings.js';
+  import { uiStore } from '$stores/ui.js';
 
   export let isOpen = false;
   export let onClose = () => {};
+
+  $: uiStore.update(u => ({ ...u, keyBindingsModalOpen: isOpen }));
 
   $: settings = $settingsStore;
   $: bindings = settings.customBindings || {};
@@ -13,15 +16,27 @@
   let editingValue = '';
 
   const sakhaChars = ['ҥ', 'ҕ', 'ө', 'ү', 'һ'];
+  const NEW_BINDING = '__new__';
 
   function startEdit(key) {
     editingKey = key;
     editingKeyValue = key;
     editingValue = bindings[key] || '';
   }
+  function startAddBinding() {
+    editingKey = NEW_BINDING;
+    editingKeyValue = '';
+    editingValue = '';
+  }
   function saveEdit() {
     const normalizedKey = editingKeyValue?.trim().toLowerCase();
-    if (editingKey && normalizedKey && editingValue) {
+    if (!editingKey || !normalizedKey || !editingValue) return;
+    if (editingKey === NEW_BINDING) {
+      settingsStore.update(s => ({
+        ...s,
+        customBindings: { ...(s.customBindings || {}), [normalizedKey]: editingValue },
+      }));
+    } else {
       settingsStore.update(s => {
         const nextBindings = { ...(s.customBindings || {}) };
         delete nextBindings[editingKey];
@@ -94,7 +109,39 @@
         </button>
       </div>
 
+      <div class="flex justify-end mb-4">
+        <button
+          type="button"
+          disabled={editingKey !== null}
+          on:click={startAddBinding}
+          class="px-4 py-2 rounded-xl mono text-[9px] font-bold uppercase transition-all border border-primary-500/40 bg-primary-500/10 text-primary-300 hover:bg-primary-500/20 disabled:opacity-40 disabled:pointer-events-none"
+        >
+          + Свой бинд
+        </button>
+      </div>
+
       <div class="space-y-3 mb-6">
+        {#if editingKey === NEW_BINDING}
+          <div class="s-card p-4 !rounded-xl flex items-center justify-between group border border-primary-500/30">
+            <div class="flex-1 flex items-center gap-4">
+              <div class="flex items-center gap-2">
+                <span class="mono text-[10px] text-surface-400 uppercase">Клавиша:</span>
+                <input type="text" bind:value={editingKeyValue} on:keydown={handleBindingKeyCapture}
+                  class="input-sakha w-24 !px-3 !py-2 text-center" placeholder="Нажмите" autofocus />
+              </div>
+              <span class="text-surface-500">→</span>
+              <div class="flex items-center gap-2">
+                <span class="mono text-[10px] text-surface-400 uppercase">Символ:</span>
+                <input type="text" bind:value={editingValue} on:keydown={handleKeyInput}
+                  class="input-sakha w-16 !px-3 !py-2 text-lg text-center" maxlength="1" />
+              </div>
+            </div>
+            <div class="flex gap-2">
+              <button type="button" on:click={saveEdit} class="px-4 py-2 bg-primary-500 hover:bg-primary-400 rounded-xl mono text-[9px] font-bold uppercase text-white transition-all">Сохранить</button>
+              <button type="button" on:click={cancelEdit} class="px-4 py-2 hover:bg-surface-700/50 rounded-xl mono text-[9px] font-bold uppercase text-surface-400 transition-all">Отмена</button>
+            </div>
+          </div>
+        {/if}
         {#each Object.entries(bindings) as [key, char]}
           <div class="s-card p-4 !rounded-xl flex items-center justify-between group">
             {#if editingKey === key}

@@ -7,6 +7,7 @@
   import { api } from '$utils/api.js';
   import { getOfflineWords } from '$utils/wordDifficulty.js';
   import { userStore } from '$stores/user.js';
+  import { uiStore } from '$stores/ui.js';
   import { soundManager } from '$utils/sound.js';
 
   let canvasEl;
@@ -546,6 +547,7 @@
 
   // ─── DESKTOP INPUT ──────────────────────────────────────────────
   function handleKeyDown(e) {
+    if (get(uiStore).keyBindingsModalOpen) return;
     if (state.status === 'finished') return;
     focusInput();
 
@@ -603,6 +605,7 @@
 
   function handleMobileInput() {
     if (!isMobile) return;
+    if (get(uiStore).keyBindingsModalOpen) return;
     if (state.status === 'finished') return;
     const val = hiddenInput?.value || '';
 
