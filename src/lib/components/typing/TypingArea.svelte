@@ -587,7 +587,6 @@
 
     const word = state.words[state.currentWordIndex];
     const pos = state.currentInput.length;
-    if (settings.difficulty === 'expert' && pos < word.length && e.key !== word[pos]) return;
 
     const isError = pos < word.length && e.key !== word[pos];
     if (isError) typingStore.recordError();
@@ -624,10 +623,6 @@
       if (ch === ' ') { if (cs.currentInput.length > 0) { commitCurrentWord(); if (hiddenInput) hiddenInput.value = ''; lastHiddenValue = ''; } return; }
       let mc = ch;
       if (settings.sakhaBinds && settings.language === 'sakha') { const m = mapToSakha(ch, settings.customBindings); if (m) mc = m; }
-      if (settings.difficulty === 'expert') {
-        const w = cs.words[cs.currentWordIndex]; const p = cs.currentInput.length;
-        if (p < w.length && mc !== w[p]) { if (hiddenInput) hiddenInput.value = lastHiddenValue; return; }
-      }
       typingStore.setInput(cs.currentInput + mc);
       const mw = cs.words[cs.currentWordIndex];
       const mp = cs.currentInput.length;
@@ -759,8 +754,14 @@
   <div bind:this={containerEl}
        class="relative cursor-text"
        on:click={handleTap}
+       on:keydown={(e) => {
+         if (e.key === 'Enter' || e.key === ' ') {
+           e.preventDefault();
+           handleTap();
+         }
+       }}
        on:touchend|preventDefault={handleTap}
-       role="textbox" tabindex="-1">
+       role="textbox" tabindex="0">
 
     <input bind:this={hiddenInput}
            style="position:absolute;top:50%;left:50%;width:1px;height:1px;opacity:0.01;border:none;outline:none;padding:0;margin:0;font-size:16px;caret-color:transparent;color:transparent;background:transparent;z-index:-1;"
@@ -779,13 +780,13 @@
 
     <canvas bind:this={canvasEl}
             class="block w-full"
-            style="height:{canvasH > 0 ? canvasH + 'px' : (isMobile ? '7rem' : '10rem')};" />
+            style="height:{canvasH > 0 ? canvasH + 'px' : (isMobile ? '7rem' : '10rem')};"></canvas>
   </div>
 
   <!-- Restart + key bindings (hidden during typing) -->
   {#if state.status !== 'running'}
     <div class="mt-8 sm:mt-10 flex justify-center">
-      <button class="flex items-center gap-3 text-surface-400 hover:text-primary-400 transition-all group" on:click={restart}>
+      <button class="flex items-center gap-3 text-surface-400 hover:text-primary-400 transition-all group" on:click={restart} aria-label="Перезапустить">
         <div class="s-card w-10 h-10 !rounded-lg flex items-center justify-center group-hover:!border-primary-500/40 transition-all">
           <svg class="w-5 h-5 group-hover:rotate-[360deg] transition-transform duration-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 4v6h6"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
         </div>
