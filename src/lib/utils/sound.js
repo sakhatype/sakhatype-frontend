@@ -32,24 +32,33 @@ class SoundManager {
   playBeep(frequency = 800, duration = 0.05, volume = 0.1) {
     if (!this.enabled || !this.audioContext) return;
 
-    try {
-      const oscillator = this.audioContext.createOscillator();
-      const gainNode = this.audioContext.createGain();
+    const ctx = this.audioContext;
+    const run = () => {
+      try {
+        const t0 = ctx.currentTime;
+        const oscillator = ctx.createOscillator();
+        const gainNode = ctx.createGain();
 
-      oscillator.connect(gainNode);
-      gainNode.connect(this.audioContext.destination);
+        oscillator.connect(gainNode);
+        gainNode.connect(ctx.destination);
 
-      oscillator.frequency.value = frequency;
-      oscillator.type = 'sine';
+        oscillator.frequency.value = frequency;
+        oscillator.type = 'sine';
 
-      gainNode.gain.setValueAtTime(volume, this.audioContext.currentTime);
-      gainNode.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + duration);
+        const v = Math.max(volume, 0.0001);
+        gainNode.gain.setValueAtTime(v, t0);
+        gainNode.gain.exponentialRampToValueAtTime(0.0001, t0 + duration);
 
-      oscillator.start(this.audioContext.currentTime);
-      oscillator.stop(this.audioContext.currentTime + duration);
-    } catch (e) {
-      console.warn('Failed to play sound:', e);
-    }
+        oscillator.start(t0);
+        oscillator.stop(t0 + duration);
+      } catch (e) {
+        console.warn('Failed to play sound:', e);
+      }
+    };
+
+    // Каждый вызов — отдельный осциллятор: звуки накладываются (спам по вводу).
+    if (ctx.state === 'suspended') void ctx.resume().then(run);
+    else run();
   }
 
   /**

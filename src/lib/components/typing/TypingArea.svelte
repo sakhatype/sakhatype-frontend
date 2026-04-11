@@ -55,6 +55,12 @@
 
   export let onTestComplete = () => {};
 
+  /** Минимум «запаса» слов впереди; ниже — догружаем с API / офлайн */
+  const WORD_BUFFER_MIN = 45;
+  const WORD_FETCH_BATCH = 90;
+
+  let wordPrefetchPromise = null;
+
   $: state = $typingStore;
   $: settings = $settingsStore;
   $: theme = settings.theme;
@@ -113,7 +119,11 @@
     caretDisplayX = 0;
     caretDisplayY = 0;
     charPops = [];
-    const count = settings.mode === 'words' ? settings.modeValue : 100;
+    const targetWords = settings.mode === 'words' ? settings.modeValue : 100;
+    const count =
+      settings.mode === 'words'
+        ? Math.max(targetWords, WORD_BUFFER_MIN + 25)
+        : targetWords;
     try {
       const data = await api.getWords(settings.language, count, settings.difficulty);
       typingStore.init(data.words, settings.mode, settings.modeValue, settings.language);
@@ -125,6 +135,45 @@
     }
     await tick();
     resizeCanvas();
+    void ensureWordBuffer();
+  }
+
+  /** Синхронно добить буфер офлайн, если закончились слова (пока ждём сеть) */
+  function topUpWordsIfEmptySync() {
+    let guard = 0;
+    while (guard++ < 24) {
+      const s = get(typingStore);
+      if (s.status === 'finished') return;
+      if (s.currentWordIndex < s.words.length) return;
+      if (s.mode === 'words' && s.currentWordIndex >= s.modeValue) return;
+      const batch = getOfflineWords(settings.difficulty, WORD_FETCH_BATCH);
+      if (!batch.length) return;
+      typingStore.appendWords(batch);
+    }
+  }
+
+  /** Фоновая подгрузка, пока в буфере мало слов впереди */
+  function ensureWordBuffer() {
+    const s = get(typingStore);
+    if (s.status !== 'running' && s.status !== 'idle') return;
+    if (s.status === 'finished') return;
+
+    const ahead = s.words.length - s.currentWordIndex;
+    if (ahead >= WORD_BUFFER_MIN) return;
+    if (s.mode === 'words' && s.currentWordIndex >= s.modeValue) return;
+
+    if (wordPrefetchPromise) return;
+    wordPrefetchPromise = (async () => {
+      try {
+        const data = await api.getWords(settings.language, WORD_FETCH_BATCH, settings.difficulty);
+        if (data?.words?.length) typingStore.appendWords(data.words);
+      } catch {
+        typingStore.appendWords(getOfflineWords(settings.difficulty, WORD_FETCH_BATCH));
+      } finally {
+        wordPrefetchPromise = null;
+        topUpWordsIfEmptySync();
+      }
+    })();
   }
 
   function detectMobile() {
@@ -568,6 +617,7 @@
     if (state.status === 'idle') { typingStore.start(); startTimer(); }
     if (state.status !== 'running' && state.status !== 'idle') return;
 
+    if (state.status === 'running') topUpWordsIfEmptySync();
     if (state.currentWordIndex >= state.words.length) return;
 
     if (settings.sakhaBinds && settings.language === 'sakha') {
@@ -613,6 +663,7 @@
     if (state.status !== 'running' && state.status !== 'idle') return;
 
     const oldInput = state.currentInput;
+    if (state.status === 'running') topUpWordsIfEmptySync();
     if (state.currentWordIndex >= state.words.length) return;
     if (val.length < lastHiddenValue.length) {
       if (oldInput.length > 0) { typingStore.setInput(oldInput.slice(0,-1)); lastHiddenValue = val; resetCaretBlink(); }
@@ -647,6 +698,7 @@
   // ─── WORD COMMIT ────────────────────────────────────────────────
   /** Пробел всегда переходит к следующему слову (в т.ч. пустой ввод = пропуск), удержание пробела — повторные keydown. */
   function commitCurrentWord() {
+    topUpWordsIfEmptySync();
     let s = get(typingStore);
     if (s.status === 'finished') return;
     if (s.currentWordIndex >= s.words.length) return;
@@ -673,6 +725,7 @@
     }
     const after = get(typingStore);
     if (after.status === 'finished') void finishTest();
+    else void ensureWordBuffer();
   }
 
   function syncHiddenInput() { if (hiddenInput) hiddenInput.value = $typingStore.currentInput; }
@@ -770,7 +823,7 @@
           {#if settings.mode === 'time'}
             {String(Math.floor(state.timeLeft / 60)).padStart(2,'0')}:{String(state.timeLeft % 60).padStart(2,'0')}
           {:else}
-            {state.currentWordIndex}/{state.words.length}
+            {state.currentWordIndex}/{settings.mode === 'words' ? state.modeValue : state.words.length}
           {/if}
         </span>
       </div>

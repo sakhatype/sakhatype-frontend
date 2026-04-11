@@ -148,6 +148,7 @@ function createTypingStore() {
       update(s => {
         if (s.status !== 'running') return s;
         const word = s.words[s.currentWordIndex];
+        if (word == null) return s;
         const typed = s.currentInput;
 
         const chars = typed.split('');
@@ -184,8 +185,8 @@ function createTypingStore() {
           raw: Math.round(rawWpm * 100) / 100,
         }];
 
-        // Check if words mode is complete
-        if (s.mode === 'words' && nextIndex >= s.words.length) {
+        // Режим «слова»: конец по целевому количеству, а не по длине буфера (буфер может быть дополнен)
+        if (s.mode === 'words' && nextIndex >= s.modeValue) {
           return {
             ...s,
             currentWordIndex: nextIndex,
@@ -241,6 +242,12 @@ function createTypingStore() {
           accuracy: Math.round(acc * 100) / 100,
         };
       });
+    },
+
+    /** Добавить слова в конец (бесконечная лента / подгрузка) */
+    appendWords(moreWords) {
+      if (!moreWords?.length) return;
+      update(s => ({ ...s, words: [...s.words, ...moreWords] }));
     },
 
     reset() {
