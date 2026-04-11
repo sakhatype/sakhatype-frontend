@@ -579,7 +579,7 @@
       }
     }
 
-    if (e.key === ' ')         { commitCurrentWord(); return; }
+    if (e.key === ' ')         { commitCurrentWord(); if ($typingStore.status === 'finished') return; return; }
     if (e.key === 'Backspace') { if (state.currentInput.length > 0) { typingStore.setInput(state.currentInput.slice(0,-1)); syncHiddenInput(); resetCaretBlink(); } return; }
     if (e.key === 'Tab' || e.key === 'Escape') { e.preventDefault(); restart(); return; }
     if (e.key.length > 1) return;
@@ -596,6 +596,17 @@
     syncHiddenInput();
     resetCaretBlink();
     if (settings.soundEnabled) soundManager.playKeystroke();
+
+    // Monkeytype-style: finish immediately when last word is completed
+    const updatedState = $typingStore;
+    const curWord = updatedState.words[updatedState.currentWordIndex];
+    if (curWord && updatedState.currentInput === curWord) {
+      const nextIndex = updatedState.currentWordIndex + 1;
+      if (nextIndex >= updatedState.words.length) {
+        commitCurrentWord();
+        return;
+      }
+    }
   }
 
   // ─── MOBILE INPUT ───────────────────────────────────────────────
@@ -620,7 +631,7 @@
 
     for (const ch of newChars) {
       const cs = $typingStore;
-      if (ch === ' ') { if (cs.currentInput.length > 0) { commitCurrentWord(); if (hiddenInput) hiddenInput.value = ''; lastHiddenValue = ''; } return; }
+      if (ch === ' ') { if (cs.currentInput.length > 0) { commitCurrentWord(); if (hiddenInput) hiddenInput.value = ''; lastHiddenValue = ''; if ($typingStore.status === 'finished') return; } return; }
       let mc = ch;
       if (settings.sakhaBinds && settings.language === 'sakha') { const m = mapToSakha(ch, settings.customBindings); if (m) mc = m; }
       if (settings.difficulty === 'expert') {
@@ -633,6 +644,17 @@
       if (mp < mw.length && mc !== mw[mp]) typingStore.recordError();
       typingStore.recordChar();
       if (settings.soundEnabled) soundManager.playKeystroke();
+
+      // Monkeytype-style: finish immediately when last word is completed
+      const updatedState = $typingStore;
+      const curWord = updatedState.words[updatedState.currentWordIndex];
+      if (curWord && updatedState.currentInput === curWord) {
+        const nextIndex = updatedState.currentWordIndex + 1;
+        if (nextIndex >= updatedState.words.length) {
+          commitCurrentWord();
+          return;
+        }
+      }
     }
     lastHiddenValue = hiddenInput?.value || '';
     resetCaretBlink();
