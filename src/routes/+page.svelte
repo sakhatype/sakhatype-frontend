@@ -18,12 +18,16 @@
   async function handleRestart() {
     testResult = null;
     const s = $settingsStore;
-    const count = s.mode === 'words' ? s.modeValue : 100;
+    const modeSnap = s.mode;
+    const modeValSnap = Number(s.modeValue);
+    const diffSnap = s.difficulty;
+    const target = modeSnap === 'words' ? Math.max(1, Math.floor(modeValSnap) || 1) : 100;
+    const count = modeSnap === 'words' ? Math.max(target, 70) : target;
     try {
-      const data = await api.getWords('sakha', count, s.difficulty);
-      typingStore.init(data.words, s.mode, s.modeValue, 'sakha');
+      const data = await api.getWords('sakha', count, diffSnap);
+      typingStore.init(data.words, modeSnap, modeValSnap, 'sakha');
     } catch {
-      typingStore.init(getOfflineWords(s.difficulty, count), s.mode, s.modeValue, 'sakha');
+      typingStore.init(getOfflineWords(diffSnap, count), modeSnap, modeValSnap, 'sakha');
     }
   }
 </script>

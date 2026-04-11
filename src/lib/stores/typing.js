@@ -22,6 +22,8 @@ function createTypingStore() {
     charsExtra: 0,
     charsMissed: 0,
     timerInterval: null,
+    // wordsGoal: в режиме «слова» — целевое число слов (задаётся в init)
+    wordsGoal: 0,
     // Per-word WPM history (recorded on each word commit)
     wpmHistory: [],
     // Per-second snapshots for the detailed graph
@@ -38,8 +40,12 @@ function createTypingStore() {
     subscribe,
 
     init(words, mode, modeValue, language) {
+      const mv = Number(modeValue);
+      const modeValueNum = Number.isFinite(mv) ? mv : mode === 'time' ? 30 : 25;
+      const wordsGoal =
+        mode === 'words' ? Math.max(1, Math.floor(modeValueNum) || 1) : 0;
       set({
-        words, language, mode, modeValue,
+        words, language, mode, modeValue: modeValueNum, wordsGoal,
         status: 'idle',
         currentWordIndex: 0,
         currentInput: '',
@@ -47,7 +53,7 @@ function createTypingStore() {
         wordCorrectness: [],
         startTime: 0,
         endTime: 0,
-        timeLeft: mode === 'time' ? modeValue : 0,
+        timeLeft: mode === 'time' ? modeValueNum : 0,
         wpm: 0, rawWpm: 0, accuracy: 100,
         charsCorrect: 0, charsIncorrect: 0,
         charsExtra: 0, charsMissed: 0,
@@ -185,8 +191,9 @@ function createTypingStore() {
           raw: Math.round(rawWpm * 100) / 100,
         }];
 
-        // Режим «слова»: конец по целевому количеству, а не по длине буфера (буфер может быть дополнен)
-        if (s.mode === 'words' && nextIndex >= s.modeValue) {
+        // Режим «слова»: конец только после коммита последнего слова (nextIndex === числу набранных слов)
+        const goal = s.wordsGoal > 0 ? s.wordsGoal : Math.max(1, Math.floor(Number(s.modeValue)) || 1);
+        if (s.mode === 'words' && nextIndex >= goal) {
           return {
             ...s,
             currentWordIndex: nextIndex,
@@ -260,6 +267,7 @@ function createTypingStore() {
         wordCorrectness: [],
         startTime: 0,
         endTime: 0,
+        wordsGoal: s.mode === 'words' ? Math.max(1, Math.floor(Number(s.modeValue)) || 1) : 0,
         timeLeft: s.mode === 'time' ? s.modeValue : 0,
         wpm: 0, rawWpm: 0, accuracy: 100,
         charsCorrect: 0, charsIncorrect: 0,

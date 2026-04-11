@@ -119,18 +119,23 @@
     caretDisplayX = 0;
     caretDisplayY = 0;
     charPops = [];
-    const targetWords = settings.mode === 'words' ? settings.modeValue : 100;
+    // Снимок до await — иначе после ответа API могут уйти уже другие mode/modeValue из настроек
+    const modeSnap = settings.mode;
+    const modeValSnap = Number(settings.modeValue);
+    const langSnap = settings.language;
+    const diffSnap = settings.difficulty;
+    const targetWords = modeSnap === 'words' ? Math.max(1, Math.floor(modeValSnap) || 1) : 100;
     const count =
-      settings.mode === 'words'
+      modeSnap === 'words'
         ? Math.max(targetWords, WORD_BUFFER_MIN + 25)
         : targetWords;
     try {
-      const data = await api.getWords(settings.language, count, settings.difficulty);
-      typingStore.init(data.words, settings.mode, settings.modeValue, settings.language);
+      const data = await api.getWords(langSnap, count, diffSnap);
+      typingStore.init(data.words, modeSnap, modeValSnap, langSnap);
     } catch {
       typingStore.init(
-        getOfflineWords(settings.difficulty, count),
-        settings.mode, settings.modeValue, settings.language
+        getOfflineWords(diffSnap, count),
+        modeSnap, modeValSnap, langSnap
       );
     }
     await tick();
@@ -145,7 +150,10 @@
       const s = get(typingStore);
       if (s.status === 'finished') return;
       if (s.currentWordIndex < s.words.length) return;
-      if (s.mode === 'words' && s.currentWordIndex >= s.modeValue) return;
+      if (s.mode === 'words') {
+        const g = s.wordsGoal || Math.max(1, Math.floor(Number(s.modeValue)) || 1);
+        if (s.currentWordIndex >= g) return;
+      }
       const batch = getOfflineWords(settings.difficulty, WORD_FETCH_BATCH);
       if (!batch.length) return;
       typingStore.appendWords(batch);
@@ -159,8 +167,13 @@
     if (s.status === 'finished') return;
 
     const ahead = s.words.length - s.currentWordIndex;
-    if (ahead >= WORD_BUFFER_MIN) return;
-    if (s.mode === 'words' && s.currentWordIndex >= s.modeValue) return;
+    if (s.mode === 'words') {
+      const g = s.wordsGoal || Math.max(1, Math.floor(Number(s.modeValue)) || 1);
+      if (s.currentWordIndex >= g) return;
+      if (s.words.length >= g && ahead >= WORD_BUFFER_MIN) return;
+    } else if (ahead >= WORD_BUFFER_MIN) {
+      return;
+    }
 
     if (wordPrefetchPromise) return;
     wordPrefetchPromise = (async () => {
@@ -228,7 +241,16 @@
     let y = 0;
     let currentLine = 0;
 
-    for (let wIdx = 0; wIdx < state.words.length; wIdx++) {
+    const wordsGoalUi =
+      state.mode === 'words'
+        ? (state.wordsGoal > 0
+            ? state.wordsGoal
+            : Math.max(1, Math.floor(Number(state.modeValue)) || 1))
+        : state.words.length;
+    const layoutWordCount =
+      state.mode === 'words' ? Math.min(state.words.length, wordsGoalUi) : state.words.length;
+
+    for (let wIdx = 0; wIdx < layoutWordCount; wIdx++) {
       const word = state.words[wIdx];
       const displayChars = getDisplayChars(word, wIdx);
 
@@ -619,6 +641,10 @@
 
     if (state.status === 'running') topUpWordsIfEmptySync();
     if (state.currentWordIndex >= state.words.length) return;
+    if (state.mode === 'words') {
+      const g = state.wordsGoal > 0 ? state.wordsGoal : Math.max(1, Math.floor(Number(state.modeValue)) || 1);
+      if (state.currentWordIndex >= g) return;
+    }
 
     if (settings.sakhaBinds && settings.language === 'sakha') {
       const mapped = mapToSakha(e.key, settings.customBindings);
@@ -665,6 +691,10 @@
     const oldInput = state.currentInput;
     if (state.status === 'running') topUpWordsIfEmptySync();
     if (state.currentWordIndex >= state.words.length) return;
+    if (state.mode === 'words') {
+      const g = state.wordsGoal > 0 ? state.wordsGoal : Math.max(1, Math.floor(Number(state.modeValue)) || 1);
+      if (state.currentWordIndex >= g) return;
+    }
     if (val.length < lastHiddenValue.length) {
       if (oldInput.length > 0) { typingStore.setInput(oldInput.slice(0,-1)); lastHiddenValue = val; resetCaretBlink(); }
       return;
@@ -682,6 +712,10 @@
       }
       const cs = get(typingStore);
       if (cs.status === 'finished' || cs.currentWordIndex >= cs.words.length) break;
+      if (cs.mode === 'words') {
+        const g = cs.wordsGoal > 0 ? cs.wordsGoal : Math.max(1, Math.floor(Number(cs.modeValue)) || 1);
+        if (cs.currentWordIndex >= g) break;
+      }
       let mc = ch;
       if (settings.sakhaBinds && settings.language === 'sakha') { const m = mapToSakha(ch, settings.customBindings); if (m) mc = m; }
       typingStore.setInput(cs.currentInput + mc);
@@ -702,6 +736,10 @@
     let s = get(typingStore);
     if (s.status === 'finished') return;
     if (s.currentWordIndex >= s.words.length) return;
+    if (s.mode === 'words') {
+      const g = s.wordsGoal > 0 ? s.wordsGoal : Math.max(1, Math.floor(Number(s.modeValue)) || 1);
+      if (s.currentWordIndex >= g) return;
+    }
 
     if (s.status === 'idle') {
       typingStore.start();
@@ -823,7 +861,7 @@
           {#if settings.mode === 'time'}
             {String(Math.floor(state.timeLeft / 60)).padStart(2,'0')}:{String(state.timeLeft % 60).padStart(2,'0')}
           {:else}
-            {state.currentWordIndex}/{settings.mode === 'words' ? state.modeValue : state.words.length}
+            {state.typedHistory.length}/{state.wordsGoal > 0 ? state.wordsGoal : state.modeValue}
           {/if}
         </span>
       </div>
