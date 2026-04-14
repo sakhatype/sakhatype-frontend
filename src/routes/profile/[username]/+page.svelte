@@ -388,20 +388,20 @@
 
     <!-- Stats + History -->
     <div class="col-span-12 lg:col-span-8 flex flex-col gap-3">
-      <div class="grid grid-cols-3 gap-3">
-        <div class="s-card p-6">
-          <span class="mono text-[9px] font-bold text-primary-400 uppercase tracking-wider mb-3 block">Средний WPM</span>
-          <span class="text-4xl font-heading font-extrabold"
+      <div class="grid grid-cols-3 gap-2 sm:gap-3">
+        <div class="s-card p-3 sm:p-6 min-w-0">
+          <span class="mono text-[8px] sm:text-[9px] font-bold text-primary-400 uppercase tracking-wider mb-2 sm:mb-3 block leading-tight">Средний WPM</span>
+          <span class="block text-2xl sm:text-4xl font-heading font-extrabold tabular-nums truncate"
                 class:text-surface-50={theme === 'dark'} class:text-surface-900={theme === 'light'}>{user.avg_wpm}</span>
         </div>
-        <div class="s-card p-6">
-          <span class="mono text-[9px] font-bold text-surface-400 uppercase tracking-wider mb-3 block">Тестов</span>
-          <span class="text-4xl font-heading font-extrabold"
+        <div class="s-card p-3 sm:p-6 min-w-0">
+          <span class="mono text-[8px] sm:text-[9px] font-bold text-surface-400 uppercase tracking-wider mb-2 sm:mb-3 block leading-tight">Тестов</span>
+          <span class="block text-2xl sm:text-4xl font-heading font-extrabold tabular-nums truncate"
                 class:text-surface-50={theme === 'dark'} class:text-surface-900={theme === 'light'}>{user.total_tests}</span>
         </div>
-        <div class="s-card p-6 glow-primary">
-          <span class="mono text-[9px] font-bold text-surface-400 uppercase tracking-wider mb-3 block">Лучший WPM</span>
-          <span class="text-4xl font-heading font-extrabold text-primary-400">{user.best_wpm}</span>
+        <div class="s-card p-3 sm:p-6 min-w-0 glow-primary">
+          <span class="mono text-[8px] sm:text-[9px] font-bold text-surface-400 uppercase tracking-wider mb-2 sm:mb-3 block leading-tight">Лучший WPM</span>
+          <span class="block text-2xl sm:text-4xl font-heading font-extrabold text-primary-400 tabular-nums truncate">{user.best_wpm}</span>
         </div>
       </div>
 

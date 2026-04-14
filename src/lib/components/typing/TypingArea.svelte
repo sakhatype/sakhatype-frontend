@@ -882,7 +882,7 @@
        role="textbox" tabindex="0">
 
     <input bind:this={hiddenInput}
-           style="position:absolute;top:50%;left:50%;width:1px;height:1px;opacity:0.01;border:none;outline:none;padding:0;margin:0;font-size:16px;caret-color:transparent;color:transparent;background:transparent;z-index:-1;"
+           style="position:absolute;top:0;left:0;width:1px;height:1px;opacity:0.01;border:none;outline:none;padding:0;margin:0;font-size:16px;caret-color:transparent;color:transparent;background:transparent;z-index:-1;"
            on:focus={handleFocus} on:blur={handleBlur} on:input={handleMobileInput}
            autocomplete="off" autocapitalize="off" autocorrect="off"
            spellcheck="false" inputmode="text" enterkeyhint="next" />

@@ -4,12 +4,41 @@
   import { userStore } from '$stores/user.js';
   import { settingsStore } from '$stores/settings.js';
   import { typingStore } from '$stores/typing.js';
-  import { onMount } from 'svelte';
+  import { onMount, onDestroy } from 'svelte';
 
   $: theme = $settingsStore.theme;
   $: isTyping = $typingStore.status === 'running';
 
-  onMount(() => { userStore.refresh(); });
+  /** @type {(() => void) | null} */
+  let detachViewport = null;
+
+  onMount(() => {
+    userStore.refresh();
+
+    // Track visual viewport so we know the on-screen keyboard height on mobile.
+    // Exposed as CSS vars `--kb` (keyboard px) and `--vvh` (visible viewport px).
+    if (typeof window === 'undefined' || !window.visualViewport) return;
+    const vv = window.visualViewport;
+    const root = document.documentElement;
+    const update = () => {
+      const kb = Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
+      root.style.setProperty('--kb', kb + 'px');
+      root.style.setProperty('--vvh', vv.height + 'px');
+      root.classList.toggle('kb-open', kb > 80);
+    };
+    update();
+    vv.addEventListener('resize', update);
+    vv.addEventListener('scroll', update);
+    detachViewport = () => {
+      vv.removeEventListener('resize', update);
+      vv.removeEventListener('scroll', update);
+      root.style.removeProperty('--kb');
+      root.style.removeProperty('--vvh');
+      root.classList.remove('kb-open');
+    };
+  });
+
+  onDestroy(() => { if (detachViewport) detachViewport(); });
 </script>
 
 <div class="min-h-screen flex flex-col transition-colors duration-500 relative"

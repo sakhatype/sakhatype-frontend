@@ -143,7 +143,18 @@
   </nav>
 
   <!-- Mobile -->
-  <div class="md:hidden flex items-center gap-3">
+  <div class="md:hidden flex items-center gap-2">
+    <a href="/leaderboard"
+       class="h-9 px-3 rounded-xl border flex items-center gap-1.5 font-heading font-bold uppercase text-[10px] tracking-wider transition-all {currentPath === '/leaderboard' ? 'border-primary-500/50 text-primary-400 bg-primary-500/10' : (theme === 'dark' ? 'bg-surface-700 border-surface-600 text-surface-100' : 'bg-white border-surface-200 text-surface-800')}"
+       aria-label="Лидерборд">
+      <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/>
+        <path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/>
+        <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/>
+        <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/>
+      </svg>
+      <span>Топ</span>
+    </a>
     {#if user}
       <a href="/profile/{user.username}" class="w-9 h-9 rounded-xl border flex items-center justify-center font-bold text-xs transition-all overflow-hidden"
          class:bg-surface-700={theme === 'dark'}
