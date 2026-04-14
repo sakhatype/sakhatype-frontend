@@ -513,9 +513,9 @@
                     on:click={() => pickPeriod('365d')}>Год</button>
                 </div>
               </div>
-              <div class="flex flex-col gap-2 min-w-0 items-start sm:items-end sm:text-right ml-auto">
-                <span class="mono text-[9px] font-bold uppercase tracking-wider text-surface-500 px-0.5 w-full sm:w-auto">Режим</span>
-                <div class="flex flex-wrap gap-2 sm:justify-end">
+              <div class="flex flex-col gap-2 min-w-0 items-end text-right ml-auto">
+                <span class="mono text-[9px] font-bold uppercase tracking-wider text-surface-500 px-0.5">Режим</span>
+                <div class="flex flex-wrap gap-2 justify-end">
                   <button type="button"
                     class="px-3 py-2 rounded-lg text-[10px] font-bold uppercase tracking-wider border transition-all
                       {modeFilter === 'all' ? 'bg-primary-500/15 border-primary-500/40 text-primary-400' : 'border-surface-600/40 text-surface-400 hover:border-surface-500'}"

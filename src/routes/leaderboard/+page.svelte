@@ -222,30 +222,29 @@
       <div class="lg:col-span-8">
         {#if loading}
           <div class="s-card overflow-hidden">
-            <table class="w-full text-left border-collapse">
+            <table class="w-full text-left border-collapse table-fixed sm:table-auto">
               <thead>
                 <tr class="border-b border-surface-600/30">
-                  <th class="px-6 sm:px-8 py-5 mono text-[10px] font-bold uppercase tracking-wider text-surface-400">Rank</th>
-                  <th class="px-4 sm:px-6 py-5 mono text-[10px] font-bold uppercase tracking-wider text-surface-400">User</th>
-                  <th class="px-4 sm:px-6 py-5 mono text-[10px] font-bold uppercase tracking-wider text-surface-400 text-right">WPM</th>
+                  <th class="w-12 sm:w-auto px-2 sm:px-8 py-4 sm:py-5 mono text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-surface-400">#</th>
+                  <th class="px-2 sm:px-6 py-4 sm:py-5 mono text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-surface-400">User</th>
+                  <th class="w-16 sm:w-auto px-2 sm:px-6 py-4 sm:py-5 mono text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-surface-400 text-right">WPM</th>
                   <th class="hidden sm:table-cell px-6 py-5 mono text-[10px] font-bold uppercase tracking-wider text-surface-400 text-right">Точн.</th>
                 </tr>
               </thead>
               <tbody>
                 {#each Array.from({ length: leaderboardSkeletonRows }) as _, i (i)}
                   <tr class="border-b border-surface-700/30">
-                    <td class="px-6 sm:px-8 py-5 align-middle">
-                      <div class="skeleton w-8 h-8"></div>
+                    <td class="px-2 sm:px-8 py-4 sm:py-5 align-middle">
+                      <div class="skeleton w-7 h-7 sm:w-8 sm:h-8"></div>
                     </td>
-                    <td class="px-4 sm:px-6 py-5 align-middle">
-                      <div class="flex items-center gap-3">
+                    <td class="px-2 sm:px-6 py-4 sm:py-5 align-middle">
+                      <div class="flex items-center gap-2 sm:gap-3 min-w-0">
                         <div class="skeleton w-8 h-8 rounded-xl shrink-0"></div>
-                        <div class="skeleton h-5 w-[min(12rem,40vw)] rounded-md"></div>
-                        <div class="skeleton h-6 w-14 rounded-lg shrink-0"></div>
+                        <div class="skeleton h-4 sm:h-5 w-[min(10rem,35vw)] rounded-md"></div>
                       </div>
                     </td>
-                    <td class="px-4 sm:px-6 py-5 align-middle text-right">
-                      <div class="skeleton h-8 w-12 ml-auto rounded-lg"></div>
+                    <td class="px-2 sm:px-6 py-4 sm:py-5 align-middle text-right">
+                      <div class="skeleton h-7 sm:h-8 w-10 sm:w-12 ml-auto rounded-lg"></div>
                     </td>
                     <td class="hidden sm:table-cell px-6 py-5 align-middle text-right">
                       <div class="skeleton h-6 w-10 ml-auto rounded-md"></div>
@@ -266,30 +265,30 @@
           </div>
         {:else}
           <div class="s-card overflow-hidden">
-            <table class="w-full text-left border-collapse">
+            <table class="w-full text-left border-collapse table-fixed sm:table-auto">
               <thead>
                 <tr class="border-b border-surface-600/30">
-                  <th class="px-6 sm:px-8 py-5 mono text-[10px] font-bold uppercase tracking-wider text-surface-400">Rank</th>
-                  <th class="px-4 sm:px-6 py-5 mono text-[10px] font-bold uppercase tracking-wider text-surface-400">User</th>
-                  <th class="px-4 sm:px-6 py-5 mono text-[10px] font-bold uppercase tracking-wider text-surface-400 text-right">WPM</th>
+                  <th class="w-12 sm:w-auto px-2 sm:px-8 py-4 sm:py-5 mono text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-surface-400">#</th>
+                  <th class="px-2 sm:px-6 py-4 sm:py-5 mono text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-surface-400">User</th>
+                  <th class="w-16 sm:w-auto px-2 sm:px-6 py-4 sm:py-5 mono text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-surface-400 text-right">WPM</th>
                   <th class="hidden sm:table-cell px-6 py-5 mono text-[10px] font-bold uppercase tracking-wider text-surface-400 text-right">Точн.</th>
                 </tr>
               </thead>
               <tbody>
                 {#each leaderboard as entry (entry.user_id ?? entry.username ?? entry.rank)}
                   <tr class="border-b border-surface-700/30 hover:bg-surface-700/20 transition-all">
-                    <td class="px-6 sm:px-8 py-5">
+                    <td class="px-2 sm:px-8 py-4 sm:py-5">
                       {#if entry.rank <= 3}
-                        <div class="w-8 h-8 flex items-center rounded-lg justify-center font-heading font-extrabold text-sm
+                        <div class="w-7 h-7 sm:w-8 sm:h-8 flex items-center rounded-lg justify-center font-heading font-extrabold text-xs sm:text-sm
                              {entry.rank === 1 ? 'bg-warning-500/15 text-warning-400' : entry.rank === 2 ? 'bg-surface-300/15 text-surface-300' : 'bg-tertiary-600/15 text-tertiary-500'}">
                           {entry.rank}
                         </div>
                       {:else}
-                        <span class="mono text-sm font-bold text-surface-400 w-8 text-center block">{entry.rank}</span>
+                        <span class="mono text-xs sm:text-sm font-bold text-surface-400 w-7 sm:w-8 text-center block">{entry.rank}</span>
                       {/if}
                     </td>
-                    <td class="px-4 sm:px-6 py-5">
-                      <div class="flex items-center gap-3">
+                    <td class="px-2 sm:px-6 py-4 sm:py-5 min-w-0">
+                      <div class="flex items-center gap-2 sm:gap-3 min-w-0">
                         <a
                           href="/profile/{entry.username}"
                           class="w-8 h-8 rounded-[8px] flex items-center justify-center font-bold text-xs border transition-all hover:border-primary-500/40 overflow-hidden shrink-0"
@@ -314,17 +313,19 @@
                             {leaderboardAvatarInitial(entry)}
                           {/if}
                         </a>
-                        <a href="/profile/{entry.username}" class="font-heading font-bold uppercase tracking-tight hover:text-primary-400 transition-colors text-sm sm:text-base"
-                           class:text-surface-100={theme === 'dark'} class:text-surface-800={theme === 'light'}>
-                          {entry.username}
-                        </a>
-                        <span class="badge-sakha bg-primary-500/10 border border-primary-500/20 text-primary-400">
-                          Ур. {String(entry.level ?? 0).padStart(2, '0')}
-                        </span>
+                        <div class="flex flex-col sm:flex-row sm:items-center sm:gap-3 min-w-0">
+                          <a href="/profile/{entry.username}" class="font-heading font-bold uppercase tracking-tight hover:text-primary-400 transition-colors text-sm sm:text-base truncate max-w-[34vw] sm:max-w-none"
+                             class:text-surface-100={theme === 'dark'} class:text-surface-800={theme === 'light'}>
+                            {entry.username}
+                          </a>
+                          <span class="badge-sakha bg-primary-500/10 border border-primary-500/20 text-primary-400 self-start sm:self-auto mt-0.5 sm:mt-0 text-[9px] sm:text-[10px]">
+                            Ур. {String(entry.level ?? 0).padStart(2, '0')}
+                          </span>
+                        </div>
                       </div>
                     </td>
-                    <td class="px-4 sm:px-6 py-5 text-right">
-                      <span class="text-2xl sm:text-3xl font-heading font-extrabold text-primary-400">{entry.wpm}</span>
+                    <td class="px-2 sm:px-6 py-4 sm:py-5 text-right">
+                      <span class="text-xl sm:text-3xl font-heading font-extrabold text-primary-400 tabular-nums">{entry.wpm}</span>
                     </td>
                     <td class="hidden sm:table-cell px-6 py-5 text-right">
                       <span class="text-lg font-bold mono text-surface-300">{entry.accuracy}%</span>
