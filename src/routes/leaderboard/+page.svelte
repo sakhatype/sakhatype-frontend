@@ -221,32 +221,52 @@
       <!-- Single table -->
       <div class="lg:col-span-8">
         {#if loading}
-          <div class="s-card overflow-hidden">
-            <table class="w-full text-left border-collapse table-fixed sm:table-auto">
+          <!-- Mobile skeleton -->
+          <div class="sm:hidden flex flex-col gap-2">
+            {#each Array.from({ length: leaderboardSkeletonRows }) as _, i (i)}
+              <div class="s-card p-3 flex items-center gap-3">
+                <div class="skeleton w-8 h-8 rounded-lg shrink-0"></div>
+                <div class="skeleton w-10 h-10 rounded-[8px] shrink-0"></div>
+                <div class="flex-1 flex flex-col gap-1.5 min-w-0">
+                  <div class="skeleton h-4 w-[40%] rounded"></div>
+                  <div class="skeleton h-3 w-[25%] rounded"></div>
+                </div>
+                <div class="flex flex-col items-end gap-1.5 shrink-0">
+                  <div class="skeleton h-6 w-12 rounded"></div>
+                  <div class="skeleton h-3 w-10 rounded"></div>
+                </div>
+              </div>
+            {/each}
+          </div>
+
+          <!-- Desktop skeleton -->
+          <div class="hidden sm:block s-card overflow-hidden">
+            <table class="w-full text-left border-collapse">
               <thead>
                 <tr class="border-b border-surface-600/30">
-                  <th class="w-12 sm:w-auto px-2 sm:px-8 py-4 sm:py-5 mono text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-surface-400">#</th>
-                  <th class="px-2 sm:px-6 py-4 sm:py-5 mono text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-surface-400">User</th>
-                  <th class="w-16 sm:w-auto px-2 sm:px-6 py-4 sm:py-5 mono text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-surface-400 text-right">WPM</th>
-                  <th class="hidden sm:table-cell px-6 py-5 mono text-[10px] font-bold uppercase tracking-wider text-surface-400 text-right">Точн.</th>
+                  <th class="px-6 sm:px-8 py-5 mono text-[10px] font-bold uppercase tracking-wider text-surface-400">Rank</th>
+                  <th class="px-4 sm:px-6 py-5 mono text-[10px] font-bold uppercase tracking-wider text-surface-400">User</th>
+                  <th class="px-4 sm:px-6 py-5 mono text-[10px] font-bold uppercase tracking-wider text-surface-400 text-right">WPM</th>
+                  <th class="px-6 py-5 mono text-[10px] font-bold uppercase tracking-wider text-surface-400 text-right">Точн.</th>
                 </tr>
               </thead>
               <tbody>
                 {#each Array.from({ length: leaderboardSkeletonRows }) as _, i (i)}
                   <tr class="border-b border-surface-700/30">
-                    <td class="px-2 sm:px-8 py-4 sm:py-5 align-middle">
-                      <div class="skeleton w-7 h-7 sm:w-8 sm:h-8"></div>
+                    <td class="px-6 sm:px-8 py-5 align-middle">
+                      <div class="skeleton w-8 h-8"></div>
                     </td>
-                    <td class="px-2 sm:px-6 py-4 sm:py-5 align-middle">
-                      <div class="flex items-center gap-2 sm:gap-3 min-w-0">
+                    <td class="px-4 sm:px-6 py-5 align-middle">
+                      <div class="flex items-center gap-3">
                         <div class="skeleton w-8 h-8 rounded-xl shrink-0"></div>
-                        <div class="skeleton h-4 sm:h-5 w-[min(10rem,35vw)] rounded-md"></div>
+                        <div class="skeleton h-5 w-[min(12rem,40vw)] rounded-md"></div>
+                        <div class="skeleton h-6 w-14 rounded-lg shrink-0"></div>
                       </div>
                     </td>
-                    <td class="px-2 sm:px-6 py-4 sm:py-5 align-middle text-right">
-                      <div class="skeleton h-7 sm:h-8 w-10 sm:w-12 ml-auto rounded-lg"></div>
+                    <td class="px-4 sm:px-6 py-5 align-middle text-right">
+                      <div class="skeleton h-8 w-12 ml-auto rounded-lg"></div>
                     </td>
-                    <td class="hidden sm:table-cell px-6 py-5 align-middle text-right">
+                    <td class="px-6 py-5 align-middle text-right">
                       <div class="skeleton h-6 w-10 ml-auto rounded-md"></div>
                     </td>
                   </tr>
@@ -264,31 +284,92 @@
             <a href="/" class="inline-block mt-8 px-10 py-4 bg-primary-500 text-white rounded-2xl font-heading font-bold uppercase text-xs tracking-wider hover:bg-primary-400 transition-all glow-primary">Начать печатать</a>
           </div>
         {:else}
-          <div class="s-card overflow-hidden">
-            <table class="w-full text-left border-collapse table-fixed sm:table-auto">
+          <!-- Mobile: card list -->
+          <div class="sm:hidden flex flex-col gap-2">
+            {#each leaderboard as entry (entry.user_id ?? entry.username ?? entry.rank)}
+              <div class="s-card p-3 flex items-center gap-3 min-w-0">
+                <!-- Rank -->
+                <div class="shrink-0">
+                  {#if entry.rank <= 3}
+                    <div class="w-8 h-8 flex items-center rounded-lg justify-center font-heading font-extrabold text-sm
+                         {entry.rank === 1 ? 'bg-warning-500/15 text-warning-400' : entry.rank === 2 ? 'bg-surface-300/15 text-surface-300' : 'bg-tertiary-600/15 text-tertiary-500'}">
+                      {entry.rank}
+                    </div>
+                  {:else}
+                    <span class="mono text-sm font-bold text-surface-400 w-8 text-center block">{entry.rank}</span>
+                  {/if}
+                </div>
+
+                <!-- Avatar -->
+                <a
+                  href="/profile/{entry.username}"
+                  class="w-10 h-10 rounded-[8px] flex items-center justify-center font-bold text-sm border transition-all hover:border-primary-500/40 overflow-hidden shrink-0"
+                  class:bg-surface-700={theme === 'dark'}
+                  class:border-surface-600={theme === 'dark'}
+                  class:text-surface-100={theme === 'dark'}
+                  class:bg-white={theme === 'light'}
+                  class:border-surface-200={theme === 'light'}
+                  class:text-surface-800={theme === 'light'}
+                  aria-label="Профиль {entry.username}"
+                >
+                  {#if leaderboardAvatarRaw(entry)}
+                    <img
+                      src={leaderboardAvatarSrc(entry)}
+                      alt=""
+                      class="w-full h-full object-cover"
+                      loading="lazy"
+                      decoding="async"
+                      on:error={(e) => onLeaderboardAvatarError(e, entry)}
+                    />
+                  {:else}
+                    {leaderboardAvatarInitial(entry)}
+                  {/if}
+                </a>
+
+                <!-- Username + level -->
+                <div class="flex-1 min-w-0 flex flex-col">
+                  <a href="/profile/{entry.username}" class="font-heading font-bold uppercase tracking-tight hover:text-primary-400 transition-colors text-sm truncate"
+                     class:text-surface-100={theme === 'dark'} class:text-surface-800={theme === 'light'}>
+                    {entry.username}
+                  </a>
+                  <span class="mono text-[9px] text-primary-400/80 uppercase tracking-wider mt-0.5">Ур. {String(entry.level ?? 0).padStart(2, '0')}</span>
+                </div>
+
+                <!-- WPM + Accuracy -->
+                <div class="shrink-0 flex flex-col items-end leading-none">
+                  <span class="text-2xl font-heading font-extrabold text-primary-400 tabular-nums">{entry.wpm}</span>
+                  <span class="mono text-[10px] text-surface-400 mt-1 tabular-nums">{entry.accuracy}%</span>
+                </div>
+              </div>
+            {/each}
+          </div>
+
+          <!-- Desktop: table -->
+          <div class="hidden sm:block s-card overflow-hidden">
+            <table class="w-full text-left border-collapse">
               <thead>
                 <tr class="border-b border-surface-600/30">
-                  <th class="w-12 sm:w-auto px-2 sm:px-8 py-4 sm:py-5 mono text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-surface-400">#</th>
-                  <th class="px-2 sm:px-6 py-4 sm:py-5 mono text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-surface-400">User</th>
-                  <th class="w-16 sm:w-auto px-2 sm:px-6 py-4 sm:py-5 mono text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-surface-400 text-right">WPM</th>
-                  <th class="hidden sm:table-cell px-6 py-5 mono text-[10px] font-bold uppercase tracking-wider text-surface-400 text-right">Точн.</th>
+                  <th class="px-6 sm:px-8 py-5 mono text-[10px] font-bold uppercase tracking-wider text-surface-400">Rank</th>
+                  <th class="px-4 sm:px-6 py-5 mono text-[10px] font-bold uppercase tracking-wider text-surface-400">User</th>
+                  <th class="px-4 sm:px-6 py-5 mono text-[10px] font-bold uppercase tracking-wider text-surface-400 text-right">WPM</th>
+                  <th class="px-6 py-5 mono text-[10px] font-bold uppercase tracking-wider text-surface-400 text-right">Точн.</th>
                 </tr>
               </thead>
               <tbody>
                 {#each leaderboard as entry (entry.user_id ?? entry.username ?? entry.rank)}
                   <tr class="border-b border-surface-700/30 hover:bg-surface-700/20 transition-all">
-                    <td class="px-2 sm:px-8 py-4 sm:py-5">
+                    <td class="px-6 sm:px-8 py-5">
                       {#if entry.rank <= 3}
-                        <div class="w-7 h-7 sm:w-8 sm:h-8 flex items-center rounded-lg justify-center font-heading font-extrabold text-xs sm:text-sm
+                        <div class="w-8 h-8 flex items-center rounded-lg justify-center font-heading font-extrabold text-sm
                              {entry.rank === 1 ? 'bg-warning-500/15 text-warning-400' : entry.rank === 2 ? 'bg-surface-300/15 text-surface-300' : 'bg-tertiary-600/15 text-tertiary-500'}">
                           {entry.rank}
                         </div>
                       {:else}
-                        <span class="mono text-xs sm:text-sm font-bold text-surface-400 w-7 sm:w-8 text-center block">{entry.rank}</span>
+                        <span class="mono text-sm font-bold text-surface-400 w-8 text-center block">{entry.rank}</span>
                       {/if}
                     </td>
-                    <td class="px-2 sm:px-6 py-4 sm:py-5 min-w-0">
-                      <div class="flex items-center gap-2 sm:gap-3 min-w-0">
+                    <td class="px-4 sm:px-6 py-5">
+                      <div class="flex items-center gap-3">
                         <a
                           href="/profile/{entry.username}"
                           class="w-8 h-8 rounded-[8px] flex items-center justify-center font-bold text-xs border transition-all hover:border-primary-500/40 overflow-hidden shrink-0"
@@ -313,21 +394,19 @@
                             {leaderboardAvatarInitial(entry)}
                           {/if}
                         </a>
-                        <div class="flex flex-col sm:flex-row sm:items-center sm:gap-3 min-w-0">
-                          <a href="/profile/{entry.username}" class="font-heading font-bold uppercase tracking-tight hover:text-primary-400 transition-colors text-sm sm:text-base truncate max-w-[34vw] sm:max-w-none"
-                             class:text-surface-100={theme === 'dark'} class:text-surface-800={theme === 'light'}>
-                            {entry.username}
-                          </a>
-                          <span class="badge-sakha bg-primary-500/10 border border-primary-500/20 text-primary-400 self-start sm:self-auto mt-0.5 sm:mt-0 text-[9px] sm:text-[10px]">
-                            Ур. {String(entry.level ?? 0).padStart(2, '0')}
-                          </span>
-                        </div>
+                        <a href="/profile/{entry.username}" class="font-heading font-bold uppercase tracking-tight hover:text-primary-400 transition-colors text-sm sm:text-base"
+                           class:text-surface-100={theme === 'dark'} class:text-surface-800={theme === 'light'}>
+                          {entry.username}
+                        </a>
+                        <span class="badge-sakha bg-primary-500/10 border border-primary-500/20 text-primary-400">
+                          Ур. {String(entry.level ?? 0).padStart(2, '0')}
+                        </span>
                       </div>
                     </td>
-                    <td class="px-2 sm:px-6 py-4 sm:py-5 text-right">
-                      <span class="text-xl sm:text-3xl font-heading font-extrabold text-primary-400 tabular-nums">{entry.wpm}</span>
+                    <td class="px-4 sm:px-6 py-5 text-right">
+                      <span class="text-2xl sm:text-3xl font-heading font-extrabold text-primary-400">{entry.wpm}</span>
                     </td>
-                    <td class="hidden sm:table-cell px-6 py-5 text-right">
+                    <td class="px-6 py-5 text-right">
                       <span class="text-lg font-bold mono text-surface-300">{entry.accuracy}%</span>
                     </td>
                   </tr>
