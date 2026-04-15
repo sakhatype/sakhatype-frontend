@@ -912,7 +912,7 @@
       </button>
     </div>
 
-    <div class="mt-[75px] sm:mt-[75px] h-[72px] flex flex-wrap items-center justify-center gap-3 sm:gap-5 select-none {theme === 'dark' ? 'opacity-50' : 'opacity-100'}">
+    <div class="mt-[75px] sm:mt-[75px] h-[72px] hidden sm:flex flex-wrap items-center justify-center gap-3 sm:gap-5 select-none {theme === 'dark' ? 'opacity-50' : 'opacity-100'}">
       {#if settings.sakhaBinds}
         {#each Object.entries(settings.customBindings || {}) as [key, char]}
           <div class="flex items-center gap-1.5">

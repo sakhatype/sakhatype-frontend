@@ -89,8 +89,8 @@
       {/if}
     </button>
 
-    <!-- Input Settings -->
-    <div class="relative binds-menu-container">
+    <!-- Input Settings (desktop only — на мобилке клавиатурные бинды бесполезны) -->
+    <div class="relative binds-menu-container hidden sm:block">
       <button
         on:click|stopPropagation={toggleBinds}
         class="s-card w-10 h-10 !rounded-lg flex items-center justify-center group transition-all hover:!border-primary-500/30 {showBindsMenu ? '!border-primary-500/40 !bg-primary-500/5' : ''}"
