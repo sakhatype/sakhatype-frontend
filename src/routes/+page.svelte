@@ -3,17 +3,75 @@
   import TypingArea from '$components/typing/TypingArea.svelte';
   import ResultDisplay from '$components/typing/ResultDisplay.svelte';
   import Footer from '$components/layout/Footer.svelte';
+  import SoftRegisterModal from '$components/modals/SoftRegisterModal.svelte';
   import { typingStore } from '$stores/typing.js';
   import { settingsStore } from '$stores/settings.js';
+  import { userStore } from '$stores/user.js';
   import { api } from '$utils/api.js';
   import { getOfflineWords } from '$utils/wordDifficulty.js';
+  import { browser } from '$app/environment';
+  import { goto } from '$app/navigation';
+  import { tick } from 'svelte';
 
   let testResult = null;
+  let showSoftReg = false;
+
   $: state = $typingStore;
+  $: currentUser = $userStore.user;
 
   $: if (state.status === 'idle' && testResult !== null) { testResult = null; }
 
-  function handleTestComplete(data) { testResult = data; }
+  /** Сколько тестов прошёл анонимный пользователь. Считаем в localStorage. */
+  const ANON_COUNT_KEY = 'dotx_anon_test_count';
+  /** Флаг «закрыл оффер в этой сессии» — чтобы не доставать каждый тест. */
+  const ANON_DISMISS_KEY = 'dotx_soft_reg_dismissed';
+
+  function readAnonCount() {
+    if (!browser) return 0;
+    const v = parseInt(localStorage.getItem(ANON_COUNT_KEY) || '0', 10);
+    return Number.isFinite(v) ? v : 0;
+  }
+  function writeAnonCount(n) {
+    if (!browser) return;
+    try { localStorage.setItem(ANON_COUNT_KEY, String(n)); } catch { /* ignore */ }
+  }
+  function isDismissedThisSession() {
+    if (!browser) return false;
+    try { return sessionStorage.getItem(ANON_DISMISS_KEY) === '1'; } catch { return false; }
+  }
+  function markDismissedThisSession() {
+    if (!browser) return;
+    try { sessionStorage.setItem(ANON_DISMISS_KEY, '1'); } catch { /* ignore */ }
+  }
+
+  async function handleTestComplete(data) {
+    testResult = data;
+    // Показываем оффер только анонимам, начиная со 2-го теста, и только если
+    // в этой сессии его ещё не закрывали.
+    if (currentUser) return;
+    const next = readAnonCount() + 1;
+    writeAnonCount(next);
+    if (next >= 2 && !isDismissedThisSession()) {
+      // Небольшая задержка, чтобы экран результатов успел отрендериться и
+      // модалка не накрывала анимацию счётчиков.
+      await tick();
+      setTimeout(() => {
+        if (!$userStore.user && !isDismissedThisSession()) showSoftReg = true;
+      }, 900);
+    }
+  }
+
+  function closeSoftReg() {
+    showSoftReg = false;
+    markDismissedThisSession();
+  }
+
+  function gotoAuth(mode) {
+    showSoftReg = false;
+    markDismissedThisSession();
+    const target = mode === 'login' ? '/auth?mode=login' : '/auth?mode=register';
+    goto(target);
+  }
 
   async function handleRestart() {
     testResult = null;
@@ -60,6 +118,13 @@
     <Footer />
   </div>
 </div>
+
+<SoftRegisterModal
+  open={showSoftReg && !currentUser}
+  on:close={closeSoftReg}
+  on:register={() => gotoAuth('register')}
+  on:login={() => gotoAuth('login')}
+/>
 
 <style>
   /* When the on-screen keyboard is open, anchor typing content to the top
