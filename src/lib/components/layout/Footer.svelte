@@ -47,7 +47,7 @@
   <p class="mono text-[9px] uppercase tracking-[0.25em]"
      class:text-surface-600={theme === 'dark'}
      class:text-surface-400={theme === 'light'}>
-    dotx team // При поддержке drivee
+    dotx team
   </p>
 
   <div class="flex items-center gap-2">
