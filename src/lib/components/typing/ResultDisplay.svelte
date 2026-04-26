@@ -2,7 +2,7 @@
   import { typingStore } from '$stores/typing.js';
   import { settingsStore } from '$stores/settings.js';
   import WpmGraph from './WpmGraph.svelte';
-  import { onMount, onDestroy } from 'svelte';
+  import { onMount, onDestroy, tick } from 'svelte';
 
   export let result = null;
   export let onRestart = () => {};
@@ -15,6 +15,19 @@
   $: xpEarned = result?.xp_earned || 0;
   $: levelUp = result?.level_up || false;
   $: newAchievements = result?.new_achievements || [];
+  $: shareMode = result?.result?.mode || result?.mode || state.mode || 'time';
+  $: shareModeValueRaw =
+    result?.result?.mode_value ??
+    result?.result?.modeValue ??
+    result?.mode_value ??
+    result?.modeValue ??
+    state.modeValue;
+  $: shareModeValue =
+    Math.max(1, Math.floor(Number(shareModeValueRaw)) || (shareMode === 'time' ? 30 : 25));
+  $: shareDifficulty =
+    result?.result?.difficulty || result?.difficulty || $settingsStore.difficulty || 'normal';
+  $: shareModeLabel = shareMode === 'words' ? `${shareModeValue} слов` : `${shareModeValue} сек`;
+  $: shareDifficultyLabel = shareDifficulty === 'expert' ? 'Сложный' : 'Лёгкий';
   $: totalErrors = state._totalErrors || 0;
   $: peakWpm = state.secondSnapshots?.length > 0
     ? Math.round(Math.max(...state.secondSnapshots.map(d => d.wpm)))
@@ -26,6 +39,10 @@
   let displayWpm = 0;
   let displayAcc = 0;
   let counterFrame = null;
+  let shareState = 'idle';
+  let shareTimer = null;
+  let restartButtonEl = null;
+  let shareButtonEl = null;
 
   function calcConsistency(snapshots) {
     const wpms = snapshots.map(s => s.wpm).filter(w => w > 0);
@@ -62,13 +79,68 @@
     }
   }
 
+  function setShareState(next, delay = 1800) {
+    shareState = next;
+    if (shareTimer) clearTimeout(shareTimer);
+    if (next !== 'idle') {
+      shareTimer = setTimeout(() => {
+        shareState = 'idle';
+      }, delay);
+    }
+  }
+
+  async function handleShare() {
+    const shareUrl = 'https://sakhatype.ru';
+    const shareText =
+      'Только что прошел тест в SakhaType.\n' +
+      `Результат: ${Math.round(wpm)} WPM и ${Math.round(accuracy)}% точности.\n` +
+      `Режим: ${shareModeLabel}, ${shareDifficultyLabel.toLowerCase()}.\n` +
+      'Сможешь быстрее?';
+    const shareData = {
+      title: 'SakhaType',
+      text: shareText,
+      url: shareUrl
+    };
+
+    try {
+      if (navigator.share) {
+        await navigator.share(shareData);
+        setShareState('done');
+        return;
+      }
+      await navigator.clipboard.writeText(`${shareText}\n${shareData.url}`);
+      setShareState('copied');
+    } catch (err) {
+      // Ignore user-cancelled native share sheet.
+      if (err?.name === 'AbortError') return;
+      setShareState('error', 2200);
+    }
+  }
+
+  async function syncActionButtonsWidth() {
+    await tick();
+    if (!restartButtonEl || !shareButtonEl) return;
+    restartButtonEl.style.width = 'auto';
+    shareButtonEl.style.width = 'auto';
+    const maxWidth = Math.max(restartButtonEl.offsetWidth, shareButtonEl.offsetWidth);
+    restartButtonEl.style.width = `${maxWidth}px`;
+    shareButtonEl.style.width = `${maxWidth}px`;
+  }
+
+  $: if (state.status === 'finished') {
+    syncActionButtonsWidth();
+  }
+
   onMount(() => {
     window.addEventListener('keydown', handleKey);
     animateCounters();
+    window.addEventListener('resize', syncActionButtonsWidth);
   });
   onDestroy(() => {
     window.removeEventListener('keydown', handleKey);
+    window.removeEventListener('resize', syncActionButtonsWidth);
     if (counterFrame) cancelAnimationFrame(counterFrame);
+    if (shareTimer) clearTimeout(shareTimer);
   });
 </script>
 
@@ -86,6 +158,34 @@
       <span class="absolute -bottom-1 left-1/2 -translate-x-1/2 mono text-[11px] font-bold uppercase tracking-[0.5em] text-surface-400">
         WPM
       </span>
+    </div>
+
+    <div class="flex flex-col sm:flex-row items-center gap-3 mt-7 w-full sm:w-auto">
+      <button on:click={onRestart}
+              bind:this={restartButtonEl}
+              class="group relative px-8 sm:px-10 py-3 rounded-2xl font-heading font-bold uppercase text-[11px] tracking-[0.2em] transition-all duration-300 overflow-hidden s-card hover:!bg-primary-500 hover:!text-white hover:!border-primary-400/50 hover:glow-primary-strong"
+              class:text-surface-300={theme === 'dark'}
+              class:text-surface-600={theme === 'light'}>
+        <span class="relative z-10">Ещё раз</span>
+      </button>
+
+      <button on:click={handleShare}
+              bind:this={shareButtonEl}
+              class="group relative px-8 sm:px-10 py-3 rounded-2xl font-heading font-bold uppercase text-[11px] tracking-[0.2em] transition-all duration-300 overflow-hidden s-card hover:!border-surface-400/70"
+              class:text-surface-300={theme === 'dark'}
+              class:text-surface-600={theme === 'light'}>
+        <span class="relative z-10">
+          {#if shareState === 'done'}
+            Отправлено
+          {:else if shareState === 'copied'}
+            Скопировано
+          {:else if shareState === 'error'}
+            Не удалось
+          {:else}
+            Поделиться
+          {/if}
+        </span>
+      </button>
     </div>
   </div>
 
@@ -167,15 +267,5 @@
     </div>
   {/if}
 
-  <!-- ═══ RESTART ═══ -->
-  <div class="flex justify-center mt-8 mb-4 animate-fade-in" style="animation-delay: 0.55s">
-    <button on:click={onRestart}
-            class="group relative px-10 sm:px-14 py-4 rounded-2xl font-heading font-bold uppercase text-[11px] tracking-[0.2em] transition-all duration-300 overflow-hidden s-card hover:!bg-primary-500 hover:!text-white hover:!border-primary-400/50 hover:glow-primary-strong"
-            class:text-surface-300={theme === 'dark'}
-            class:text-surface-600={theme === 'light'}>
-      <span class="relative z-10">Ещё раз</span>
-      <!-- <span class="relative z-10 ml-3 text-[9px] opacity-40 font-normal tracking-normal">(Tab / Esc)</span> -->
-    </button>
-  </div>
 </div>
 {/if}
