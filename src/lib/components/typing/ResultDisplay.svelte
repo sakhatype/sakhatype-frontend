@@ -102,8 +102,6 @@
       ...s,
       profileXpToast: {
         amount: xpEarned,
-        levelUp,
-        newLevel: result?.new_level ?? null,
       },
     }));
 
@@ -257,6 +255,21 @@
     </div>
   </div>
 
+  {#if newAchievements.length > 0}
+    <div class="mb-6 animate-fade-up" style="animation-delay: 0.28s">
+      <div class="s-card p-4 sm:p-5 flex flex-wrap items-center justify-center gap-3">
+        {#if levelUp}
+          <span class="badge-sakha bg-primary-500 text-white animate-scale-in">Ур. {result?.new_level}</span>
+        {/if}
+        {#each newAchievements as ach}
+          <span class="badge-sakha border border-warning-500/30 bg-warning-500/10 text-warning-400">
+            {ach}
+          </span>
+        {/each}
+      </div>
+    </div>
+  {/if}
+
   <!-- ═══ GRAPH ═══ -->
   <div class="animate-fade-in" style="animation-delay: 0.3s">
     <WpmGraph wpmHistory={state.wpmHistory} {wpm} {rawWpm} />
@@ -281,21 +294,6 @@
       <p class="text-lg font-heading font-extrabold text-surface-400">{state.charsMissed}</p>
     </div>
   </div> -->
-
-  {#if newAchievements.length > 0}
-    <div class="mt-5 animate-fade-up" style="animation-delay: 0.5s">
-      <div class="s-card p-4 sm:p-5 flex flex-wrap items-center justify-center gap-3">
-        {#if levelUp}
-          <span class="badge-sakha bg-primary-500 text-white animate-scale-in">Ур. {result?.new_level}</span>
-        {/if}
-        {#each newAchievements as ach}
-          <span class="badge-sakha border border-warning-500/30 bg-warning-500/10 text-warning-400">
-            {ach}
-          </span>
-        {/each}
-      </div>
-    </div>
-  {/if}
 
 </div>
 {/if}
