@@ -154,8 +154,10 @@
             style="filter: drop-shadow(0 0 40px rgba(113,113,122,0.22)) drop-shadow(0 0 80px rgba(113,113,122,0.12));">
         {Math.round(displayWpm)}
       </span>
-      <span class="absolute -bottom-4 left-1/2 -translate-x-1/2 mono text-[11px] font-bold uppercase tracking-[0.5em] text-surface-400">
-        WPM
+      <span class="absolute -bottom-4 left-1/2 -translate-x-1/2 mono text-[11px] font-bold uppercase text-surface-400 inline-flex items-center gap-2">
+        <span>W</span>
+        <span>P</span>
+        <span>M</span>
       </span>
     </div>
 
