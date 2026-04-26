@@ -212,9 +212,7 @@
   {#if profileXpToast}
     <div
       class="pointer-events-none fixed z-[120] whitespace-nowrap rounded-xl border px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.18em] shadow-lg animate-fade-up {theme === 'dark' ? 'border-primary-500/30 bg-surface-800/95 text-primary-300' : 'border-primary-500/20 bg-white/95 text-primary-500'}"
-      style:left="{profileToastX}px"
-      style:top="{profileToastY}px"
-      style:transform="translateX(-50%)">
+      style="left: {profileToastX}px; top: {profileToastY}px; transform: translateX(-50%);">
       +{profileXpToast.amount} XP
       {#if profileXpToast.levelUp}
         • Ур. {profileXpToast.newLevel}
