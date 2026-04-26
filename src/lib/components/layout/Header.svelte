@@ -115,35 +115,37 @@
     <div class="w-px h-6 bg-surface-600/40 mx-1"></div>
 
     {#if user}
-      <a href="/profile/{user.username}" class="relative flex items-center gap-3 pl-2 pr-2 group">
+      <a href="/profile/{user.username}" class="flex items-center gap-3 pl-2 pr-2 group">
         <div class="text-right leading-none">
           <p class="text-xs font-bold"
              class:text-surface-100={theme === 'dark'}
              class:text-surface-800={theme === 'light'}>{user.username}</p>
           <p class="text-primary-400 text-[9px] mono">Ур. {user.level}</p>
         </div>
-        <div class="w-8 h-8 rounded-xl flex items-center justify-center font-bold text-xs border transition-all group-hover:border-primary-500/40 overflow-hidden shrink-0"
-             class:bg-surface-700={theme === 'dark'}
-             class:border-surface-600={theme === 'dark'}
-             class:text-surface-100={theme === 'dark'}
-             class:bg-white={theme === 'light'}
-             class:border-surface-200={theme === 'light'}
-             class:text-surface-800={theme === 'light'}>
-          {#if user.avatar_url}
-            <img src={mediaUrl(user.avatar_url)} alt="" class="w-full h-full object-cover" />
-          {:else}
-            {user.username.charAt(0).toUpperCase()}
-          {/if}
-        </div>
-        {#if profileXpToast}
-          <div
-            class="pointer-events-none absolute left-1/2 top-full mt-2 -translate-x-1/2 whitespace-nowrap rounded-xl border px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.18em] shadow-lg animate-fade-up {theme === 'dark' ? 'border-primary-500/30 bg-surface-800/95 text-primary-300' : 'border-primary-500/20 bg-white/95 text-primary-500'}">
-            +{profileXpToast.amount} XP
-            {#if profileXpToast.levelUp}
-              • Ур. {profileXpToast.newLevel}
+        <div class="relative shrink-0">
+          <div class="w-8 h-8 rounded-xl flex items-center justify-center font-bold text-xs border transition-all group-hover:border-primary-500/40 overflow-hidden"
+               class:bg-surface-700={theme === 'dark'}
+               class:border-surface-600={theme === 'dark'}
+               class:text-surface-100={theme === 'dark'}
+               class:bg-white={theme === 'light'}
+               class:border-surface-200={theme === 'light'}
+               class:text-surface-800={theme === 'light'}>
+            {#if user.avatar_url}
+              <img src={mediaUrl(user.avatar_url)} alt="" class="w-full h-full object-cover" />
+            {:else}
+              {user.username.charAt(0).toUpperCase()}
             {/if}
           </div>
-        {/if}
+          {#if profileXpToast}
+            <div
+              class="pointer-events-none absolute left-1/2 top-full mt-2 -translate-x-1/2 whitespace-nowrap rounded-xl border px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.18em] shadow-lg animate-fade-up {theme === 'dark' ? 'border-primary-500/30 bg-surface-800/95 text-primary-300' : 'border-primary-500/20 bg-white/95 text-primary-500'}">
+              +{profileXpToast.amount} XP
+              {#if profileXpToast.levelUp}
+                • Ур. {profileXpToast.newLevel}
+              {/if}
+            </div>
+          {/if}
+        </div>
       </a>
     {:else}
       <a href="/auth"
