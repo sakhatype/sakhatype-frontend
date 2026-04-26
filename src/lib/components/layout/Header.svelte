@@ -7,7 +7,7 @@
   import { Palette } from 'lucide-svelte';
   import { browser } from '$app/environment';
   import { mediaUrl } from '$utils/mediaUrl.js';
-  import { onMount, onDestroy } from 'svelte';
+  import { onMount, onDestroy, tick } from 'svelte';
 
   $: currentPath = $page.url.pathname;
   $: user = $userStore.user;
@@ -20,10 +20,13 @@
   let contextMenuOpen = false;
   let menuX = 0;
   let menuY = 0;
-  let desktopAvatarEl;
-  let mobileAvatarEl;
+  let desktopPanelEl;
+  let mobilePanelEl;
   let profileToastX = 0;
   let profileToastY = 0;
+  let profileToastReady = false;
+  const PROFILE_TOAST_OPTICAL_OFFSET_X = 0;
+  $: effectiveProfileXpToast = user ? profileXpToast : null;
 
   const MENU_MIN_W = 200;
   const MENU_MIN_H = 48;
@@ -31,13 +34,25 @@
   const VIEW_MARGIN = 20;
 
   function updateProfileToastPosition() {
-    if (!browser || !profileXpToast) return;
+    if (!browser || !effectiveProfileXpToast) {
+      profileToastReady = false;
+      return;
+    }
     const isDesktop = window.matchMedia('(min-width: 768px)').matches;
-    const anchor = isDesktop ? desktopAvatarEl : mobileAvatarEl;
-    if (!anchor) return;
+    const anchor = isDesktop ? desktopPanelEl : mobilePanelEl;
+    if (!anchor) {
+      profileToastReady = false;
+      return;
+    }
     const rect = anchor.getBoundingClientRect();
-    profileToastX = rect.left + rect.width / 2;
+    profileToastX = rect.left + rect.width / 2 + PROFILE_TOAST_OPTICAL_OFFSET_X;
     profileToastY = rect.bottom + 8;
+    profileToastReady = true;
+  }
+
+  async function refreshProfileToastPosition() {
+    await tick();
+    updateProfileToastPosition();
   }
 
   function handleLogoClick(e) {
@@ -75,19 +90,20 @@
     if (contextMenuOpen && e.key === 'Escape') closeContextMenu();
   }
 
-  $: if (profileXpToast) {
-    updateProfileToastPosition();
+  $: if (effectiveProfileXpToast) {
+    void refreshProfileToastPosition();
   }
 
   onMount(() => {
     if (!browser) return;
-    window.addEventListener('resize', updateProfileToastPosition);
+    void refreshProfileToastPosition();
+    window.addEventListener('resize', refreshProfileToastPosition);
     window.addEventListener('scroll', updateProfileToastPosition, true);
   });
 
   onDestroy(() => {
     if (!browser) return;
-    window.removeEventListener('resize', updateProfileToastPosition);
+    window.removeEventListener('resize', refreshProfileToastPosition);
     window.removeEventListener('scroll', updateProfileToastPosition, true);
   });
 </script>
@@ -120,7 +136,7 @@
   </a>
 
   <!-- Navigation -->
-  <nav class="hidden md:flex items-center gap-1.5 s-card px-2 py-1.5">
+  <nav bind:this={desktopPanelEl} class="hidden md:flex items-center gap-1.5 s-card px-2 py-1.5">
     <a href="/leaderboard"
        class="chip-sakha {currentPath === '/leaderboard' ? 'active' : ''}"
        class:text-surface-300={currentPath !== '/leaderboard' && theme === 'dark'}
@@ -153,7 +169,7 @@
              class:text-surface-800={theme === 'light'}>{user.username}</p>
           <p class="text-primary-400 text-[9px] mono">Ур. {user.level}</p>
         </div>
-        <div class="shrink-0" bind:this={desktopAvatarEl}>
+        <div class="shrink-0">
           <div class="w-8 h-8 rounded-xl flex items-center justify-center font-bold text-xs border transition-all group-hover:border-primary-500/40 overflow-hidden"
                class:bg-surface-700={theme === 'dark'}
                class:border-surface-600={theme === 'dark'}
@@ -178,7 +194,7 @@
   </nav>
 
   <!-- Mobile -->
-  <div class="md:hidden flex items-center gap-2">
+  <div bind:this={mobilePanelEl} class="md:hidden flex items-center gap-2">
     <a href="/leaderboard"
        class="h-9 px-3 rounded-xl border flex items-center gap-1.5 font-heading font-bold uppercase text-[10px] tracking-wider transition-all {currentPath === '/leaderboard' ? 'border-primary-500/50 text-primary-400 bg-primary-500/10' : (theme === 'dark' ? 'bg-surface-700 border-surface-600 text-surface-100' : 'bg-white border-surface-200 text-surface-800')}"
        aria-label="Лидерборд">
@@ -191,7 +207,7 @@
       <span>Топ</span>
     </a>
     {#if user}
-      <a href="/profile/{user.username}" bind:this={mobileAvatarEl} class="w-9 h-9 rounded-xl border flex items-center justify-center font-bold text-xs transition-all overflow-hidden"
+      <a href="/profile/{user.username}" class="w-9 h-9 rounded-xl border flex items-center justify-center font-bold text-xs transition-all overflow-hidden"
          class:bg-surface-700={theme === 'dark'}
          class:border-surface-600={theme === 'dark'}
          class:text-surface-100={theme === 'dark'}
@@ -209,13 +225,13 @@
     {/if}
   </div>
 
-  {#if profileXpToast}
+  {#if effectiveProfileXpToast && profileToastReady}
     <div
       class="pointer-events-none fixed z-[120] whitespace-nowrap rounded-xl border px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.18em] shadow-lg animate-fade-up {theme === 'dark' ? 'border-primary-500/30 bg-surface-800/95 text-primary-300' : 'border-primary-500/20 bg-white/95 text-primary-500'}"
       style="left: {profileToastX}px; top: {profileToastY}px; transform: translateX(-50%);">
-      +{profileXpToast.amount} XP
-      {#if profileXpToast.levelUp}
-        • Ур. {profileXpToast.newLevel}
+      +{effectiveProfileXpToast.amount} XP
+      {#if effectiveProfileXpToast.levelUp}
+        • Ур. {effectiveProfileXpToast.newLevel}
       {/if}
     </div>
   {/if}
