@@ -255,7 +255,7 @@
     </div>
   </div>
 
-  {#if newAchievements.length > 0}
+  {#if levelUp || newAchievements.length > 0}
     <div class="mb-6 animate-fade-up" style="animation-delay: 0.28s">
       <div class="s-card p-4 sm:p-5 flex flex-wrap items-center justify-center gap-3">
         {#if levelUp}
