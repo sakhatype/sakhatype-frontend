@@ -2,6 +2,7 @@
   import { userStore } from '$stores/user.js';
   import { settingsStore } from '$stores/settings.js';
   import { typingStore } from '$stores/typing.js';
+  import { uiStore } from '$stores/ui.js';
   import { page } from '$app/stores';
   import { Palette } from 'lucide-svelte';
   import { browser } from '$app/environment';
@@ -10,6 +11,7 @@
   $: currentPath = $page.url.pathname;
   $: user = $userStore.user;
   $: theme = $settingsStore.theme;
+  $: profileXpToast = $uiStore.profileXpToast;
 
   /** @type {HTMLDivElement | undefined} */
   let contextMenuEl;
@@ -113,7 +115,7 @@
     <div class="w-px h-6 bg-surface-600/40 mx-1"></div>
 
     {#if user}
-      <a href="/profile/{user.username}" class="flex items-center gap-3 pl-2 pr-2 group">
+      <a href="/profile/{user.username}" class="relative flex items-center gap-3 pl-2 pr-2 group">
         <div class="text-right leading-none">
           <p class="text-xs font-bold"
              class:text-surface-100={theme === 'dark'}
@@ -133,6 +135,15 @@
             {user.username.charAt(0).toUpperCase()}
           {/if}
         </div>
+        {#if profileXpToast}
+          <div
+            class="pointer-events-none absolute left-1/2 top-full mt-2 -translate-x-1/2 whitespace-nowrap rounded-xl border px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.18em] shadow-lg animate-fade-up {theme === 'dark' ? 'border-primary-500/30 bg-surface-800/95 text-primary-300' : 'border-primary-500/20 bg-white/95 text-primary-500'}">
+            +{profileXpToast.amount} XP
+            {#if profileXpToast.levelUp}
+              • Ур. {profileXpToast.newLevel}
+            {/if}
+          </div>
+        {/if}
       </a>
     {:else}
       <a href="/auth"
@@ -156,7 +167,7 @@
       <span>Топ</span>
     </a>
     {#if user}
-      <a href="/profile/{user.username}" class="w-9 h-9 rounded-xl border flex items-center justify-center font-bold text-xs transition-all overflow-hidden"
+      <a href="/profile/{user.username}" class="relative w-9 h-9 rounded-xl border flex items-center justify-center font-bold text-xs transition-all overflow-hidden"
          class:bg-surface-700={theme === 'dark'}
          class:border-surface-600={theme === 'dark'}
          class:text-surface-100={theme === 'dark'}
@@ -167,6 +178,12 @@
           <img src={mediaUrl(user.avatar_url)} alt="" class="w-full h-full object-cover" />
         {:else}
           {user.username.charAt(0).toUpperCase()}
+        {/if}
+        {#if profileXpToast}
+          <div
+            class="pointer-events-none absolute left-1/2 top-full mt-2 -translate-x-1/2 whitespace-nowrap rounded-xl border px-2.5 py-1 text-[9px] font-bold uppercase tracking-[0.16em] shadow-lg animate-fade-up {theme === 'dark' ? 'border-primary-500/30 bg-surface-800/95 text-primary-300' : 'border-primary-500/20 bg-white/95 text-primary-500'}">
+            +{profileXpToast.amount} XP
+          </div>
         {/if}
       </a>
     {:else}

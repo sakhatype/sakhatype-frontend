@@ -1,6 +1,7 @@
 <script>
   import { typingStore } from '$stores/typing.js';
   import { settingsStore } from '$stores/settings.js';
+  import { uiStore } from '$stores/ui.js';
   import WpmGraph from './WpmGraph.svelte';
   import { onMount, onDestroy, tick } from 'svelte';
 
@@ -41,8 +42,10 @@
   let counterFrame = null;
   let shareState = 'idle';
   let shareTimer = null;
+  let xpToastTimer = null;
   let restartButtonEl = null;
   let shareButtonEl = null;
+  let lastXpToastKey = '';
 
   function calcConsistency(snapshots) {
     const wpms = snapshots.map(s => s.wpm).filter(w => w > 0);
@@ -89,6 +92,28 @@
     }
   }
 
+  function showProfileXpToast() {
+    if (xpEarned <= 0) return;
+    const toastKey = `${xpEarned}:${levelUp}:${result?.new_level ?? ''}`;
+    if (lastXpToastKey === toastKey) return;
+    lastXpToastKey = toastKey;
+
+    uiStore.update(s => ({
+      ...s,
+      profileXpToast: {
+        amount: xpEarned,
+        levelUp,
+        newLevel: result?.new_level ?? null,
+      },
+    }));
+
+    if (xpToastTimer) clearTimeout(xpToastTimer);
+    xpToastTimer = setTimeout(() => {
+      uiStore.update(s => ({ ...s, profileXpToast: null }));
+      xpToastTimer = null;
+    }, 5000);
+  }
+
   async function handleShare() {
     const shareUrl = 'https://sakhatype.ru';
     const shareText =
@@ -130,6 +155,10 @@
     syncActionButtonsWidth();
   }
 
+  $: if (state.status === 'finished' && xpEarned > 0) {
+    showProfileXpToast();
+  }
+
   onMount(() => {
     window.addEventListener('keydown', handleKey);
     animateCounters();
@@ -140,6 +169,8 @@
     window.removeEventListener('resize', syncActionButtonsWidth);
     if (counterFrame) cancelAnimationFrame(counterFrame);
     if (shareTimer) clearTimeout(shareTimer);
+    if (xpToastTimer) clearTimeout(xpToastTimer);
+    uiStore.update(s => ({ ...s, profileXpToast: null }));
   });
 </script>
 
@@ -251,11 +282,9 @@
     </div>
   </div> -->
 
-  <!-- ═══ XP / ACHIEVEMENTS ═══ -->
-  {#if xpEarned > 0}
+  {#if newAchievements.length > 0}
     <div class="mt-5 animate-fade-up" style="animation-delay: 0.5s">
-      <div class="s-card p-4 sm:p-5 flex flex-wrap items-center justify-center gap-4 glow-primary">
-        <span class="text-lg sm:text-xl font-heading font-extrabold text-primary-400">+{xpEarned} XP</span>
+      <div class="s-card p-4 sm:p-5 flex flex-wrap items-center justify-center gap-3">
         {#if levelUp}
           <span class="badge-sakha bg-primary-500 text-white animate-scale-in">Ур. {result?.new_level}</span>
         {/if}

@@ -198,6 +198,16 @@
     if (hiddenInput) hiddenInput.focus({ preventScroll: true });
   }
 
+  function shouldAutoCommitLastWord(nextInput, word, snapshot = get(typingStore)) {
+    if (snapshot.status !== 'running') return false;
+    if (snapshot.mode !== 'words') return false;
+    const goal = snapshot.wordsGoal > 0
+      ? snapshot.wordsGoal
+      : Math.max(1, Math.floor(Number(snapshot.modeValue)) || 1);
+    if (snapshot.currentWordIndex !== goal - 1) return false;
+    return nextInput.length >= word.length;
+  }
+
   // ─── CANVAS SETUP ────────────────────────────────────────────────
   function resizeCanvas() {
     if (!canvasEl || !containerEl) return;
@@ -651,29 +661,33 @@
       if (mapped) {
         const word = state.words[state.currentWordIndex];
         const pos = state.currentInput.length;
+        const nextInput = state.currentInput + mapped;
         const isError = pos < word.length && mapped !== word[pos];
         if (isError) typingStore.recordError();
         typingStore.recordChar();
         pushCharPop(caretX, caretY, mapped, isError ? 'i' : 'c');
-        typingStore.setInput(state.currentInput + mapped);
+        typingStore.setInput(nextInput);
         syncHiddenInput();
         resetCaretBlink();
         if (settings.soundEnabled) soundManager.playKeystroke();
+        if (shouldAutoCommitLastWord(nextInput, word)) commitCurrentWord();
         return;
       }
     }
 
     const word = state.words[state.currentWordIndex];
     const pos = state.currentInput.length;
+    const nextInput = state.currentInput + e.key;
 
     const isError = pos < word.length && e.key !== word[pos];
     if (isError) typingStore.recordError();
     typingStore.recordChar();
     pushCharPop(caretX, caretY, e.key, isError ? 'i' : 'c');
-    typingStore.setInput(state.currentInput + e.key);
+    typingStore.setInput(nextInput);
     syncHiddenInput();
     resetCaretBlink();
     if (settings.soundEnabled) soundManager.playKeystroke();
+    if (shouldAutoCommitLastWord(nextInput, word)) commitCurrentWord();
   }
 
   // ─── MOBILE INPUT ───────────────────────────────────────────────
@@ -718,12 +732,17 @@
       }
       let mc = ch;
       if (settings.sakhaBinds && settings.language === 'sakha') { const m = mapToSakha(ch, settings.customBindings); if (m) mc = m; }
-      typingStore.setInput(cs.currentInput + mc);
+      const nextInput = cs.currentInput + mc;
+      typingStore.setInput(nextInput);
       const mw = cs.words[cs.currentWordIndex];
       const mp = get(typingStore).currentInput.length - 1;
       if (mp >= 0 && mp < mw.length && mc !== mw[mp]) typingStore.recordError();
       typingStore.recordChar();
       if (settings.soundEnabled) soundManager.playKeystroke();
+      if (shouldAutoCommitLastWord(nextInput, mw, cs)) {
+        commitCurrentWord();
+        if (get(typingStore).status === 'finished') break;
+      }
     }
     lastHiddenValue = hiddenInput?.value || '';
     resetCaretBlink();
