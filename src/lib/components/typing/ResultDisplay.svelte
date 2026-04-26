@@ -103,11 +103,12 @@
       profileXpToast: {
         amount: xpEarned,
       },
+      profileLevelToast: levelUp ? { newLevel: result?.new_level ?? null } : null,
     }));
 
     if (xpToastTimer) clearTimeout(xpToastTimer);
     xpToastTimer = setTimeout(() => {
-      uiStore.update(s => ({ ...s, profileXpToast: null }));
+      uiStore.update(s => ({ ...s, profileXpToast: null, profileLevelToast: null }));
       xpToastTimer = null;
     }, 5000);
   }
@@ -168,7 +169,7 @@
     if (counterFrame) cancelAnimationFrame(counterFrame);
     if (shareTimer) clearTimeout(shareTimer);
     if (xpToastTimer) clearTimeout(xpToastTimer);
-    uiStore.update(s => ({ ...s, profileXpToast: null }));
+    uiStore.update(s => ({ ...s, profileXpToast: null, profileLevelToast: null }));
   });
 </script>
 
@@ -255,12 +256,9 @@
     </div>
   </div>
 
-  {#if levelUp || newAchievements.length > 0}
+  {#if newAchievements.length > 0}
     <div class="mb-6 animate-fade-up" style="animation-delay: 0.28s">
       <div class="s-card p-4 sm:p-5 flex flex-wrap items-center justify-center gap-3">
-        {#if levelUp}
-          <span class="badge-sakha bg-primary-500 text-white animate-scale-in">Ур. {result?.new_level}</span>
-        {/if}
         {#each newAchievements as ach}
           <span class="badge-sakha border border-warning-500/30 bg-warning-500/10 text-warning-400">
             {ach}

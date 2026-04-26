@@ -6,4 +6,6 @@ export const uiStore = writable({
   keyBindingsModalOpen: false,
   /** Временная подпись под иконкой профиля в хедере. */
   profileXpToast: null,
+  /** Временная подпись о повышении уровня под попапом опыта в хедере. */
+  profileLevelToast: null,
 });

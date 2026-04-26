@@ -13,6 +13,7 @@
   $: user = $userStore.user;
   $: theme = $settingsStore.theme;
   $: profileXpToast = $uiStore.profileXpToast;
+  $: profileLevelToast = $uiStore.profileLevelToast;
 
   /** @type {HTMLDivElement | undefined} */
   let contextMenuEl;
@@ -27,6 +28,7 @@
   let profileToastReady = false;
   const PROFILE_TOAST_OPTICAL_OFFSET_X = 0;
   $: effectiveProfileXpToast = user ? profileXpToast : null;
+  $: effectiveProfileLevelToast = user ? profileLevelToast : null;
 
   const MENU_MIN_W = 200;
   const MENU_MIN_H = 48;
@@ -34,7 +36,7 @@
   const VIEW_MARGIN = 20;
 
   function updateProfileToastPosition() {
-    if (!browser || !effectiveProfileXpToast) {
+    if (!browser || (!effectiveProfileXpToast && !effectiveProfileLevelToast)) {
       profileToastReady = false;
       return;
     }
@@ -90,7 +92,7 @@
     if (contextMenuOpen && e.key === 'Escape') closeContextMenu();
   }
 
-  $: if (effectiveProfileXpToast) {
+  $: if (effectiveProfileXpToast || effectiveProfileLevelToast) {
     void refreshProfileToastPosition();
   }
 
@@ -225,11 +227,21 @@
     {/if}
   </div>
 
-  {#if effectiveProfileXpToast && profileToastReady}
+  {#if (effectiveProfileXpToast || effectiveProfileLevelToast) && profileToastReady}
     <div
-      class="pointer-events-none fixed z-[120] whitespace-nowrap rounded-xl border px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.18em] shadow-lg animate-fade-up {theme === 'dark' ? 'border-primary-500/30 bg-surface-800/95 text-primary-300' : 'border-primary-500/20 bg-white/95 text-primary-500'}"
+      class="pointer-events-none fixed z-[120] flex flex-col items-end gap-1"
       style="left: {profileToastX}px; top: {profileToastY}px; transform: translateX(-50%);">
-      +{effectiveProfileXpToast.amount} XP
+      {#if effectiveProfileXpToast}
+        <div class="whitespace-nowrap rounded-xl border px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.18em] shadow-lg animate-fade-up {theme === 'dark' ? 'border-primary-500/30 bg-surface-800/95 text-primary-300' : 'border-primary-500/20 bg-white/95 text-primary-500'}">
+          +{effectiveProfileXpToast.amount} XP
+        </div>
+      {/if}
+
+      {#if effectiveProfileLevelToast}
+        <div class="whitespace-nowrap rounded-xl border px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.18em] shadow-lg animate-fade-up {theme === 'dark' ? 'border-primary-500/30 bg-surface-800/95 text-primary-300' : 'border-primary-500/20 bg-white/95 text-primary-500'}">
+          Ур. {effectiveProfileLevelToast.newLevel}
+        </div>
+      {/if}
     </div>
   {/if}
 
