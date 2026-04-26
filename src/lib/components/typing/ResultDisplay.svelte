@@ -95,11 +95,10 @@
       'Только что прошел тест в SakhaType.\n' +
       `Результат: ${Math.round(wpm)} WPM и ${Math.round(accuracy)}% точности.\n` +
       `Режим: ${shareModeLabel}, ${shareDifficultyLabel.toLowerCase()}.\n` +
-      'Сможешь быстрее?';
+      `Сможешь быстрее?\n${shareUrl}`;
     const shareData = {
       title: 'SakhaType',
-      text: shareText,
-      url: shareUrl
+      text: shareText
     };
 
     try {
@@ -108,7 +107,7 @@
         setShareState('done');
         return;
       }
-      await navigator.clipboard.writeText(`${shareText}\n${shareData.url}`);
+      await navigator.clipboard.writeText(shareText);
       setShareState('copied');
     } catch (err) {
       // Ignore user-cancelled native share sheet.
