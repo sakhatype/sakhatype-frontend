@@ -7,6 +7,7 @@
   import { Palette } from 'lucide-svelte';
   import { browser } from '$app/environment';
   import { mediaUrl } from '$utils/mediaUrl.js';
+  import { onMount, onDestroy } from 'svelte';
 
   $: currentPath = $page.url.pathname;
   $: user = $userStore.user;
@@ -19,11 +20,25 @@
   let contextMenuOpen = false;
   let menuX = 0;
   let menuY = 0;
+  let desktopAvatarEl;
+  let mobileAvatarEl;
+  let profileToastX = 0;
+  let profileToastY = 0;
 
   const MENU_MIN_W = 200;
   const MENU_MIN_H = 48;
   /** отступ контекстного меню от краёв окна */
   const VIEW_MARGIN = 20;
+
+  function updateProfileToastPosition() {
+    if (!browser || !profileXpToast) return;
+    const isDesktop = window.matchMedia('(min-width: 768px)').matches;
+    const anchor = isDesktop ? desktopAvatarEl : mobileAvatarEl;
+    if (!anchor) return;
+    const rect = anchor.getBoundingClientRect();
+    profileToastX = rect.left + rect.width / 2;
+    profileToastY = rect.bottom + 8;
+  }
 
   function handleLogoClick(e) {
     if (currentPath === '/' && $typingStore.status === 'finished') {
@@ -59,6 +74,22 @@
   function handleGlobalKeydown(e) {
     if (contextMenuOpen && e.key === 'Escape') closeContextMenu();
   }
+
+  $: if (profileXpToast) {
+    updateProfileToastPosition();
+  }
+
+  onMount(() => {
+    if (!browser) return;
+    window.addEventListener('resize', updateProfileToastPosition);
+    window.addEventListener('scroll', updateProfileToastPosition, true);
+  });
+
+  onDestroy(() => {
+    if (!browser) return;
+    window.removeEventListener('resize', updateProfileToastPosition);
+    window.removeEventListener('scroll', updateProfileToastPosition, true);
+  });
 </script>
 
 <svelte:window on:pointerdown={handleGlobalPointerDown} on:keydown={handleGlobalKeydown} />
@@ -122,7 +153,7 @@
              class:text-surface-800={theme === 'light'}>{user.username}</p>
           <p class="text-primary-400 text-[9px] mono">Ур. {user.level}</p>
         </div>
-        <div class="relative shrink-0">
+        <div class="shrink-0" bind:this={desktopAvatarEl}>
           <div class="w-8 h-8 rounded-xl flex items-center justify-center font-bold text-xs border transition-all group-hover:border-primary-500/40 overflow-hidden"
                class:bg-surface-700={theme === 'dark'}
                class:border-surface-600={theme === 'dark'}
@@ -136,15 +167,6 @@
               {user.username.charAt(0).toUpperCase()}
             {/if}
           </div>
-          {#if profileXpToast}
-            <div
-              class="pointer-events-none absolute left-1/2 top-full mt-2 -translate-x-1/2 whitespace-nowrap rounded-xl border px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.18em] shadow-lg animate-fade-up {theme === 'dark' ? 'border-primary-500/30 bg-surface-800/95 text-primary-300' : 'border-primary-500/20 bg-white/95 text-primary-500'}">
-              +{profileXpToast.amount} XP
-              {#if profileXpToast.levelUp}
-                • Ур. {profileXpToast.newLevel}
-              {/if}
-            </div>
-          {/if}
         </div>
       </a>
     {:else}
@@ -169,7 +191,7 @@
       <span>Топ</span>
     </a>
     {#if user}
-      <a href="/profile/{user.username}" class="relative w-9 h-9 rounded-xl border flex items-center justify-center font-bold text-xs transition-all overflow-hidden"
+      <a href="/profile/{user.username}" bind:this={mobileAvatarEl} class="w-9 h-9 rounded-xl border flex items-center justify-center font-bold text-xs transition-all overflow-hidden"
          class:bg-surface-700={theme === 'dark'}
          class:border-surface-600={theme === 'dark'}
          class:text-surface-100={theme === 'dark'}
@@ -181,17 +203,24 @@
         {:else}
           {user.username.charAt(0).toUpperCase()}
         {/if}
-        {#if profileXpToast}
-          <div
-            class="pointer-events-none absolute left-1/2 top-full mt-2 -translate-x-1/2 whitespace-nowrap rounded-xl border px-2.5 py-1 text-[9px] font-bold uppercase tracking-[0.16em] shadow-lg animate-fade-up {theme === 'dark' ? 'border-primary-500/30 bg-surface-800/95 text-primary-300' : 'border-primary-500/20 bg-white/95 text-primary-500'}">
-            +{profileXpToast.amount} XP
-          </div>
-        {/if}
       </a>
     {:else}
       <a href="/auth" class="bg-primary-500 px-5 py-2.5 rounded-xl text-xs font-bold uppercase text-white tracking-wider hover:bg-primary-400 transition-all">Войти</a>
     {/if}
   </div>
+
+  {#if profileXpToast}
+    <div
+      class="pointer-events-none fixed z-[120] whitespace-nowrap rounded-xl border px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.18em] shadow-lg animate-fade-up {theme === 'dark' ? 'border-primary-500/30 bg-surface-800/95 text-primary-300' : 'border-primary-500/20 bg-white/95 text-primary-500'}"
+      style:left="{profileToastX}px"
+      style:top="{profileToastY}px"
+      style:transform="translateX(-50%)">
+      +{profileXpToast.amount} XP
+      {#if profileXpToast.levelUp}
+        • Ур. {profileXpToast.newLevel}
+      {/if}
+    </div>
+  {/if}
 
   {#if contextMenuOpen}
     <div
